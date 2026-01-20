@@ -1,4 +1,5 @@
 using Runtime.Infraestructure;
+using Runtime.Infrastructure;
 using UnityEngine;
 using Zenject;
 
@@ -9,9 +10,10 @@ namespace Runtime.Main
         [SerializeField] private KeyboardTextScoreFeedback feedbackPrefab;
         public override void InstallBindings()
         {
-            Container.Bind<Keyboard>().AsSingle();
-            Container.BindFactory<KeyboardTextScoreFeedback, KeyboardTextScoreFeedback.KeyboardScoreFeedbackFactory>()
-                .FromComponentInNewPrefab(feedbackPrefab);
+            Container.Bind<FirstStickman>().AsSingle();
+            
+            Container.Bind<ContainerShaker>().FromComponentInHierarchy().AsSingle();
+            Container.Bind<AudioPlayer>().AsSingle();
         }
     }
 }
