@@ -8,13 +8,15 @@ namespace Runtime.Infraestructure
     {
         [Inject] private readonly FirstStickman _firstStickman;
         [SerializeField] private Camera _camera;
-        [SerializeField] private Collider2D _rightLegCollider;
-        [SerializeField] private Collider2D _leftLegCollider;
-        [SerializeField] private Collider2D _headCollider;
+        [SerializeField] private ClickRightLegButton _rightLegCollider;
+        [SerializeField] private ClickLeftLegButton _leftLegCollider;
+        [SerializeField] private ClickRightArmButton _rightArmCollider;
+        [SerializeField] private ClickLeftArmButton _leftArmCollider;
+        [SerializeField] private ClickHeadButton _headCollider;
 
         private void Awake()
         {
-            _camera.orthographicSize = 5.04f;
+            _camera.orthographicSize = 1f;
             _firstStickman.OnBodyReady += ZoomOutToArms;
             _firstStickman.OnArmsReady += ZoomOutToFullBench;
             _firstStickman.OnFullBodyReady += ZoomOutToRoom;
@@ -22,10 +24,10 @@ namespace Runtime.Infraestructure
 
         private void ZoomOutToFullBench()
         {
-            _camera.DOOrthoSize(19.75f, 2f).SetEase(Ease.OutCubic);
-            _rightLegCollider.enabled = true;
-            _leftLegCollider.enabled = true;
-            _headCollider.enabled = true;
+            _camera.DOOrthoSize(2.23f, 2f).SetEase(Ease.OutCubic);
+            _rightLegCollider.StartToFill();
+            _leftLegCollider.StartToFill();
+            _headCollider.StartToFill();
         }
 
         private void OnDestroy()
@@ -35,7 +37,16 @@ namespace Runtime.Infraestructure
             _firstStickman.OnFullBodyReady -= ZoomOutToRoom;
         }
 
-        private void ZoomOutToArms() => _camera.DOOrthoSize(10.68f, 2f).SetEase(Ease.OutCubic);
-        private void ZoomOutToRoom() => _camera.DOOrthoSize(45f, 2f).SetEase(Ease.OutCubic);
+        private void ZoomOutToArms()
+        {
+            _leftArmCollider.StartToFill();
+            _rightArmCollider.StartToFill();
+        }
+
+        private void ZoomOutToRoom()
+        {
+            _camera.DOOrthoSize(5.21f, 2f).SetEase(Ease.OutCubic);
+            _camera.transform.DOLocalMove(new Vector3(0.77f, -0.41f, 0f), 2f).SetEase(Ease.OutCubic);
+        }
     }
 }

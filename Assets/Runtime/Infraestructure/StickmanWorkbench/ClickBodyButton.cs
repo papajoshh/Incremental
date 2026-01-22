@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -17,12 +19,32 @@ namespace Runtime.Infraestructure
         private void Awake()
         {
             initialPosition = _mask.localPosition;
+            StartCoroutine(PressContinuos());
+        }
+
+        private void OnDestroy()
+        {
+            StopAllCoroutines();
+        }
+
+        private IEnumerator PressContinuos()
+        {
+            while (!firstStickman.BodyFullfilled)
+            {
+                yield return new WaitForSeconds(2);
+                Press(false);
+            }
         }
         public void OnPointerDown(PointerEventData eventData)
         {
+            Press();
+        }
+
+        private void Press(bool feedback = true)
+        {
             if (firstStickman.BodyFullfilled) return;
             firstStickman.PressBody();
-            _pressFeedback.Play();
+            if(feedback)_pressFeedback.Play();
             _tween.Kill();
             _tween = _mask.DOLocalMoveY(initialPosition.y + firstStickman.PercentageFullfilledBody * maxDistance, 0.5f);
         }

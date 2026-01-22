@@ -1,3 +1,4 @@
+using System.Collections;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -21,12 +22,35 @@ namespace Runtime.Infraestructure
             initialPosition = _mask.localPosition;
             collider.enabled = false;
         }
+        private void OnDestroy()
+        {
+            StopAllCoroutines();
+        }
+
+        public void StartToFill()
+        {
+            StartCoroutine(PressContinuos());
+            collider.enabled = true;
+        }
+        private IEnumerator PressContinuos()
+        {
+            while (!firstStickman.LeftLegFullfilled)
+            {
+                yield return new WaitForSeconds(2);
+                Press(false);
+            }
+        }
 
         public void OnPointerDown(PointerEventData eventData)
         {
             if (firstStickman.LeftLegFullfilled) return;
+            Press();
+        }
+
+        private void Press(bool feedback = true)
+        {
             firstStickman.PressLeftLeg();
-            _pressFeedback.Play();
+            if(feedback)_pressFeedback.Play();
             _tween.Kill();
             _tween = _mask.DOLocalMove(initialPosition + firstStickman.PercentageLeftLegFullfilled * maxDistance, 0.5f);
         }

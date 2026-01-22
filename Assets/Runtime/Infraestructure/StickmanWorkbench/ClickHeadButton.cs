@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -19,12 +20,34 @@ namespace Runtime.Infraestructure
         {
             collider.enabled = false;
         }
+        private void OnDestroy()
+        {
+            StopAllCoroutines();
+        }
 
+        public void StartToFill()
+        {
+            StartCoroutine(PressContinuos());
+            collider.enabled = true;
+        }
+        private IEnumerator PressContinuos()
+        {
+            while (!firstStickman.HeadFullfilled)
+            {
+                yield return new WaitForSeconds(2);
+                Press(false);
+            }
+        }
         public void OnPointerDown(PointerEventData eventData)
         {
             if (firstStickman.HeadFullfilled) return;
+            Press();
+        }
+
+        private void Press(bool feedback = true)
+        {
             firstStickman.PressHead();
-            _pressFeedback.Play();
+            if(feedback)_pressFeedback.Play();
             _tween.Kill();
             _tween = _mask.DOScale(firstStickman.PercentageHeadFullfilled , 0.5f);
         }

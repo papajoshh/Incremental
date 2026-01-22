@@ -1,3 +1,4 @@
+using System.Collections;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -11,6 +12,7 @@ namespace Runtime.Infraestructure
         [SerializeField] private PressFeedback _pressFeedback;
         [SerializeField] private Transform _mask;
         [SerializeField] private Vector3 maxDistance;
+        [SerializeField] private Collider2D collider;
         
         private Vector3 initialPosition;
         private Tween _tween;
@@ -18,13 +20,36 @@ namespace Runtime.Infraestructure
         private void Awake()
         {
             initialPosition = _mask.localPosition;
+            collider.enabled = false;
+        }
+        private void OnDestroy()
+        {
+            StopAllCoroutines();
         }
 
+        public void StartToFill()
+        {
+            StartCoroutine(PressContinuos());
+            collider.enabled = true;
+        }
+        private IEnumerator PressContinuos()
+        {
+            while (!firstStickman.RightArmFullfilled)
+            {
+                yield return new WaitForSeconds(2);
+                Press(false);
+            }
+        }
         public void OnPointerDown(PointerEventData eventData)
         {
             if (firstStickman.RightArmFullfilled) return;
+            Press();
+        }
+
+        private void Press(bool feedback = true)
+        {
             firstStickman.PressRightArm();
-            _pressFeedback.Play();
+            if(feedback)_pressFeedback.Play();
             _tween.Kill();
             _tween = _mask.DOLocalMove(initialPosition + firstStickman.PercentageRightArmFullfilled * maxDistance,
                 0.5f);
