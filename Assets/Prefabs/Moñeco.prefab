@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1116293143659200446}
   - component: {fileID: 7812174875717832148}
   - component: {fileID: 3016989229042271754}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: "Mo\xF1eco"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -65,7 +65,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 273136044419007718}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -96,12 +96,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53cd6fd34e8bde94d921af33974ef0c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementMode: 1
+  movementMode: 0
   stepDistance: 0.5
+  fallStepDistance: 1.5
   continuousSpeed: 2
   feetPosition: {fileID: 6026317536363472177}
   groundCheckDistance: 0.75
   groundLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  bodyPosition: {fileID: 5793836143571742947}
+  bodyHalfWidth: 1.27
+  wallLayer:
     serializedVersion: 2
     m_Bits: 256
   startWalking: 1
@@ -114,7 +120,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6026317536363472177}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FeetTransform
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -145,7 +151,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5510383111718730639}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Legs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -178,7 +184,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 130091876977092312}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Arms
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -212,7 +218,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5793836143571742947}
   - component: {fileID: 7722732587906585120}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -296,7 +302,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7126090277958339222}
   - component: {fileID: 147822236146924974}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: RightArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -380,7 +386,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4994894585968018843}
   - component: {fileID: 4454802840533166303}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: RightLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -464,7 +470,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1186996266246495917}
   - component: {fileID: 7484259721320013876}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -548,7 +554,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1951013280481381149}
   - component: {fileID: 4843290241977597247}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Reference
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -631,7 +637,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3665340473375756880}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Container
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -667,7 +673,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8739083589391807397}
   - component: {fileID: 2147769752846041232}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: LeftArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -751,7 +757,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8997863974519984531}
   - component: {fileID: 1082753381323530470}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FullBody
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -820,7 +826,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1559698081224559839}
   - component: {fileID: 3130949915342683010}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: LeftLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class Critter : MonoBehaviour
@@ -7,7 +6,9 @@ public class Critter : MonoBehaviour
     {
         Idle,
         Walking,
-        Falling
+        Falling,
+        Landing,
+        Turning
     }
 
     public enum MovementMode
@@ -19,12 +20,18 @@ public class Critter : MonoBehaviour
     [Header("Movement")]
     [SerializeField] private MovementMode movementMode = MovementMode.StopMotion;
     [SerializeField] private float stepDistance = 0.1f;
+    [SerializeField] private float fallStepDistance = 0.15f;
     [SerializeField] private float continuousSpeed = 2f;
 
-    [Header("Ground Detection")] 
+    [Header("Ground Detection")]
     [SerializeField] private Transform feetPosition;
     [SerializeField] private float groundCheckDistance = 0.1f;
     [SerializeField] private LayerMask groundLayer;
+
+    [Header("Wall Detection")]
+    [SerializeField] private Transform bodyPosition;
+    [SerializeField] private float bodyHalfWidth = 0.25f;
+    [SerializeField] private LayerMask wallLayer;
 
     [Header("Initial State")]
     [SerializeField] private bool startWalking = true;
@@ -32,8 +39,6 @@ public class Critter : MonoBehaviour
     private State currentState;
     private int direction = 1; // 1 = right, -1 = left
     private Animator animator;
-    private float lastHeightOnGround = -Mathf.Infinity;
-    private float gapToGetFalling = 0.2f;
     private Rigidbody2D rb;
     private bool wasGrounded;
 
@@ -41,6 +46,7 @@ public class Critter : MonoBehaviour
     static readonly int AnimWalkRight = Animator.StringToHash("WalkRight");
     static readonly int AnimWalkLeft = Animator.StringToHash("WalkLeft");
     static readonly int AnimFalling = Animator.StringToHash("Falling");
+    static readonly int AnimLanding = Animator.StringToHash("Landing");
 
     void Awake()
     {
@@ -50,9 +56,6 @@ public class Critter : MonoBehaviour
 
     void Start()
     {
-        // Initialize lastHeightOnGround to current position
-        lastHeightOnGround = feetPosition.position.y;
-
         if (IsGrounded())
         {
             if (startWalking)
@@ -85,16 +88,10 @@ public class Critter : MonoBehaviour
     {
         bool isGrounded = IsGrounded();
 
-        // Detect if started falling
-        if (currentState != State.Falling && IsFalling())
+        // Detect if started falling (walked off a ledge)
+        if (!isGrounded && (currentState == State.Walking || currentState == State.Idle))
         {
             ChangeState(State.Falling);
-        }
-        // Detect if landed
-        else if (isGrounded && currentState == State.Falling)
-        {
-            // On landing, resume walking in the same direction
-            StartWalking(direction);
         }
 
         wasGrounded = isGrounded;
@@ -108,34 +105,65 @@ public class Critter : MonoBehaviour
         if (movementMode != MovementMode.StopMotion) return;
         if (currentState != State.Walking) return;
 
+        // Check if wall is within this step's distance (raycast from body edge)
+        Vector2 center = bodyPosition != null ? bodyPosition.position : transform.position;
+        Vector2 moveDirection = Vector2.right * direction;
+        Vector2 origin = center + moveDirection * bodyHalfWidth;
+        RaycastHit2D hit = Physics2D.Raycast(origin, moveDirection, stepDistance, wallLayer);
+
+        if (hit.collider != null)
+        {
+            // Wall ahead - don't move, just turn
+            ChangeState(State.Turning);
+            return;
+        }
+
         transform.position += Vector3.right * direction * stepDistance;
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    /// <summary>
+    /// Called from Animation Events on each frame of Falling animation (StopMotion mode only).
+    /// </summary>
+    public void OnFallStep()
     {
-        if (currentState != State.Walking) return;
+        if (movementMode != MovementMode.StopMotion) return;
+        if (currentState != State.Falling) return;
 
-        // Check if hit from the side (not from above/below)
-        foreach (ContactPoint2D contact in collision.contacts)
+        // Check if ground is within this step's distance
+        Vector2 origin = feetPosition.position;
+        RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, fallStepDistance, groundLayer);
+
+        if (hit.collider != null)
         {
-            // If normal points mostly horizontal, it's a wall
-            if (Mathf.Abs(contact.normal.x) > 0.5f)
-            {
-                Turn();
-                break;
-            }
+            // Snap to ground - move exactly to where feet touch the ground
+            float distanceToGround = hit.distance;
+            transform.position += Vector3.down * distanceToGround;
+            ChangeState(State.Landing);
+            return;
         }
+
+        transform.position += Vector3.down * fallStepDistance;
     }
 
-    private void Turn()
+    /// <summary>
+    /// Called from Animation Event at the end of Landing animation.
+    /// </summary>
+    public void OnLandingComplete()
     {
-        direction *= -1;
-        UpdateAnimation();
+        if (currentState != State.Landing) return;
+        StartWalking(direction);
+    }
 
-        // Flip the sprite
-        Vector3 scale = transform.localScale;
-        scale.x = Mathf.Abs(scale.x) * direction;
-        transform.localScale = scale;
+    /// <summary>
+    /// Called from Animation Event at the end of each walk cycle (WalkLeft/WalkRight).
+    /// </summary>
+    public void OnWalkCycleComplete()
+    {
+        if (currentState != State.Turning) return;
+
+        // Now turn and start walking in the new direction
+        direction *= -1;
+        ChangeState(State.Walking);
     }
 
     private void StartWalking(int newDirection)
@@ -165,6 +193,12 @@ public class Critter : MonoBehaviour
             case State.Falling:
                 animator.Play(AnimFalling);
                 break;
+            case State.Landing:
+                animator.Play(AnimLanding);
+                break;
+            case State.Turning:
+                // Keep playing current animation until cycle completes
+                break;
             default:
                 animator.Play(AnimIdle);
                 break;
@@ -175,18 +209,7 @@ public class Critter : MonoBehaviour
     {
         Vector2 origin = feetPosition.position;
         RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, groundCheckDistance, groundLayer);
-        if (hit.collider != null)
-        {
-            lastHeightOnGround = origin.y;
-            return true;
-        }
-        return false;
-    }
-
-    private bool IsFalling()
-    {
-        if(IsGrounded()) return false;
-        return Math.Abs(lastHeightOnGround - feetPosition.position.y) > gapToGetFalling;
+        return hit.collider != null;
     }
 
     private void OnDrawGizmosSelected()
