@@ -13,10 +13,13 @@ namespace Runtime.Infraestructure
         [SerializeField] private ClickRightArmButton _rightArmCollider;
         [SerializeField] private ClickLeftArmButton _leftArmCollider;
         [SerializeField] private ClickHeadButton _headCollider;
+        [SerializeField] private Moñeco moñeco;
 
         private void Awake()
         {
-            _camera.orthographicSize = 1f;
+            moñeco.gameObject.SetActive(false);
+            _camera.orthographicSize = 3.57f;
+            _camera.transform.localPosition = new Vector3(-5.3f, -2.49f, 0);
             _firstStickman.OnBodyReady += ZoomOutToArms;
             _firstStickman.OnArmsReady += ZoomOutToFullBench;
             _firstStickman.OnFullBodyReady += ZoomOutToRoom;
@@ -24,7 +27,7 @@ namespace Runtime.Infraestructure
 
         private void ZoomOutToFullBench()
         {
-            _camera.DOOrthoSize(2.23f, 2f).SetEase(Ease.OutCubic);
+            _camera.DOOrthoSize(9f, 2f).SetEase(Ease.OutCubic);
             _rightLegCollider.StartToFill();
             _leftLegCollider.StartToFill();
             _headCollider.StartToFill();
@@ -45,8 +48,15 @@ namespace Runtime.Infraestructure
 
         private void ZoomOutToRoom()
         {
-            _camera.DOOrthoSize(5.21f, 2f).SetEase(Ease.OutCubic);
-            _camera.transform.DOLocalMove(new Vector3(0.77f, -0.41f, 0f), 2f).SetEase(Ease.OutCubic);
+            _camera.DOOrthoSize(27.41f, 2f).SetEase(Ease.OutCubic);
+            _camera.transform.DOLocalMove(new Vector3(32f, 13.39f, 0f), 2f).SetEase(Ease.OutCubic).OnComplete(CreateMoñeco);
+        }
+        
+        private void CreateMoñeco()
+        {
+            moñeco.gameObject.SetActive(true);
+            moñeco.Birth();
+            gameObject.SetActive(false);
         }
     }
 }

@@ -10,6 +10,7 @@ namespace Runtime.Main
         [SerializeField] private KeyboardTextScoreFeedback feedbackPrefab;
         public override void InstallBindings()
         {
+            Container.Bind<BagOfMoñecos>().AsSingle();
             Container.Bind<FirstStickman>().AsSingle();
             
             Container.Bind<ContainerShaker>().FromComponentInHierarchy().AsSingle();

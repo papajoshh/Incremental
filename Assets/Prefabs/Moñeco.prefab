@@ -96,17 +96,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53cd6fd34e8bde94d921af33974ef0c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementMode: 0
-  stepDistance: 0.5
-  fallStepDistance: 1.5
+  stepDistance: 2.355
+  fallStepDistance: 7.065
   continuousSpeed: 2
   feetPosition: {fileID: 6026317536363472177}
-  groundCheckDistance: 0.75
+  groundCheckDistance: 0.5
   groundLayer:
     serializedVersion: 2
     m_Bits: 256
   bodyPosition: {fileID: 5793836143571742947}
-  bodyHalfWidth: 1.27
+  bodyHalfWidth: 5.9817
   wallLayer:
     serializedVersion: 2
     m_Bits: 256
