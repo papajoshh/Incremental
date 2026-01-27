@@ -21,5 +21,10 @@ namespace Runtime
             Presses += AddPerPress;
             OnSpacePress?.Invoke(Presses);
         }
+
+        public void Reset()
+        {
+            Presses = 0;
+        }
     }
 }

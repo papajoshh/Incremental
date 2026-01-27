@@ -1,3 +1,5 @@
+using System;
+
 namespace Runtime
 {
     public class PressWitCap
@@ -6,6 +8,7 @@ namespace Runtime
         private int _cap;
         
         public bool Completed => _pressCounter.Presses >= _cap;
+        public float Percentage => Math.Min(1f, (float)_pressCounter.Presses / _cap);
         public static PressWitCap StartWith(int initialPresses, int pressesPerImpulse, int cap)
         {
             return new PressWitCap()
@@ -18,6 +21,11 @@ namespace Runtime
         public void Press()
         {
             _pressCounter.Press();
+        }
+        
+        public void Reset()
+        {
+            _pressCounter.Reset();
         }
     }
 }

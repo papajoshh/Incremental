@@ -9,13 +9,15 @@ namespace Runtime
         private PressWitCap _pressWithCap;
         private MoñecoMachine _machine;
         
+        public float Progress => _pressWithCap.Percentage;
+
         public MoñecoCreatingMachine(BagOfMoñecos _bagOfMoñecos, int pressesToCreate, MoñecoMachine machine)
         {
             this._bagOfMoñecos = _bagOfMoñecos;
             _pressWithCap = PressWitCap.StartWith(0,1,pressesToCreate);
             _machine = machine;
         }
-        
+
         public void CreateMoñeco()
         {
             _bagOfMoñecos.Add();
@@ -26,6 +28,7 @@ namespace Runtime
             _pressWithCap.Press();
             if (!_pressWithCap.Completed) return;
             await _machine.GiveBirth();
+            _pressWithCap.Reset();
         }
         
     }

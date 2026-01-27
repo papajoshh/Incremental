@@ -95,7 +95,7 @@ namespace Runtime.Infraestructure
             
             var interactable = collision.GetComponent<Interactable>();
             if (interactable == null) return;
-            if (interactable.CanInteract(this)) return;
+            if (!interactable.CanInteract(this)) return;
             _currentInteractable = interactable;
             _currentInteractable.StartInteraction(this);
             ChangeState(State.Interacting);

@@ -21,23 +21,23 @@ namespace Runtime
 
         public static PartOfBody Head()
         {
-            return new PartOfBody(1);
+            return new PartOfBody(3);
         }
         public static PartOfBody Body()
         {
-            return new PartOfBody(1);
+            return new PartOfBody(3);
         }
         public static PartOfBody LeftArm()
         {
-            return new PartOfBody(1);
+            return new PartOfBody(3);
         }
         public static PartOfBody RightArm()
         {
-            return new PartOfBody(1);
+            return new PartOfBody(3);
         }
         public static PartOfBody RightLeg()
         {
-            return new PartOfBody(1);
+            return new PartOfBody(3);
         }
         public static PartOfBody LeftLeg()
         {
