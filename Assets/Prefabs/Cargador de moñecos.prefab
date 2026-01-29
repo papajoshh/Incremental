@@ -281,7 +281,7 @@ Transform:
   m_Children:
   - {fileID: 7358978264601605162}
   - {fileID: 884072165046493297}
-  m_Father: {fileID: 119255362660992799}
+  m_Father: {fileID: 8330295607623989922}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2396335724632545841
 GameObject:
@@ -733,7 +733,7 @@ Transform:
   m_Children:
   - {fileID: 5526775185786776585}
   - {fileID: 8201240786326785464}
-  m_Father: {fileID: 119255362660992799}
+  m_Father: {fileID: 8330295607623989922}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3895975132419826484
 GameObject:
@@ -903,6 +903,43 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 1
   m_SpriteSortPoint: 0
+--- !u!1 &4801157957784050849
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8330295607623989922}
+  m_Layer: 5
+  m_Name: "VisualMo\xF1eco"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8330295607623989922
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4801157957784050849}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 9213658228938284151}
+  - {fileID: 7749196593138617203}
+  - {fileID: 4297626957004859274}
+  - {fileID: 6895144264267856372}
+  - {fileID: 8034038869154192622}
+  - {fileID: 286212518432310059}
+  m_Father: {fileID: 119255362660992799}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4838659073803978163
 GameObject:
   m_ObjectHideFlags: 0
@@ -934,7 +971,7 @@ Transform:
   m_Children:
   - {fileID: 559266750032325791}
   - {fileID: 5717956052005349381}
-  m_Father: {fileID: 119255362660992799}
+  m_Father: {fileID: 8330295607623989922}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5199991441077002402
 GameObject:
@@ -1050,15 +1087,10 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 9213658228938284151}
-  - {fileID: 7749196593138617203}
-  - {fileID: 4297626957004859274}
-  - {fileID: 6895144264267856372}
-  - {fileID: 8034038869154192622}
-  - {fileID: 286212518432310059}
   - {fileID: 5744466665800307354}
   - {fileID: 3800257064081809637}
   - {fileID: 8097479118611547258}
+  - {fileID: 8330295607623989922}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2484859500005895243
@@ -1077,6 +1109,10 @@ MonoBehaviour:
   "_mo\xF1ecoPrefab": {fileID: 273136044419007718, guid: 8802b204adbcc0543a60c7184cfebc80, type: 3}
   positionToSpawn: {fileID: 5744466665800307354}
   positionToInteract: {fileID: 3800257064081809637}
+  collider: {fileID: 8858789204095176038}
+  startEnabled: 1
+  _canBeInteracted: 1
+  "visualMo\xF1eco": {fileID: 4801157957784050849}
   bodyParts:
   - mask: {fileID: 3508249110059558719}
     endPosition: {x: 0, y: 0, z: 0}
@@ -1293,7 +1329,7 @@ Transform:
   m_Children:
   - {fileID: 7228857464264938679}
   - {fileID: 30116329711717350}
-  m_Father: {fileID: 119255362660992799}
+  m_Father: {fileID: 8330295607623989922}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8352283652748124082
 GameObject:
@@ -1326,7 +1362,7 @@ Transform:
   m_Children:
   - {fileID: 4279794441309393935}
   - {fileID: 2189421821322986894}
-  m_Father: {fileID: 119255362660992799}
+  m_Father: {fileID: 8330295607623989922}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8643008886796091612
 GameObject:
@@ -1390,7 +1426,7 @@ Transform:
   m_Children:
   - {fileID: 3183603530478245118}
   - {fileID: 3508249110059558719}
-  m_Father: {fileID: 119255362660992799}
+  m_Father: {fileID: 8330295607623989922}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8843947449526018720
 GameObject:

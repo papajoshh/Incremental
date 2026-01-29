@@ -5,5 +5,7 @@ namespace Runtime.Application
     public interface MoñecoMachine
     {
         Task GiveBirth();
+        void TurnOn();
+        void TurnOff();
     }
 }

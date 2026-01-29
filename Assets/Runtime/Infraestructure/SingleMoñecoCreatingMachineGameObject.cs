@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DG.Tweening;
 using Runtime.Application;
@@ -25,25 +26,33 @@ namespace Runtime.Infrastructure
         [SerializeField] private GameObject _moñecoPrefab;
         [SerializeField] private Transform positionToSpawn;
         [SerializeField] private Transform positionToInteract;
-
+        [SerializeField] private Collider2D collider;
+        [SerializeField] private bool startEnabled = true;
+        [SerializeField] private bool _canBeInteracted = true;
+        [SerializeField] private GameObject visualMoñeco;
+        
         [Header("Body Parts")]
         [SerializeField] private BodyPartVisual[] bodyParts;
         [SerializeField] private PressFeedback _pressFeedback;
 
         private Interactor _currentUser;
-        private bool _canBeInteracted = true;
-        private MoñecoCreatingMachine _currentMachine;
+        
+        public MoñecoCreatingMachine CurrentMachine { get; private set; }
 
         private void Awake()
         {
             foreach (var part in bodyParts)
                 part.initialPosition = part.mask.localPosition;
+            if(startEnabled)
+                TurnOn();
+            else
+                TurnOff();
         }
 
         [Inject]
         private void Construct(BagOfMoñecos bag)
         {
-            _currentMachine = new MoñecoCreatingMachine(bag, ticksToSpawn, this);
+            CurrentMachine = new MoñecoCreatingMachine(bag, ticksToSpawn, this, new List<Interactor>());
         }
 
         public bool CanInteract(Interactor interactor) => _currentUser == null && _canBeInteracted;
@@ -52,12 +61,13 @@ namespace Runtime.Infrastructure
         {
             _currentUser = interactor;
             interactor.SetPositionToInteract(positionToInteract);
+            CurrentMachine.AddWorkerMoñeco(interactor);
         }
 
         public async Task OnInteractionTick(Interactor interactor)
         {
             if (!_canBeInteracted) return;
-            await _currentMachine.ImpulseMoñecoCreation();
+            await CurrentMachine.ImpulseMoñecoCreation();
             UpdateVisuals();
         }
 
@@ -65,7 +75,7 @@ namespace Runtime.Infrastructure
         {
             if (!_canBeInteracted) return;
             if (_currentUser == null) return;
-            await _currentMachine.ImpulseMoñecoCreation();
+            await CurrentMachine.ImpulseMoñecoCreation();
             if (_pressFeedback) _pressFeedback.Play();
             UpdateVisuals();
         }
@@ -80,14 +90,26 @@ namespace Runtime.Infrastructure
         {
             var moñeco = Instantiate(_moñecoPrefab, positionToSpawn.position, Quaternion.identity);
             _canBeInteracted = false;
-            await moñeco.GetComponent<Moñeco>().Birth();
+            await moñeco.GetComponent<MoñecoMonoBehaviour>().Birth();
             ResetVisuals();
             _canBeInteracted = true;
         }
 
+        public void TurnOn()
+        {
+            visualMoñeco.SetActive(true);
+            collider.enabled = true;
+        }
+
+        public void TurnOff()
+        {
+            visualMoñeco.SetActive(false);
+            collider.enabled = false;
+        }
+
         private void UpdateVisuals()
         {
-            float progress = _currentMachine.Progress;
+            float progress = CurrentMachine.Progress;
             int partCount = bodyParts.Length;
 
             for (int i = 0; i < partCount; i++)

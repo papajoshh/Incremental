@@ -1,10 +1,11 @@
 using System.Threading.Tasks;
 using Runtime.Application;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Runtime.Infraestructure
 {
-    public class Moñeco : MonoBehaviour, Interactor
+    public class MoñecoMonoBehaviour : MonoBehaviour, Interactor
     {
         public enum State
         {
