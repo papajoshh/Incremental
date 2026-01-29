@@ -16,12 +16,25 @@ namespace Runtime.Infraestructure
 
         public void Shake()
         {
+            Shake(cameraShakeStrength);
+        }
+
+        public void Shake(float strength)
+        {
             shake?.Complete();
             shake = rectTransform.DOShakeAnchorPos(shakeDuration, uiShakeStrength, 20);
 
             cameraShake?.Complete();
-            cameraShake = cameraContainer.DOShakePosition(shakeDuration, cameraShakeStrength, 20);
+            cameraShake = cameraContainer.DOShakePosition(shakeDuration, strength, 20);
         }
 
+        public void SlowMotion(float duration, float timeScale = 0.1f)
+        {
+            Time.timeScale = timeScale;
+            DOTween.Sequence()
+                .AppendInterval(duration)
+                .AppendCallback(() => Time.timeScale = 1f)
+                .SetUpdate(true);
+        }
     }
 }

@@ -1015,7 +1015,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _pressFeedback: {fileID: 565086268}
   _mask: {fileID: 796278803}
-  maxDistance: {x: 0, y: 3.49, z: 0}
+  maxDistance: {x: 0, y: 3.87, z: 0}
   collider: {fileID: 565086267}
 --- !u!1 &628334552
 GameObject:
@@ -2437,7 +2437,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _pressFeedback: {fileID: 1746695772}
   _mask: {fileID: 2037185424}
-  maxDistance: {x: 0, y: 3.49, z: 0}
+  maxDistance: {x: 0, y: 3.87, z: 0}
   collider: {fileID: 1746695771}
 --- !u!1 &1762137443
 GameObject:

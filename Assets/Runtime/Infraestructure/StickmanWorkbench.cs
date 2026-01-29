@@ -10,6 +10,7 @@ namespace Runtime.Infraestructure
     {
         [Inject] private readonly FirstStickman _firstStickman;
         [SerializeField] private Camera _camera;
+        [Inject] private readonly ContainerShaker _containerShaker;
         [SerializeField] private ClickRightLegButton _rightLegCollider;
         [SerializeField] private ClickLeftLegButton _leftLegCollider;
         [SerializeField] private ClickRightArmButton _rightArmCollider;
@@ -31,7 +32,7 @@ namespace Runtime.Infraestructure
 
         private void ZoomOutToFullBench()
         {
-            _camera.DOOrthoSize(9f, 2f).SetEase(Ease.OutCubic);
+            _camera.DOOrthoSize(9f, 0.4f).SetEase(Ease.OutExpo).OnComplete(() => _containerShaker.Shake(0.3f));
             _rightLegCollider.StartToFill();
             _leftLegCollider.StartToFill();
             _headCollider.StartToFill();
@@ -52,8 +53,18 @@ namespace Runtime.Infraestructure
 
         private void ZoomOutToRoom()
         {
-            _camera.DOOrthoSize(20f, 2f).SetEase(Ease.OutCubic);
-            _camera.transform.DOLocalMove(new Vector3(14.9f, 3.2f, 0f), 2f).SetEase(Ease.OutCubic).OnComplete(CreateMoñeco);
+            var currentSize = _camera.orthographicSize;
+            _containerShaker.SlowMotion(0.8f);
+            DOTween.Sequence()
+                .Append(_camera.DOOrthoSize(currentSize * 0.8f, 0.8f).SetEase(Ease.InQuad))
+                .Append(_camera.DOOrthoSize(20f, 0.35f).SetEase(Ease.OutExpo))
+                .Join(_camera.transform.DOLocalMove(new Vector3(14.9f, 3.2f, 0f), 0.35f).SetEase(Ease.OutExpo))
+                .OnComplete(() =>
+                {
+                    _containerShaker.Shake(0.5f);
+                    CreateMoñeco();
+                })
+                .SetUpdate(true);
         }
         
         private void CreateMoñeco()

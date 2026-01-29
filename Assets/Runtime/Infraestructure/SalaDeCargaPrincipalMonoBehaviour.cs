@@ -10,6 +10,7 @@ namespace Runtime.Infraestructure
         [SerializeField] private SingleMoñecoCreatingMachineGameObject[] _moñecoCreatinGameObjectsMachines;
         
         [Inject] private readonly BagOfMoñecos _bagOfMoñecos;
+        [Inject] private readonly ContainerShaker _containerShaker;
 
         private int machineOccupiedCount;
         private void Awake()
@@ -35,8 +36,14 @@ namespace Runtime.Infraestructure
             if (_currentMoñecos != 2) return;
             _bagOfMoñecos.OnMoñecosChange -= OnGet2Moñecos;
             var mainCamera = Camera.main;
-            mainCamera.DOOrthoSize(48f, 2f).SetEase(Ease.OutCubic);
-            mainCamera.transform.DOLocalMove(new Vector3(60.4f, 21.4f, 0f), 2f).SetEase(Ease.OutCubic);
+            var currentSize = mainCamera.orthographicSize;
+            _containerShaker.SlowMotion(1f);
+            DOTween.Sequence()
+                .Append(mainCamera.DOOrthoSize(currentSize * 0.75f, 1f).SetEase(Ease.InQuad))
+                .Append(mainCamera.DOOrthoSize(48f, 0.25f).SetEase(Ease.OutExpo))
+                .Join(mainCamera.transform.DOLocalMove(new Vector3(60.4f, 21.4f, 0f), 0.25f).SetEase(Ease.OutExpo))
+                .OnComplete(() => _containerShaker.Shake(0.8f))
+                .SetUpdate(true);
         }
         
         private void OnMachineOccupied()
