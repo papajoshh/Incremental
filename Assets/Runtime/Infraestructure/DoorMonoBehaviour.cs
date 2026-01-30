@@ -5,11 +5,12 @@ namespace Runtime.Infraestructure
 {
     public class DoorMonoBehaviour : MonoBehaviour, Door
     {
-        [SerializeField] private Transform destination;
+        [SerializeField] private Transform entrancePosition;
         [SerializeField] private SpriteRenderer spriteRenderer;
         [SerializeField] private Sprite openSprite;
         [SerializeField] private Sprite closedSprite;
         [SerializeField] private Collider2D triggerCollider;
+        [SerializeField] private DoorMonoBehaviour destinationDoor;
         [SerializeField] private RoomMonoBehaviour destinationRoom;
 
         [SerializeField] private bool startClosed = true;
@@ -42,8 +43,10 @@ namespace Runtime.Infraestructure
         public void CrossTo(Transform objectToMove)
         {
             if (!IsOpened) return;
-            objectToMove.position = destination.position;
+            objectToMove.position = destinationDoor.GetEntrancePosition();
             if (destinationRoom) destinationRoom.TryDiscover();
         }
+
+        public Vector3 GetEntrancePosition() => entrancePosition.position;
     }
 }
