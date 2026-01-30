@@ -38,7 +38,7 @@ public class ClickLeftArmButton : MonoBehaviour, IPointerDownHandler
         while (!firstStickman.LeftArmFullfilled)
         {
             yield return new WaitForSeconds(2);
-            Press();
+            if (!firstStickman.LeftArmFullfilled) Press();
         }
     }
     public void OnPointerDown(PointerEventData eventData)

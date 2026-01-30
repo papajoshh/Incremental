@@ -50,7 +50,20 @@ namespace Runtime.Infraestructure
         {
             machineOccupiedCount++;
             if (machineOccupiedCount < _moñecoCreatinGameObjectsMachines.Length) return;
-            
+            ZoomOutToExit();
+        }
+        
+        private void ZoomOutToExit()
+        {
+            var mainCamera = Camera.main;
+            var currentSize = mainCamera.orthographicSize;
+            _containerShaker.SlowMotion(1f);
+            DOTween.Sequence()
+                .Append(mainCamera.DOOrthoSize(currentSize * 0.75f, 1f).SetEase(Ease.InQuad))
+                .Append(mainCamera.DOOrthoSize(52f, 0.25f).SetEase(Ease.OutExpo))
+                .Join(mainCamera.transform.DOLocalMove(new Vector3(71.1f, 21.4f, 0f), 0.25f).SetEase(Ease.OutExpo))
+                .OnComplete(() => _containerShaker.Shake(1f))
+                .SetUpdate(true);
         }
     }
 }

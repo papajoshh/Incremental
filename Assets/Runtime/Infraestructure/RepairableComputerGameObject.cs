@@ -1,0 +1,81 @@
+using System.Threading.Tasks;
+using DG.Tweening;
+using Runtime.Application;
+using Runtime.Domain;
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+namespace Runtime.Infraestructure
+{
+    public class RepairableComputerGameObject : MonoBehaviour, Interactable, IPointerDownHandler
+    {
+        [SerializeField] private int ticksToRepair = 300;
+        [SerializeField] private int totalSlots = 3;
+        [SerializeField] private Transform[] slotsPositions;
+        [SerializeField] private Transform progressMask;
+        [SerializeField] private Vector3 progressMaskStart;
+        [SerializeField] private Vector3 progressMaskEnd;
+        [SerializeField] private DoorMonoBehaviour door;
+        [SerializeField] private PressFeedback pressFeedback;
+        [SerializeField] private Collider2D interactionCollider;
+
+        private RepairableComputer _computer;
+        private Tween _progressTween;
+
+        private void Awake()
+        {
+            _computer = new RepairableComputer(ticksToRepair, totalSlots);
+            _computer.OnRepaired += OnRepaired;
+            progressMask.localPosition = progressMaskStart;
+        }
+
+        private void OnDestroy()
+        {
+            _computer.OnRepaired -= OnRepaired;
+        }
+
+        public bool CanInteract(Interactor interactor) => !_computer.Repaired && _computer.HasFreeSlot;
+
+        public void StartInteraction(Interactor interactor)
+        {
+            int slotIndex = _computer.GetWorkers().Count;
+            _computer.AddWorker(interactor);
+            interactor.SetPositionToInteract(slotsPositions[slotIndex]);
+        }
+
+        public Task OnInteractionTick(Interactor interactor)
+        {
+            if (_computer.Repaired) return Task.CompletedTask;
+            _computer.Impulse();
+            UpdateProgressBar();
+            return Task.CompletedTask;
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (_computer.Repaired) return;
+            if (_computer.GetWorkers().Count == 0) return;
+            _computer.Impulse();
+            if (pressFeedback) pressFeedback.Play();
+            UpdateProgressBar();
+        }
+
+        public void EndInteraction(Interactor interactor) { }
+
+        private void UpdateProgressBar()
+        {
+            _progressTween?.Kill();
+            _progressTween = progressMask.DOLocalMove(
+                Vector3.Lerp(progressMaskStart, progressMaskEnd, _computer.Progress), 0.5f);
+        }
+
+        private void OnRepaired()
+        {
+            foreach (var worker in _computer.GetWorkers())
+                worker.StopInteraction();
+
+            door.Open();
+            interactionCollider.enabled = false;
+        }
+    }
+}

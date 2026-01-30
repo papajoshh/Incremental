@@ -14,6 +14,7 @@ namespace Runtime.Main
             Container.Bind<FirstStickman>().AsSingle();
             
             Container.Bind<ContainerShaker>().FromComponentInHierarchy().AsSingle();
+            Container.Bind<ScreenFader>().FromComponentInHierarchy().AsSingle();
             Container.Bind<AudioPlayer>().AsSingle();
         }
     }

@@ -37,7 +37,7 @@ namespace Runtime.Infraestructure
             while (!firstStickman.RightArmFullfilled)
             {
                 yield return new WaitForSeconds(2);
-                Press(false);
+                if (!firstStickman.RightArmFullfilled)Press(false);
             }
         }
         public void OnPointerDown(PointerEventData eventData)

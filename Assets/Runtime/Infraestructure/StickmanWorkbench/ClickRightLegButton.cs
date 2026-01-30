@@ -38,7 +38,7 @@ namespace Runtime.Infraestructure
             while (!firstStickman.RightLegFullfilled)
             {
                 yield return new WaitForSeconds(2);
-                Press(false);
+                if (!firstStickman.RightLegFullfilled) Press(false);
             }
         }
 

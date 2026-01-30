@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"D:\\\\Repositorios\\\\Incremental\\\\Assets\\\\Runtime\\\\Infraestructure\\\\StickmanWorkbench\"\" 2>&1 | grep -i \".cs \")",
+      "Bash(ls -la \"D:\\\\Repositorios\\\\Incremental\\\\Assets\\\\Runtime\\\\Infraestructure\"\" 2>&1 | grep -i \".cs \")"
+    ]
+  }
+}

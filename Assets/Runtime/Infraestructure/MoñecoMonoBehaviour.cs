@@ -41,6 +41,8 @@ namespace Runtime.Infraestructure
         private Animator animator;
         private Rigidbody2D rb;
         private Interactable _currentInteractable;
+        private Interactable _pendingInteractable;
+        private float? _walkToTargetX;
 
         static readonly int AnimIdle = Animator.StringToHash("Idle");
         static readonly int AnimWalkRight = Animator.StringToHash("WalkRight");
@@ -88,18 +90,26 @@ namespace Runtime.Infraestructure
         private void OnTriggerEnter2D(Collider2D collision)
         {
             CheckToInteract(collision);
+            CheckToCrossDoor(collision);
         }
         
         private void CheckToInteract(Collider2D collision)
         {
             if (currentState != State.Walking) return;
-            
+            if (IsWalkingToInteraction()) return;
+
             var interactable = collision.GetComponent<Interactable>();
             if (interactable == null) return;
             if (!interactable.CanInteract(this)) return;
-            _currentInteractable = interactable;
-            _currentInteractable.StartInteraction(this);
-            ChangeState(State.Interacting);
+            _pendingInteractable = interactable;
+            _pendingInteractable.StartInteraction(this);
+        }
+
+        private void CheckToCrossDoor(Collider2D collision)
+        {
+            if (currentState != State.Walking) return;
+            var door = collision.GetComponent<Door>();
+            door?.CrossTo(gameObject.transform);
         }
 
         public void OnInteractionTick()
@@ -112,12 +122,39 @@ namespace Runtime.Infraestructure
         {
             _currentInteractable.EndInteraction(this);
             _currentInteractable = null;
+            ClearWalkTarget();
             StartWalking(direction);
         }
-        
-        public void SetPositionToInteract(Transform transform)
+
+        public void SetPositionToInteract(Transform interactPosition)
         {
-            transform.position = this.transform.position;
+            _walkToTargetX = interactPosition.position.x;
+            if (HasReachedTarget())
+                ArriveAtInteraction();
+        }
+
+        private bool IsWalkingToInteraction() => _walkToTargetX.HasValue;
+
+        private bool HasReachedTarget()
+        {
+            if (!_walkToTargetX.HasValue) return false;
+            return (direction > 0 && transform.position.x >= _walkToTargetX.Value)
+                || (direction < 0 && transform.position.x <= _walkToTargetX.Value);
+        }
+
+        private void ArriveAtInteraction()
+        {
+            transform.position = new Vector3(_walkToTargetX.Value, transform.position.y, transform.position.z);
+            _currentInteractable = _pendingInteractable;
+            _pendingInteractable = null;
+            ClearWalkTarget();
+            ChangeState(State.Interacting);
+        }
+
+        private void ClearWalkTarget()
+        {
+            _walkToTargetX = null;
+            _pendingInteractable = null;
         }
 
         private void UpdateGroundedState()
@@ -149,6 +186,9 @@ namespace Runtime.Infraestructure
             }
 
             transform.position += Vector3.right * direction * stepDistance;
+
+            if (HasReachedTarget())
+                ArriveAtInteraction();
         }
         public void OnFallStep()
         {
