@@ -11,6 +11,7 @@ namespace Runtime.Infraestructure
         
         [Inject] private readonly BagOfMoñecos _bagOfMoñecos;
         [Inject] private readonly ContainerShaker _containerShaker;
+        [Inject] private StickmanWorkbench _workbench;
 
         private int machineOccupiedCount;
         public bool Milestone2MoñecosTriggered { get; private set; }
@@ -69,6 +70,34 @@ namespace Runtime.Infraestructure
                 foreach (var machine in _moñecoCreatinGameObjectsMachines)
                     machine.CurrentMachine.OnOccupied -= OnMachineOccupied;
             }
+        }
+
+        public void SkipToStart()
+        {
+            _workbench.Skip();
+        }
+
+        public void SkipTo2Moñecos()
+        {
+            SkipToStart();
+            _bagOfMoñecos.Add();
+        }
+
+        public void SkipToAllOccupied()
+        {
+            _workbench.Skip();
+
+            foreach (var machine in _moñecoCreatinGameObjectsMachines)
+            {
+                machine.SpawnWorker();
+                _bagOfMoñecos.Add();
+            }
+
+            RestoreMilestones(true, _moñecoCreatinGameObjectsMachines.Length);
+
+            var cam = Camera.main;
+            cam.orthographicSize = 52f;
+            cam.transform.localPosition = new Vector3(71.1f, 21.4f, 0f);
         }
 
         private void ZoomOutToExit()

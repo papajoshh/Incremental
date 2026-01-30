@@ -17,6 +17,9 @@ namespace Runtime.Main
             Container.Bind<ScreenFader>().FromComponentInHierarchy().AsSingle();
             Container.Bind<AudioPlayer>().AsSingle();
             Container.Bind<SaveManager>().FromComponentInHierarchy().AsSingle();
+            
+            Container.Bind<StickmanWorkbench>().FromComponentInHierarchy().AsSingle();
+            Container.Bind<SalaDeCargaPrincipalMonoBehaviour>().FromComponentInHierarchy().AsSingle();
         }
     }
 }

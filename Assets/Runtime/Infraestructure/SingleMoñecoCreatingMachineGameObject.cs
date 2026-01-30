@@ -37,6 +37,7 @@ namespace Runtime.Infrastructure
         [SerializeField] private PressFeedback _pressFeedback;
         [SerializeField] private string saveId;
         public string SaveId => saveId;
+        public Vector3 InteractPosition => positionToInteract.position;
 
         private Interactor _currentUser;
         
@@ -154,6 +155,15 @@ namespace Runtime.Infrastructure
         {
             _currentUser = worker;
             CurrentMachine.RestoreWorker(worker);
+        }
+
+        public MoñecoMonoBehaviour SpawnWorker()
+        {
+            var go = Instantiate(_moñecoPrefab, positionToInteract.position, Quaternion.identity);
+            var moñeco = go.GetComponent<MoñecoMonoBehaviour>();
+            moñeco.RestoreInteraction(this, 1);
+            RestoreWorker(moñeco);
+            return moñeco;
         }
 
         private void SetVisualsImmediate()

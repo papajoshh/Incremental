@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,6 +23,11 @@ namespace Runtime.Infraestructure
         private void Start()
         {
             if (HasSave()) Load();
+        }
+
+        private void OnDisable()
+        {
+            Save();
         }
 
         public void Save()

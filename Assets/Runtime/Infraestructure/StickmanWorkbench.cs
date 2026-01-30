@@ -1,7 +1,6 @@
 using DG.Tweening;
 using Runtime.Application;
 using UnityEngine;
-using UnityEngine.Serialization;
 using Zenject;
 
 namespace Runtime.Infraestructure
@@ -17,7 +16,6 @@ namespace Runtime.Infraestructure
         [SerializeField] private ClickLeftArmButton _leftArmCollider;
         [SerializeField] private ClickHeadButton _headCollider;
         [SerializeField] private MoñecoMonoBehaviour moñecoMonoBehaviour;
-        [SerializeField] private GameObject moñecoCreator;
 
         [Inject] private readonly BagOfMoñecos _bagOfMoñecos;
         private void Awake()
@@ -67,12 +65,18 @@ namespace Runtime.Infraestructure
                 .SetUpdate(true);
         }
         
+        public void Skip()
+        {
+            _camera.orthographicSize = 20f;
+            _camera.transform.localPosition = new Vector3(14.9f, 3.2f, 0f);
+            CreateMoñeco();
+        }
+
         private void CreateMoñeco()
         {
             moñecoMonoBehaviour.gameObject.SetActive(true);
             moñecoMonoBehaviour.Birth();
             gameObject.SetActive(false);
-            moñecoCreator.GetComponent<MoñecoMachine>().TurnOn();
             _bagOfMoñecos.Add();
         }
     }
