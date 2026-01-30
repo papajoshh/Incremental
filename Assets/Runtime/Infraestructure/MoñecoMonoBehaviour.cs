@@ -1,5 +1,7 @@
 using System.Threading.Tasks;
 using Runtime.Application;
+using Runtime.Domain;
+using Runtime.Infrastructure;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -38,6 +40,7 @@ namespace Runtime.Infraestructure
 
         private State currentState;
         private int direction = 1; // 1 = right, -1 = left
+        private bool _restored;
         private Animator animator;
         private Rigidbody2D rb;
         private Interactable _currentInteractable;
@@ -60,6 +63,7 @@ namespace Runtime.Infraestructure
         void Start()
         {
             if(currentState == State.Birth) return;
+            if (_restored) return;
             Air();
         }
 
@@ -290,6 +294,44 @@ namespace Runtime.Infraestructure
         {
             ChangeState(State.Birth);
             return Task.CompletedTask;
+        }
+
+        public MoñecoSaveData CaptureState()
+        {
+            string machineId = null;
+            if (currentState == State.Interacting && _currentInteractable is MonoBehaviour mb)
+            {
+                if (mb is SingleMoñecoCreatingMachineGameObject machine)
+                    machineId = machine.SaveId;
+                else if (mb is RepairableComputerGameObject computer)
+                    machineId = computer.SaveId;
+            }
+
+            return new MoñecoSaveData
+            {
+                x = transform.position.x,
+                y = transform.position.y,
+                direction = direction,
+                isInteracting = currentState == State.Interacting,
+                assignedMachineId = machineId,
+            };
+        }
+
+        public void RestoreInteraction(Interactable interactable, int savedDirection)
+        {
+            _restored = true;
+            direction = savedDirection;
+            _currentInteractable = interactable;
+            _pendingInteractable = null;
+            _walkToTargetX = null;
+            ChangeState(State.Interacting);
+        }
+
+        public void RestoreWalking(int savedDirection)
+        {
+            _restored = true;
+            direction = savedDirection;
+            StartWalking(savedDirection);
         }
     }
 

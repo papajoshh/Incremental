@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using DG.Tweening;
 using Runtime.Application;
@@ -18,6 +19,8 @@ namespace Runtime.Infraestructure
         [SerializeField] private DoorMonoBehaviour door;
         [SerializeField] private PressFeedback pressFeedback;
         [SerializeField] private Collider2D interactionCollider;
+        [SerializeField] private string saveId;
+        public string SaveId => saveId;
 
         private RepairableComputer _computer;
         private Tween _progressTween;
@@ -61,6 +64,32 @@ namespace Runtime.Infraestructure
         }
 
         public void EndInteraction(Interactor interactor) { }
+
+        public ComputerSaveData CaptureState()
+        {
+            return new ComputerSaveData
+            {
+                id = saveId,
+                currentPresses = _computer.CurrentPresses,
+                repaired = _computer.Repaired
+            };
+        }
+
+        public void RestoreState(ComputerSaveData data)
+        {
+            _computer.Restore(data.currentPresses, data.repaired);
+            progressMask.localPosition = Vector3.Lerp(progressMaskStart, progressMaskEnd, _computer.Progress);
+            if (data.repaired)
+            {
+                door.Open();
+                interactionCollider.enabled = false;
+            }
+        }
+
+        public void RestoreWorker(Interactor worker)
+        {
+            _computer.RestoreWorker(worker);
+        }
 
         private void UpdateProgressBar()
         {

@@ -1,4 +1,5 @@
 using Runtime.Application;
+using Runtime.Domain;
 using UnityEngine;
 
 namespace Runtime.Infraestructure
@@ -14,6 +15,8 @@ namespace Runtime.Infraestructure
         [SerializeField] private RoomMonoBehaviour destinationRoom;
 
         [SerializeField] private bool startClosed = true;
+        [SerializeField] private string saveId;
+        public string SaveId => saveId;
         
         private bool IsOpened => triggerCollider.enabled;
         private void Awake()
@@ -34,7 +37,7 @@ namespace Runtime.Infraestructure
             triggerCollider.enabled = true;
         }
 
-        private void Close()
+        public void Close()
         {
             spriteRenderer.sprite = closedSprite;
             triggerCollider.enabled = false;
@@ -48,5 +51,20 @@ namespace Runtime.Infraestructure
         }
 
         public Vector3 GetEntrancePosition() => entrancePosition.position;
+
+        public DoorSaveData CaptureState()
+        {
+            return new DoorSaveData
+            {
+                id = saveId,
+                isOpen = IsOpened
+            };
+        }
+
+        public void RestoreState(DoorSaveData data)
+        {
+            if (data.isOpen) Open();
+            else Close();
+        }
     }
 }

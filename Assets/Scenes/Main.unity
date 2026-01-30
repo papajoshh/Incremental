@@ -437,6 +437,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2484859500005895243, guid: 02f117ceef6e28c4c8831db95e42a8e2, type: 3}
+      propertyPath: saveId
+      value: Maquina 3
+      objectReference: {fileID: 0}
     - target: {fileID: 6333648323996685002, guid: 02f117ceef6e28c4c8831db95e42a8e2, type: 3}
       propertyPath: m_Name
       value: "Cargador de mo\xF1ecos 3"
@@ -872,6 +876,37 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 1
   m_SpriteSortPoint: 0
+--- !u!1 &251059247
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 251059248}
+  m_Layer: 0
+  m_Name: ----------- MANAGERS ---------
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &251059248
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 251059247}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 11.239243, y: 15.774708, z: -10.395993}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &281571934
 GameObject:
   m_ObjectHideFlags: 0
@@ -1803,6 +1838,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraPosition: {x: 264.5, y: 21.4, z: 0}
   cameraSize: 52
+  saveId: OrdenadorCentral
 --- !u!1 &709759789
 GameObject:
   m_ObjectHideFlags: 0
@@ -2459,6 +2495,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1933783606562988883, guid: 8a0851653b967bf478c3824122a56751, type: 3}
+      propertyPath: saveId
+      value: PuertaDeCarga
+      objectReference: {fileID: 0}
+    - target: {fileID: 1933783606562988883, guid: 8a0851653b967bf478c3824122a56751, type: 3}
       propertyPath: startClosed
       value: 0
       objectReference: {fileID: 0}
@@ -2665,6 +2705,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2484859500005895243, guid: 02f117ceef6e28c4c8831db95e42a8e2, type: 3}
+      propertyPath: saveId
+      value: Maquina 2
+      objectReference: {fileID: 0}
     - target: {fileID: 6333648323996685002, guid: 02f117ceef6e28c4c8831db95e42a8e2, type: 3}
       propertyPath: m_Name
       value: "Cargador de mo\xF1ecos 2"
@@ -2812,6 +2856,10 @@ PrefabInstance:
     - target: {fileID: 1352705199488053875, guid: 8a0851653b967bf478c3824122a56751, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1933783606562988883, guid: 8a0851653b967bf478c3824122a56751, type: 3}
+      propertyPath: saveId
+      value: EntradaDeOrdenadorCentral
       objectReference: {fileID: 0}
     - target: {fileID: 1933783606562988883, guid: 8a0851653b967bf478c3824122a56751, type: 3}
       propertyPath: startClosed
@@ -3860,6 +3908,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraPosition: {x: 71.1, y: 21.4, z: 0}
   cameraSize: 52
+  saveId: SalaDeCarga
 --- !u!1 &1736978640
 GameObject:
   m_ObjectHideFlags: 0
@@ -4016,6 +4065,10 @@ PrefabInstance:
     - target: {fileID: 119255362660992799, guid: 02f117ceef6e28c4c8831db95e42a8e2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2484859500005895243, guid: 02f117ceef6e28c4c8831db95e42a8e2, type: 3}
+      propertyPath: saveId
+      value: Maquina 4
       objectReference: {fileID: 0}
     - target: {fileID: 6333648323996685002, guid: 02f117ceef6e28c4c8831db95e42a8e2, type: 3}
       propertyPath: m_Name
@@ -4519,6 +4572,64 @@ Transform:
   - {fileID: 1863106097}
   m_Father: {fileID: 1952102831}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1836160485
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1836160487}
+  - component: {fileID: 1836160486}
+  - component: {fileID: 1836160488}
+  m_Layer: 0
+  m_Name: SaveManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1836160486
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1836160485}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10c19efaa340fa84fa7d9d3c256e8f27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  "mo\xF1ecoPrefab": {fileID: 273136044419007718, guid: 8802b204adbcc0543a60c7184cfebc80, type: 3}
+--- !u!4 &1836160487
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1836160485}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1836160488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1836160485}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b60f6f16cc1ee6944ad1c93aaf2eee63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1857946851 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3016989229042271754, guid: 8802b204adbcc0543a60c7184cfebc80, type: 3}
@@ -5155,6 +5266,7 @@ MonoBehaviour:
   door: {fileID: 4958926335167994679}
   pressFeedback: {fileID: 1983047201}
   interactionCollider: {fileID: 1983047203}
+  saveId: OrdenadorCentral
 --- !u!61 &1983047203
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -5973,6 +6085,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1933783606562988883, guid: 8a0851653b967bf478c3824122a56751, type: 3}
+      propertyPath: saveId
+      value: SalidaDeOrdenadorCentral
+      objectReference: {fileID: 0}
     - target: {fileID: 4420900343714456766, guid: 8a0851653b967bf478c3824122a56751, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -6061,6 +6177,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2484859500005895243, guid: 02f117ceef6e28c4c8831db95e42a8e2, type: 3}
+      propertyPath: saveId
+      value: Maquina 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6333648323996685002, guid: 02f117ceef6e28c4c8831db95e42a8e2, type: 3}
       propertyPath: m_Name
       value: "Cargador de mo\xF1ecos"
@@ -6091,6 +6211,8 @@ SceneRoots:
   - {fileID: 891339706}
   - {fileID: 54497976}
   - {fileID: 1570250359}
+  - {fileID: 251059248}
+  - {fileID: 1836160487}
   - {fileID: 432600740}
   - {fileID: 926024644}
   - {fileID: 444544893}

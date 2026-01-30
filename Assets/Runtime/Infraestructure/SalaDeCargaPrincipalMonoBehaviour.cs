@@ -13,6 +13,8 @@ namespace Runtime.Infraestructure
         [Inject] private readonly ContainerShaker _containerShaker;
 
         private int machineOccupiedCount;
+        public bool Milestone2MoñecosTriggered { get; private set; }
+        public int MachineOccupiedCount => machineOccupiedCount;
         private void Awake()
         {
             _bagOfMoñecos.OnMoñecosChange += OnGet2Moñecos;
@@ -34,6 +36,7 @@ namespace Runtime.Infraestructure
         private void OnGet2Moñecos(int _currentMoñecos)
         {
             if (_currentMoñecos != 2) return;
+            Milestone2MoñecosTriggered = true;
             _bagOfMoñecos.OnMoñecosChange -= OnGet2Moñecos;
             var mainCamera = Camera.main;
             var currentSize = mainCamera.orthographicSize;
@@ -53,6 +56,21 @@ namespace Runtime.Infraestructure
             ZoomOutToExit();
         }
         
+        public void RestoreMilestones(bool milestone2Triggered, int occupiedCount)
+        {
+            machineOccupiedCount = occupiedCount;
+            if (milestone2Triggered)
+            {
+                Milestone2MoñecosTriggered = true;
+                _bagOfMoñecos.OnMoñecosChange -= OnGet2Moñecos;
+            }
+            if (occupiedCount >= _moñecoCreatinGameObjectsMachines.Length)
+            {
+                foreach (var machine in _moñecoCreatinGameObjectsMachines)
+                    machine.CurrentMachine.OnOccupied -= OnMachineOccupied;
+            }
+        }
+
         private void ZoomOutToExit()
         {
             var mainCamera = Camera.main;

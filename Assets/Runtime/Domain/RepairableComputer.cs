@@ -12,6 +12,7 @@ namespace Runtime.Domain
 
         public bool Repaired { get; private set; }
         public float Progress => _pressWithCap.Percentage;
+        public int CurrentPresses => _pressWithCap.CurrentPresses;
         public bool HasFreeSlot => _workers.Count < _totalSlots;
         public Action OnRepaired;
 
@@ -35,6 +36,17 @@ namespace Runtime.Domain
             if (!_pressWithCap.Completed) return;
             Repaired = true;
             OnRepaired?.Invoke();
+        }
+
+        public void Restore(int presses, bool repaired)
+        {
+            _pressWithCap.SetPresses(presses);
+            Repaired = repaired;
+        }
+
+        public void RestoreWorker(Interactor worker)
+        {
+            _workers.Add(worker);
         }
 
         public List<Interactor> GetWorkers() => _workers;

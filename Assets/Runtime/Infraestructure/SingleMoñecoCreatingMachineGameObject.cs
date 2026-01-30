@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DG.Tweening;
 using Runtime.Application;
+using Runtime.Domain;
 using Runtime.Infraestructure;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -34,6 +35,8 @@ namespace Runtime.Infrastructure
         [Header("Body Parts")]
         [SerializeField] private BodyPartVisual[] bodyParts;
         [SerializeField] private PressFeedback _pressFeedback;
+        [SerializeField] private string saveId;
+        public string SaveId => saveId;
 
         private Interactor _currentUser;
         
@@ -125,6 +128,49 @@ namespace Runtime.Infrastructure
                     part.tween = part.mask.DOScale(localProgress, 0.5f);
                 else
                     part.tween = part.mask.DOLocalMove(Vector3.Lerp(part.initialPosition, part.endPosition, localProgress), 0.5f);
+            }
+        }
+
+        public MachineSaveData CaptureState()
+        {
+            return new MachineSaveData
+            {
+                id = saveId,
+                currentPresses = CurrentMachine.CurrentPresses,
+                hasWorker = _currentUser != null,
+                isEnabled = collider.enabled
+            };
+        }
+
+        public void RestoreState(MachineSaveData data)
+        {
+            CurrentMachine.RestorePresses(data.currentPresses);
+            if (data.isEnabled) TurnOn();
+            else TurnOff();
+            SetVisualsImmediate();
+        }
+
+        public void RestoreWorker(Interactor worker)
+        {
+            _currentUser = worker;
+            CurrentMachine.RestoreWorker(worker);
+        }
+
+        private void SetVisualsImmediate()
+        {
+            float progress = CurrentMachine.Progress;
+            int partCount = bodyParts.Length;
+            for (int i = 0; i < partCount; i++)
+            {
+                float partStart = (float)i / partCount;
+                float partEnd = (float)(i + 1) / partCount;
+                float localProgress = Mathf.Clamp01((progress - partStart) / (partEnd - partStart));
+                var part = bodyParts[i];
+                part.tween?.Kill();
+                if (part.useScale)
+                    part.mask.localScale = Vector3.one * localProgress;
+                else
+                    part.mask.localPosition = Vector3.Lerp(part.initialPosition, part.endPosition, localProgress);
             }
         }
 

@@ -14,7 +14,8 @@ namespace Runtime
         public Action OnOccupied;
         
         public float Progress => _pressWithCap.Percentage;
-        private List<Interactor> _workersHere;        
+        public int CurrentPresses => _pressWithCap.CurrentPresses;
+        private List<Interactor> _workersHere;
 
         public MoñecoCreatingMachine(BagOfMoñecos _bagOfMoñecos, int pressesToCreate, MoñecoMachine machine, List<Interactor> workersHere)
         {
@@ -34,6 +35,16 @@ namespace Runtime
         {
             _workersHere.Add(moñeco);
             OnOccupied?.Invoke();
+        }
+
+        public void RestorePresses(int presses)
+        {
+            _pressWithCap.SetPresses(presses);
+        }
+
+        public void RestoreWorker(Interactor worker)
+        {
+            _workersHere.Add(worker);
         }
 
         public async Task ImpulseMoñecoCreation()

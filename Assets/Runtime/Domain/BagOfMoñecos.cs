@@ -13,6 +13,11 @@ namespace Runtime
             MoñecosInside++;
             OnMoñecosChange?.Invoke(MoñecosInside);
         }
+        public void RestoreCount(int count)
+        {
+            MoñecosInside = count;
+        }
+
         public void Remove(int _howMany)
         {
             MoñecosInside -= _howMany;

@@ -16,6 +16,7 @@ namespace Runtime.Main
             Container.Bind<ContainerShaker>().FromComponentInHierarchy().AsSingle();
             Container.Bind<ScreenFader>().FromComponentInHierarchy().AsSingle();
             Container.Bind<AudioPlayer>().AsSingle();
+            Container.Bind<SaveManager>().FromComponentInHierarchy().AsSingle();
         }
     }
 }

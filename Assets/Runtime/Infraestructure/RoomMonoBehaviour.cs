@@ -8,6 +8,8 @@ namespace Runtime.Infraestructure
     {
         [SerializeField] private Vector3 cameraPosition;
         [SerializeField] private float cameraSize;
+        [SerializeField] private string saveId;
+        public string SaveId => saveId;
 
         [Inject] private readonly ScreenFader _screenFader;
 
@@ -27,6 +29,20 @@ namespace Runtime.Infraestructure
         public void TryDiscover()
         {
             _room.Discover();
+        }
+
+        public RoomSaveData CaptureState()
+        {
+            return new RoomSaveData
+            {
+                id = saveId,
+                discovered = _room.Discovered
+            };
+        }
+
+        public void RestoreState(RoomSaveData data)
+        {
+            if (data.discovered) _room.RestoreDiscovered();
         }
 
         private async void OnDiscovered()

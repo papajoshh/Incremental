@@ -7,6 +7,11 @@ namespace Runtime.Domain
         public bool Discovered { get; private set; }
         public Action OnDiscovered;
 
+        public void RestoreDiscovered()
+        {
+            Discovered = true;
+        }
+
         public void Discover()
         {
             if (Discovered) return;
