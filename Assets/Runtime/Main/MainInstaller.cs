@@ -23,6 +23,7 @@ namespace Runtime.Main
             Container.Bind<SalaDeCargaPrincipalMonoBehaviour>().FromComponentInHierarchy().AsSingle();
             Container.Bind<RepairableComputerGameObject>().FromComponentInHierarchy().AsSingle();
             Container.Bind<MoñecoInstantiator>().AsSingle().WithArguments(moñecoPrefab);
+            Container.Bind<MoñecosSaveHandler>().FromComponentInHierarchy().AsSingle();
 
             // Fases de skip en orden — el orden de Bind es el orden de ejecución
             Container.Bind<ISkippable>().To<StickmanWorkbench>().FromResolve();

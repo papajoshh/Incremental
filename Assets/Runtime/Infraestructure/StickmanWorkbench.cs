@@ -1,3 +1,4 @@
+using System;
 using DG.Tweening;
 using Runtime.Application;
 using UnityEngine;
@@ -5,7 +6,7 @@ using Zenject;
 
 namespace Runtime.Infraestructure
 {
-    public class StickmanWorkbench: MonoBehaviour, ISkippable
+    public class StickmanWorkbench: MonoBehaviour, ISkippable, ISaveable
     {
         [Inject] private readonly FirstStickman _firstStickman;
         [SerializeField] private Camera _camera;
@@ -18,6 +19,7 @@ namespace Runtime.Infraestructure
         [SerializeField] private MoñecoMonoBehaviour moñecoMonoBehaviour;
 
         [Inject] private readonly BagOfMoñecos _bagOfMoñecos;
+        [Inject] private readonly MoñecosSaveHandler _saveHandler;
         private void Awake()
         {
             moñecoMonoBehaviour.gameObject.SetActive(false);
@@ -72,9 +74,32 @@ namespace Runtime.Infraestructure
             CreateMoñeco();
         }
 
+        public string SaveId => "workbench";
+
+        public string CaptureStateJson()
+        {
+            return JsonUtility.ToJson(new WorkbenchSaveData
+            {
+                completed = !gameObject.activeSelf
+            });
+        }
+
+        public void RestoreStateJson(string json)
+        {
+            var data = JsonUtility.FromJson<WorkbenchSaveData>(json);
+            if (data.completed) gameObject.SetActive(false);
+        }
+
+        [Serializable]
+        private class WorkbenchSaveData
+        {
+            public bool completed;
+        }
+
         private void CreateMoñeco()
         {
             moñecoMonoBehaviour.gameObject.SetActive(true);
+            _saveHandler.Track(moñecoMonoBehaviour);
             moñecoMonoBehaviour.Birth();
             gameObject.SetActive(false);
             _bagOfMoñecos.Add();

@@ -1,12 +1,15 @@
+using System;
 using DG.Tweening;
+using Runtime.Application;
 using Runtime.Infrastructure;
 using UnityEngine;
 using Zenject;
 
 namespace Runtime.Infraestructure
 {
-    public class SalaDeCargaPrincipalMonoBehaviour: MonoBehaviour
+    public class SalaDeCargaPrincipalMonoBehaviour: MonoBehaviour, ISaveable
     {
+        [SerializeField] private string saveId = "sala_carga";
         [SerializeField] private SingleMoñecoCreatingMachineGameObject[] _moñecoCreatinGameObjectsMachines;
         
         [Inject] private readonly BagOfMoñecos _bagOfMoñecos;
@@ -14,6 +17,7 @@ namespace Runtime.Infraestructure
         [Inject] private StickmanWorkbench _workbench;
 
         private int machineOccupiedCount;
+        public string SaveId => saveId;
         public bool Milestone2MoñecosTriggered { get; private set; }
         public int MachineOccupiedCount => machineOccupiedCount;
         private void Awake()
@@ -90,6 +94,28 @@ namespace Runtime.Infraestructure
             var cam = Camera.main;
             cam.orthographicSize = 52f;
             cam.transform.localPosition = new Vector3(71.1f, 21.4f, 0f);
+        }
+
+        public string CaptureStateJson()
+        {
+            return JsonUtility.ToJson(new SalaSaveData
+            {
+                milestone2MoñecosTriggered = Milestone2MoñecosTriggered,
+                machineOccupiedCount = machineOccupiedCount
+            });
+        }
+
+        public void RestoreStateJson(string json)
+        {
+            var data = JsonUtility.FromJson<SalaSaveData>(json);
+            RestoreMilestones(data.milestone2MoñecosTriggered, data.machineOccupiedCount);
+        }
+
+        [Serializable]
+        private class SalaSaveData
+        {
+            public bool milestone2MoñecosTriggered;
+            public int machineOccupiedCount;
         }
 
         private void ZoomOutToExit()

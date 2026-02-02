@@ -11,7 +11,7 @@ using Zenject;
 
 namespace Runtime.Infrastructure
 {
-    public class SingleMoñecoCreatingMachineGameObject: MonoBehaviour, Interactable, MoñecoMachine, IPointerDownHandler
+    public class SingleMoñecoCreatingMachineGameObject: MonoBehaviour, Interactable, MoñecoMachine, IPointerDownHandler, ISaveable
     {
         [Serializable]
         public class BodyPartVisual
@@ -40,7 +40,8 @@ namespace Runtime.Infrastructure
         public Vector3 InteractPosition => positionToInteract.position;
 
         private Interactor _currentUser;
-        
+        private MoñecosSaveHandler _saveHandler;
+
         public MoñecoCreatingMachine CurrentMachine { get; private set; }
 
         private void Awake()
@@ -54,8 +55,9 @@ namespace Runtime.Infrastructure
         }
 
         [Inject]
-        private void Construct(BagOfMoñecos bag)
+        private void Construct(BagOfMoñecos bag, MoñecosSaveHandler saveHandler)
         {
+            _saveHandler = saveHandler;
             CurrentMachine = new MoñecoCreatingMachine(bag, ticksToSpawn, this, new List<Interactor>());
         }
 
@@ -93,6 +95,7 @@ namespace Runtime.Infrastructure
         public async Task GiveBirth()
         {
             var moñeco = Instantiate(_moñecoPrefab, positionToSpawn.position, Quaternion.identity).GetComponent<MoñecoMonoBehaviour>();
+            _saveHandler.Track(moñeco);
             _canBeInteracted = false;
             _currentUser.PauseInteraction();
             ResetVisuals();
@@ -168,6 +171,7 @@ namespace Runtime.Infrastructure
         {
             var go = Instantiate(_moñecoPrefab, positionToInteract.position, Quaternion.identity);
             var moñeco = go.GetComponent<MoñecoMonoBehaviour>();
+            _saveHandler.Track(moñeco);
             moñeco.RestoreInteraction(this, 1);
             RestoreWorker(moñeco);
             return moñeco;
@@ -190,6 +194,9 @@ namespace Runtime.Infrastructure
                     part.mask.localPosition = Vector3.Lerp(part.initialPosition, part.endPosition, localProgress);
             }
         }
+
+        public string CaptureStateJson() => JsonUtility.ToJson(CaptureState());
+        public void RestoreStateJson(string json) => RestoreState(JsonUtility.FromJson<MachineSaveData>(json));
 
         private void ResetVisuals()
         {

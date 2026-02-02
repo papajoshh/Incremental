@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Runtime.Infraestructure
 {
-    public class DoorMonoBehaviour : MonoBehaviour, Door
+    public class DoorMonoBehaviour : MonoBehaviour, Door, ISaveable
     {
         [SerializeField] private Transform entrancePosition;
         [SerializeField] private SpriteRenderer spriteRenderer;
@@ -66,5 +66,8 @@ namespace Runtime.Infraestructure
             if (data.isOpen) Open();
             else Close();
         }
+
+        public string CaptureStateJson() => JsonUtility.ToJson(CaptureState());
+        public void RestoreStateJson(string json) => RestoreState(JsonUtility.FromJson<DoorSaveData>(json));
     }
 }

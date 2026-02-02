@@ -1,10 +1,11 @@
+using Runtime.Application;
 using Runtime.Domain;
 using UnityEngine;
 using Zenject;
 
 namespace Runtime.Infraestructure
 {
-    public class RoomMonoBehaviour : MonoBehaviour
+    public class RoomMonoBehaviour : MonoBehaviour, ISaveable
     {
         [SerializeField] private Vector3 cameraPosition;
         [SerializeField] private float cameraSize;
@@ -44,6 +45,9 @@ namespace Runtime.Infraestructure
         {
             if (data.discovered) _room.RestoreDiscovered();
         }
+
+        public string CaptureStateJson() => JsonUtility.ToJson(CaptureState());
+        public void RestoreStateJson(string json) => RestoreState(JsonUtility.FromJson<RoomSaveData>(json));
 
         private async void OnDiscovered()
         {

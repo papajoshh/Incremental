@@ -9,7 +9,7 @@ using Zenject;
 
 namespace Runtime.Infraestructure
 {
-    public class RepairableComputerGameObject : MonoBehaviour, Interactable, IPointerDownHandler, ISkippable
+    public class RepairableComputerGameObject : MonoBehaviour, Interactable, IPointerDownHandler, ISkippable, ISaveable
     {
         [SerializeField] private int ticksToRepair = 300;
         [SerializeField] private int totalSlots = 3;
@@ -93,6 +93,9 @@ namespace Runtime.Infraestructure
         {
             _computer.RestoreWorker(worker);
         }
+
+        public string CaptureStateJson() => JsonUtility.ToJson(CaptureState());
+        public void RestoreStateJson(string json) => RestoreState(JsonUtility.FromJson<ComputerSaveData>(json));
 
         private void UpdateProgressBar()
         {

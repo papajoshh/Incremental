@@ -20,19 +20,13 @@ namespace Runtime.Domain
     public class GameSaveData
     {
         public int version = 1;
-        public bool workbenchCompleted;
         public int totalMoñecos;
         public float cameraX;
         public float cameraY;
         public float cameraZ;
         public float cameraSize;
-        public bool milestone2MoñecosTriggered;
-        public int machineOccupiedCount;
-        public MoñecoSaveData[] moñecos;
-        public MachineSaveData[] machines;
-        public ComputerSaveData[] computers;
-        public DoorSaveData[] doors;
-        public RoomSaveData[] rooms;
+        public string[] saveIds;
+        public string[] saveJsons;
     }
 
     [Serializable]
