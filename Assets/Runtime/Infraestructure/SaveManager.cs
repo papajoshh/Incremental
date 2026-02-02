@@ -22,7 +22,20 @@ namespace Runtime.Infraestructure
             _saveables = FindObjectsOfType<MonoBehaviour>()
                 .OfType<ISaveable>().ToList();
 
+            ValidateUniqueIds();
+
             if (HasSave()) Load();
+        }
+
+        private void ValidateUniqueIds()
+        {
+            var seen = new HashSet<string>();
+            foreach (var s in _saveables)
+            {
+                if (!seen.Add(s.SaveId))
+                    Debug.LogError($"[SaveManager] SaveId duplicado: \"{s.SaveId}\" en {(s as MonoBehaviour)?.gameObject.name}. El save NO funcionará correctamente.");
+                    Debug.Break();
+            }
         }
 
         private void OnApplicationQuit()
