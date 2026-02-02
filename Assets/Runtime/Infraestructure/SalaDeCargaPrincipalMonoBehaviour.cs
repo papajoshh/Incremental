@@ -72,21 +72,13 @@ namespace Runtime.Infraestructure
             }
         }
 
-        public void SkipToStart()
+        public void SkipAdd2Moñecos()
         {
-            _workbench.Skip();
-        }
-
-        public void SkipTo2Moñecos()
-        {
-            SkipToStart();
             _bagOfMoñecos.Add();
         }
 
-        public void SkipToAllOccupied()
+        public void SkipFillAllMachines()
         {
-            _workbench.Skip();
-
             foreach (var machine in _moñecoCreatinGameObjectsMachines)
             {
                 machine.SpawnWorker();

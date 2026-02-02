@@ -38,6 +38,8 @@ namespace Runtime.Infraestructure
         [Header("Initial State")]
         [SerializeField] private bool startWalking = true;
 
+        
+        public bool IsWalking => currentState == State.Walking;
         private State currentState;
         private int direction = 1; // 1 = right, -1 = left
         private bool _restored;
@@ -54,6 +56,8 @@ namespace Runtime.Infraestructure
         static readonly int AnimLanding = Animator.StringToHash("Landing");
         static readonly int AnimBirth = Animator.StringToHash("Birth");
         static readonly int AnimInteracting = Animator.StringToHash("Interacting");
+        
+        private TaskCompletionSource<bool> _birthTcs; 
         void Awake()
         {
             animator = GetComponent<Animator>();
@@ -116,6 +120,17 @@ namespace Runtime.Infraestructure
             door?.CrossTo(gameObject.transform);
         }
 
+        public void PauseInteraction()
+        {
+            if (currentState != State.Interacting) return;
+            animator.speed = 0;
+        }
+
+        public void ResumeInteraction()
+        {
+            if (currentState != State.Interacting) return;
+            animator.speed = 1;
+        }
         public void OnInteractionTick()
         {
             if (currentState != State.Interacting) return;
@@ -229,6 +244,7 @@ namespace Runtime.Infraestructure
         public void OnBirthComplete()
         {
             if (currentState != State.Birth) return;
+            _birthTcs?.TrySetResult(true);
             Air();
         }
 
@@ -290,10 +306,11 @@ namespace Runtime.Infraestructure
             Gizmos.DrawLine(feetPosition.position, feetPosition.position + Vector3.down * groundCheckDistance);
         }
 
-        public Task Birth()
+        public async Task Birth()
         {
             ChangeState(State.Birth);
-            return Task.CompletedTask;
+            _birthTcs = new TaskCompletionSource<bool>();
+            await _birthTcs.Task;
         }
 
         public MoñecoSaveData CaptureState()

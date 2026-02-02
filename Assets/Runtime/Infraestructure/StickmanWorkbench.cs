@@ -5,7 +5,7 @@ using Zenject;
 
 namespace Runtime.Infraestructure
 {
-    public class StickmanWorkbench: MonoBehaviour
+    public class StickmanWorkbench: MonoBehaviour, ISkippable
     {
         [Inject] private readonly FirstStickman _firstStickman;
         [SerializeField] private Camera _camera;

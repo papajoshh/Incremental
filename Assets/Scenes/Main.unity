@@ -330,7 +330,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe9d4ba2aa4d488385f4d269786f3135, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  feedbackPrefab: {fileID: 2512955701219244452, guid: b9a2914573b0fdf49aee38e6d3f0d74d, type: 3}
+  "mo\xF1ecoPrefab": {fileID: 273136044419007718, guid: 8802b204adbcc0543a60c7184cfebc80, type: 3}
 --- !u!1 &62680221
 GameObject:
   m_ObjectHideFlags: 0
@@ -388,7 +388,6 @@ MonoBehaviour:
   _leftArmCollider: {fileID: 144595404}
   _headCollider: {fileID: 1762137448}
   "mo\xF1ecoMonoBehaviour": {fileID: 1857946851}
-  "mo\xF1ecoCreator": {fileID: 0}
 --- !u!1001 &67582123
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6089,6 +6088,14 @@ PrefabInstance:
       propertyPath: saveId
       value: SalidaDeOrdenadorCentral
       objectReference: {fileID: 0}
+    - target: {fileID: 1933783606562988883, guid: 8a0851653b967bf478c3824122a56751, type: 3}
+      propertyPath: destinationDoor
+      value: 
+      objectReference: {fileID: 4958926335167994679}
+    - target: {fileID: 1933783606562988883, guid: 8a0851653b967bf478c3824122a56751, type: 3}
+      propertyPath: destinationRoom
+      value: 
+      objectReference: {fileID: 676976626}
     - target: {fileID: 4420900343714456766, guid: 8a0851653b967bf478c3824122a56751, type: 3}
       propertyPath: m_Sprite
       value: 

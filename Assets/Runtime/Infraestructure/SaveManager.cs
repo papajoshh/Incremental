@@ -161,6 +161,7 @@ namespace Runtime.Infraestructure
 
         public bool HasSave() => File.Exists(SavePath);
 
+        [ContextMenu("Delete Save")]
         public void DeleteSave()
         {
             if (HasSave()) File.Delete(SavePath);

@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3551575943290650147
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5029196726422693610}
+  m_Layer: 5
+  m_Name: EntrancePosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5029196726422693610
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3551575943290650147}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 12.1, y: -47.4, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1352705199488053875}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5039017322209026666
 GameObject:
   m_ObjectHideFlags: 0
@@ -148,6 +179,7 @@ Transform:
   m_Children:
   - {fileID: 2881611859920550046}
   - {fileID: 2908531888440878004}
+  - {fileID: 5029196726422693610}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1933783606562988883
@@ -162,13 +194,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b921f831ba95a84aa97d5abf2a28966, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  destination: {fileID: 2908531888440878004}
+  entrancePosition: {fileID: 5029196726422693610}
   spriteRenderer: {fileID: 4420900343714456766}
   openSprite: {fileID: 21300000, guid: 3abd015d55dbdfe4d860c1d26ee3278a, type: 3}
   closedSprite: {fileID: 21300000, guid: c5eb76d6ad543cd41b4027a3c344aab3, type: 3}
   triggerCollider: {fileID: 853419594854724805}
+  destinationDoor: {fileID: 0}
   destinationRoom: {fileID: 0}
   startClosed: 1
+  saveId: 
 --- !u!61 &853419594854724805
 BoxCollider2D:
   m_ObjectHideFlags: 0

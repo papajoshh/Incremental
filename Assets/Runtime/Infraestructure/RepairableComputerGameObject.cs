@@ -5,10 +5,11 @@ using Runtime.Application;
 using Runtime.Domain;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Zenject;
 
 namespace Runtime.Infraestructure
 {
-    public class RepairableComputerGameObject : MonoBehaviour, Interactable, IPointerDownHandler
+    public class RepairableComputerGameObject : MonoBehaviour, Interactable, IPointerDownHandler, ISkippable
     {
         [SerializeField] private int ticksToRepair = 300;
         [SerializeField] private int totalSlots = 3;
@@ -20,6 +21,8 @@ namespace Runtime.Infraestructure
         [SerializeField] private PressFeedback pressFeedback;
         [SerializeField] private Collider2D interactionCollider;
         [SerializeField] private string saveId;
+
+        [Inject] private readonly MoñecoInstantiator instantiator;
         public string SaveId => saveId;
 
         private RepairableComputer _computer;
@@ -103,6 +106,21 @@ namespace Runtime.Infraestructure
             foreach (var worker in _computer.GetWorkers())
                 worker.StopInteraction();
 
+            door.Open();
+            interactionCollider.enabled = false;
+        }
+
+        public void Skip()
+        {
+            for (var i = _computer.GetWorkers().Count; i < totalSlots; i++)
+            {
+                var moñeco = instantiator.GiveBirth(slotsPositions[i].position).Result;
+                moñeco.RestoreInteraction(this, 1);
+                _computer.RestoreWorker(moñeco);
+            }
+
+            _computer.Restore(ticksToRepair, true);
+            progressMask.localPosition = progressMaskEnd;
             door.Open();
             interactionCollider.enabled = false;
         }

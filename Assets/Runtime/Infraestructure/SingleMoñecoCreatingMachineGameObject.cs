@@ -92,10 +92,17 @@ namespace Runtime.Infrastructure
 
         public async Task GiveBirth()
         {
-            var moñeco = Instantiate(_moñecoPrefab, positionToSpawn.position, Quaternion.identity);
+            var moñeco = Instantiate(_moñecoPrefab, positionToSpawn.position, Quaternion.identity).GetComponent<MoñecoMonoBehaviour>();
             _canBeInteracted = false;
-            await moñeco.GetComponent<MoñecoMonoBehaviour>().Birth();
+            _currentUser.PauseInteraction();
             ResetVisuals();
+            await moñeco.Birth();
+            while (!moñeco.IsWalking)
+            {
+                await Task.Delay(500);
+            }
+            _currentUser.ResumeInteraction();
+            
             _canBeInteracted = true;
         }
 
