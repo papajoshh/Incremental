@@ -34,7 +34,6 @@ namespace Runtime.Infraestructure
             {
                 if (!seen.Add(s.SaveId))
                     Debug.LogError($"[SaveManager] SaveId duplicado: \"{s.SaveId}\" en {(s as MonoBehaviour)?.gameObject.name}. El save NO funcionará correctamente.");
-                    Debug.Break();
             }
         }
 

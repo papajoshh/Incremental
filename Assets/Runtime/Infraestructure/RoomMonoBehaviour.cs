@@ -7,7 +7,7 @@ namespace Runtime.Infraestructure
 {
     public class RoomMonoBehaviour : MonoBehaviour, ISaveable
     {
-        [SerializeField] private Vector3 cameraPosition;
+        [SerializeField] private Transform _roomTransform;
         [SerializeField] private float cameraSize;
         [SerializeField] private string saveId;
         public string SaveId => saveId;
@@ -54,7 +54,7 @@ namespace Runtime.Infraestructure
             var camera = Camera.main;
             await _screenFader.FadeInOut(() =>
             {
-                camera.transform.localPosition = cameraPosition;
+                camera.transform.position = new Vector3(_roomTransform.position.x, _roomTransform.position.y, -10);
                 camera.orthographicSize = cameraSize;
             });
         }

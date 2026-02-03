@@ -1,29 +1,17 @@
 using System.Threading.Tasks;
 using Runtime.Application;
 using Runtime.Domain;
+using Runtime.Infraestructure.MoñecoStates;
 using Runtime.Infrastructure;
 using UnityEngine;
 
 namespace Runtime.Infraestructure
 {
-    public class MoñecoMonoBehaviour : MonoBehaviour, Interactor
+    public class MoñecoMonoBehaviour : MonoBehaviour, Interactor, IMoñecoContext
     {
-        public enum State
-        {
-            Idle,
-            Walking,
-            Falling,
-            Landing,
-            Turning,
-            Interacting,
-            Birth,
-            GoToBag
-        }
-
         [Header("Movement")]
         [SerializeField] private float stepDistance = 0.1f;
         [SerializeField] private float fallStepDistance = 0.15f;
-        [SerializeField] private float continuousSpeed = 2f;
 
         [Header("Ground Detection")]
         [SerializeField] private Transform feetPosition;
@@ -37,62 +25,36 @@ namespace Runtime.Infraestructure
 
         [Header("Initial State")]
         [SerializeField] private bool startWalking = true;
-        
-        public bool IsWalking => currentState == State.Walking;
-        private State currentState;
-        private int direction = 1; // 1 = right, -1 = left
+
+        private IMoñecoState _state;
+        private Animator _animator;
         private bool _restored;
-        private Animator animator;
-        private Rigidbody2D rb;
+        private TaskCompletionSource<bool> _birthTcs;
         private Interactable _currentInteractable;
         private Interactable _pendingInteractable;
         private float? _walkToTargetX;
 
-        static readonly int AnimIdle = Animator.StringToHash("Idle");
-        static readonly int AnimWalkRight = Animator.StringToHash("WalkRight");
-        static readonly int AnimWalkLeft = Animator.StringToHash("WalkLeft");
-        static readonly int AnimFalling = Animator.StringToHash("Falling");
-        static readonly int AnimLanding = Animator.StringToHash("Landing");
-        static readonly int AnimBirth = Animator.StringToHash("Birth");
-        static readonly int AnimInteracting = Animator.StringToHash("Interacting");
-        static readonly int AnimInteractingMachine = Animator.StringToHash("RepairComputer");
-        
-        private TaskCompletionSource<bool> _birthTcs; 
+        public Transform Transform => transform;
+        public int Direction { get; set; } = 1;
+        public float StepDistance => stepDistance;
+        public float FallStepDistance => fallStepDistance;
+        public bool IsWalking => _state is WalkingState;
+
         void Awake()
         {
-            animator = GetComponent<Animator>();
-            rb = GetComponent<Rigidbody2D>();
+            _animator = GetComponent<Animator>();
         }
 
         void Start()
         {
-            if(currentState == State.Birth) return;
+            if (_state is BirthState) return;
             if (_restored) return;
-            Air();
-        }
-
-        private void Air()
-        {
-            if (IsGrounded())
-            {
-                if (startWalking)
-                {
-                    StartWalking(1); // Start moving right
-                }
-                else
-                {
-                    ChangeState(State.Idle);
-                }
-            }
-            else
-            {
-                ChangeState(State.Falling);
-            }
+            EvaluateAir();
         }
 
         void Update()
         {
-            UpdateGroundedState();
+            _state?.OnUpdate(this);
         }
 
         private void OnTriggerEnter2D(Collider2D collision)
@@ -100,11 +62,11 @@ namespace Runtime.Infraestructure
             CheckToInteract(collision);
             CheckToCrossDoor(collision);
         }
-        
+
         private void CheckToInteract(Collider2D collision)
         {
-            if (currentState != State.Walking) return;
-            if (IsWalkingToInteraction()) return;
+            if (!IsWalking) return;
+            if (_walkToTargetX.HasValue) return;
 
             var interactable = collision.GetComponent<Interactable>();
             if (interactable == null) return;
@@ -115,275 +77,150 @@ namespace Runtime.Infraestructure
 
         private void CheckToCrossDoor(Collider2D collision)
         {
-            if (currentState != State.Walking) return;
+            if (!IsWalking) return;
             var door = collision.GetComponent<Door>();
             door?.CrossTo(gameObject.transform);
         }
 
+        public void OnAnimStep() => _state?.OnStep(this);
+
+        public void OnAnimComplete() => _state?.OnComplete(this);
+
+        public void ChangeState<T>() where T : IMoñecoState, new()
+        {
+            _state = new T();
+            _state.OnEnter(this);
+            var hash = _state.GetAnimationHash(this);
+            if (hash.HasValue && _animator != null)
+                _animator.Play(hash.Value);
+        }
+
+        public void EvaluateAir()
+        {
+            if (IsGrounded())
+            {
+                if (startWalking)
+                {
+                    Direction = 1;
+                    ChangeState<WalkingState>();
+                }
+                else
+                {
+                    ChangeState<IdleState>();
+                }
+            }
+            else
+            {
+                ChangeState<FallingState>();
+            }
+        }
+
+        public bool IsGrounded()
+        {
+            var hit = Physics2D.Raycast(feetPosition.position, Vector2.down, groundCheckDistance, groundLayer);
+            return hit.collider != null;
+        }
+
+        public bool CheckWallAhead(out RaycastHit2D hit)
+        {
+            Vector2 center = bodyPosition != null ? bodyPosition.position : transform.position;
+            Vector2 origin = center + Vector2.right * Direction * bodyHalfWidth;
+            hit = Physics2D.Raycast(origin, Vector2.right * Direction, stepDistance, wallLayer);
+            return hit.collider != null;
+        }
+
+        public bool CheckGroundBelow(out RaycastHit2D hit)
+        {
+            hit = Physics2D.Raycast(feetPosition.position, Vector2.down, fallStepDistance, groundLayer);
+            return hit.collider != null;
+        }
+
+        public void Move(Vector3 delta) => transform.position += delta;
+
+        public bool HasReachedInteractionTarget()
+        {
+            if (!_walkToTargetX.HasValue) return false;
+            return (Direction > 0 && transform.position.x >= _walkToTargetX.Value)
+                || (Direction < 0 && transform.position.x <= _walkToTargetX.Value);
+        }
+
+        public void ArriveAtInteraction()
+        {
+            transform.position = new Vector3(_walkToTargetX.Value, transform.position.y, transform.position.z);
+            _currentInteractable = _pendingInteractable;
+            _pendingInteractable = null;
+            _walkToTargetX = null;
+            ChangeState<InteractingState>();
+        }
+
+        public void TickInteraction() => _currentInteractable?.OnInteractionTick(this);
+
+        public int GetInteractionAnimationHash()
+        {
+            if (_currentInteractable == null) return AnimHashes.Interacting;
+            return _currentInteractable.CurrentInteractionInfo.InteractionAnimation switch
+            {
+                "RepairComputer" => AnimHashes.InteractingMachine,
+                _ => AnimHashes.Interacting
+            };
+        }
+
+        public void CompleteBirth() => _birthTcs?.TrySetResult(true);
+
+        public void DestroySelf() => Destroy(gameObject);
+
         public void PauseInteraction()
         {
-            if (currentState != State.Interacting) return;
-            animator.speed = 0;
+            if (_state is not InteractingState) return;
+            _animator.speed = 0;
         }
 
         public void ResumeInteraction()
         {
-            if (currentState != State.Interacting) return;
-            animator.speed = 1;
+            if (_state is not InteractingState) return;
+            _animator.speed = 1;
         }
-        
 
         public void StopInteraction()
         {
-            _currentInteractable.EndInteraction(this);
+            _currentInteractable?.EndInteraction(this);
             _currentInteractable = null;
-            ClearWalkTarget();
-            StartWalking(direction);
+            _walkToTargetX = null;
+            _pendingInteractable = null;
+            ChangeState<WalkingState>();
         }
 
         public void SetPositionToInteract(Transform interactPosition)
         {
             _walkToTargetX = interactPosition.position.x;
-            if (HasReachedTarget())
+            if (HasReachedInteractionTarget())
                 ArriveAtInteraction();
-        }
-
-        private bool IsWalkingToInteraction() => _walkToTargetX.HasValue;
-
-        private bool HasReachedTarget()
-        {
-            if (!_walkToTargetX.HasValue) return false;
-            return (direction > 0 && transform.position.x >= _walkToTargetX.Value)
-                || (direction < 0 && transform.position.x <= _walkToTargetX.Value);
-        }
-
-        private void ArriveAtInteraction()
-        {
-            transform.position = new Vector3(_walkToTargetX.Value, transform.position.y, transform.position.z);
-            _currentInteractable = _pendingInteractable;
-            _pendingInteractable = null;
-            ClearWalkTarget();
-            ChangeState(State.Interacting);
-        }
-
-        private void ClearWalkTarget()
-        {
-            _walkToTargetX = null;
-            _pendingInteractable = null;
-        }
-
-        private void UpdateGroundedState()
-        {
-            bool isGrounded = IsGrounded();
-
-            // Detect if started falling (walked off a ledge)
-            if (!isGrounded && (currentState == State.Walking || currentState == State.Idle))
-            {
-                ChangeState(State.Falling);
-            }
-        }
-
-        public void OnAnimStep()
-        {
-            switch (currentState)
-            {
-                case State.Walking:
-                    OnStep();
-                    break;
-                case State.Falling:
-                    OnFallStep();
-                    break;
-                case State.Interacting:
-                    OnInteractionStep();
-                    break;
-            }
-        }
-        private void OnStep()
-        {
-            if (currentState != State.Walking) return;
-
-            // Check if wall is within this step's distance (raycast from body edge)
-            Vector2 center = bodyPosition != null ? bodyPosition.position : transform.position;
-            Vector2 moveDirection = Vector2.right * direction;
-            Vector2 origin = center + moveDirection * bodyHalfWidth;
-            RaycastHit2D hit = Physics2D.Raycast(origin, moveDirection, stepDistance, wallLayer);
-
-            if (hit.collider != null)
-            {
-                // Wall ahead - don't move, just turn
-                ChangeState(State.Turning);
-                return;
-            }
-
-            transform.position += Vector3.right * direction * stepDistance;
-
-            if (HasReachedTarget())
-                ArriveAtInteraction();
-        }
-        private void OnFallStep()
-        {
-            if (currentState != State.Falling) return;
-
-            // Check if ground is within this step's distance
-            Vector2 origin = feetPosition.position;
-            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, fallStepDistance, groundLayer);
-
-            if (hit.collider != null)
-            {
-                // Snap to ground - move exactly to where feet touch the ground
-                float distanceToGround = hit.distance;
-                transform.position += Vector3.down * distanceToGround;
-                ChangeState(State.Landing);
-                return;
-            }
-
-            transform.position += Vector3.down * fallStepDistance;
-        }
-        private void OnInteractionStep()
-        {
-            if (currentState != State.Interacting) return;
-            _currentInteractable.OnInteractionTick(this);
-        }
-
-        public void OnAnimComplete()
-        {
-            switch (currentState)
-            {
-                case State.Walking:
-                    OnWalkCycleComplete();
-                    break;
-                case State.Landing:
-                    OnLandingComplete();
-                    break;
-                case State.Birth:
-                    OnBirthComplete();
-                    break;
-                case State.GoToBag:
-                    OnGoToBagComplete();
-                    break;
-            }
-        }
-        private void OnLandingComplete()
-        {
-            if (currentState != State.Landing) return;
-            StartWalking(direction);
-        }
-        private void OnWalkCycleComplete()
-        {
-            if (currentState != State.Turning) return;
-
-            // Now turn and start walking in the new direction
-            direction *= -1;
-            ChangeState(State.Walking);
-        }
-        private void OnBirthComplete()
-        {
-            if (currentState != State.Birth) return;
-            _birthTcs?.TrySetResult(true);
-            Air();
-        }
-        private void OnGoToBagComplete()
-        {
-            Destroy(gameObject);
-        }
-        
-        private void StartWalking(int newDirection)
-        {
-            direction = newDirection;
-            ChangeState(State.Walking);
-        }
-
-        private void ChangeState(State newState)
-        {
-            currentState = newState;
-            UpdateAnimation();
-        }
-
-        private void UpdateAnimation()
-        {
-            if (animator == null) return;
-
-            switch (currentState)
-            {
-                case State.Idle:
-                    animator.Play(AnimIdle);
-                    break;
-                case State.Walking:
-                    animator.Play(direction > 0 ? AnimWalkRight : AnimWalkLeft);
-                    break;
-                case State.Falling:
-                    animator.Play(AnimFalling);
-                    break;
-                case State.Landing:
-                    animator.Play(AnimLanding);
-                    break;
-                case State.Turning:
-                    // Keep playing current animation until cycle completes
-                    break;
-                case State.Interacting:
-                    PlayInteractionAnimation(_currentInteractable.CurrentInteractionInfo);
-                    break;
-                case State.Birth:
-                    animator.Play(AnimBirth);
-                    break;
-                default:
-                    animator.Play(AnimIdle);
-                    break;
-            }
-        }
-
-        private void PlayInteractionAnimation(InteractionInfo interactionInfo)
-        {
-            switch (interactionInfo.InteractionAnimation)
-            {
-                case "RepairComputer":
-                    animator.Play(AnimInteractingMachine);
-                    break;
-                case "CreateMoñeco":
-                    animator.Play(AnimInteracting);
-                    break;
-                default:
-                    animator.Play(AnimInteracting);
-                    break;
-            }
-        }
-        private bool IsGrounded()
-        {
-            Vector2 origin = feetPosition.position;
-            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, groundCheckDistance, groundLayer);
-            return hit.collider != null;
-        }
-
-        private void OnDrawGizmosSelected()
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(feetPosition.position, feetPosition.position + Vector3.down * groundCheckDistance);
         }
 
         public async Task Birth()
         {
-            ChangeState(State.Birth);
+            ChangeState<BirthState>();
             _birthTcs = new TaskCompletionSource<bool>();
             await _birthTcs.Task;
         }
 
+        public void GoToBag() => ChangeState<GoToBagState>();
+
         public MoñecoSaveData CaptureState()
         {
             string machineId = null;
-            if (currentState == State.Interacting && _currentInteractable is MonoBehaviour mb)
+            if (_state is InteractingState && _currentInteractable is MonoBehaviour mb)
             {
-                if (mb is SingleMoñecoCreatingMachineGameObject machine)
-                    machineId = machine.SaveId;
-                else if (mb is RepairableComputerGameObject computer)
-                    machineId = computer.SaveId;
+                var _currentInteractable = mb.GetComponent<Interactable>();
+                machineId = _currentInteractable.CurrentInteractionInfo.InteractableId;
             }
 
             return new MoñecoSaveData
             {
                 x = transform.position.x,
                 y = transform.position.y,
-                direction = direction,
-                isInteracting = currentState == State.Interacting,
+                direction = Direction,
+                isInteracting = _state is InteractingState,
                 assignedMachineId = machineId,
             };
         }
@@ -391,24 +228,25 @@ namespace Runtime.Infraestructure
         public void RestoreInteraction(Interactable interactable, int savedDirection)
         {
             _restored = true;
-            direction = savedDirection;
+            Direction = savedDirection;
             _currentInteractable = interactable;
             _pendingInteractable = null;
             _walkToTargetX = null;
-            ChangeState(State.Interacting);
+            ChangeState<InteractingState>();
         }
 
         public void RestoreWalking(int savedDirection)
         {
             _restored = true;
-            direction = savedDirection;
-            StartWalking(savedDirection);
+            Direction = savedDirection;
+            ChangeState<WalkingState>();
         }
 
-        public void GoToBag()
+        private void OnDrawGizmosSelected()
         {
-            ChangeState(State.GoToBag);
+            if (feetPosition == null) return;
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(feetPosition.position, feetPosition.position + Vector3.down * groundCheckDistance);
         }
     }
-
 }
