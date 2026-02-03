@@ -131,11 +131,7 @@ namespace Runtime.Infraestructure
             if (currentState != State.Interacting) return;
             animator.speed = 1;
         }
-        public void OnInteractionTick()
-        {
-            if (currentState != State.Interacting) return;
-            _currentInteractable.OnInteractionTick(this);
-        }
+        
 
         public void StopInteraction()
         {
@@ -187,7 +183,22 @@ namespace Runtime.Infraestructure
             }
         }
 
-        public void OnStep()
+        public void OnAnimStep()
+        {
+            switch (currentState)
+            {
+                case State.Walking:
+                    OnStep();
+                    break;
+                case State.Falling:
+                    OnFallStep();
+                    break;
+                case State.Interacting:
+                    OnInteractionStep();
+                    break;
+            }
+        }
+        private void OnStep()
         {
             if (currentState != State.Walking) return;
 
@@ -209,7 +220,7 @@ namespace Runtime.Infraestructure
             if (HasReachedTarget())
                 ArriveAtInteraction();
         }
-        public void OnFallStep()
+        private void OnFallStep()
         {
             if (currentState != State.Falling) return;
 
@@ -227,6 +238,11 @@ namespace Runtime.Infraestructure
             }
 
             transform.position += Vector3.down * fallStepDistance;
+        }
+        private void OnInteractionStep()
+        {
+            if (currentState != State.Interacting) return;
+            _currentInteractable.OnInteractionTick(this);
         }
 
         public void OnAnimComplete()
