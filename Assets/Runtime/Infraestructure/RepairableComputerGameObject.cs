@@ -24,7 +24,11 @@ namespace Runtime.Infraestructure
 
         [Inject] private readonly MoñecoInstantiator instantiator;
         public string SaveId => saveId;
-
+        public InteractionInfo CurrentInteractionInfo => new InteractionInfo
+        {
+            InteractableId = saveId,
+            InteractionAnimation = "RepairComputer"
+        };
         private RepairableComputer _computer;
         private Tween _progressTween;
 

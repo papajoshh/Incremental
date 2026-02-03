@@ -43,6 +43,11 @@ namespace Runtime.Infrastructure
         private MoñecosSaveHandler _saveHandler;
 
         public MoñecoCreatingMachine CurrentMachine { get; private set; }
+        public InteractionInfo CurrentInteractionInfo => new InteractionInfo
+        {
+            InteractableId = saveId,
+            InteractionAnimation = "HitMachine"
+        };
 
         private void Awake()
         {

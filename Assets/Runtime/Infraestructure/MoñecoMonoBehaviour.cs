@@ -56,6 +56,7 @@ namespace Runtime.Infraestructure
         static readonly int AnimLanding = Animator.StringToHash("Landing");
         static readonly int AnimBirth = Animator.StringToHash("Birth");
         static readonly int AnimInteracting = Animator.StringToHash("Interacting");
+        static readonly int AnimInteractingMachine = Animator.StringToHash("RepairComputer");
         
         private TaskCompletionSource<bool> _birthTcs; 
         void Awake()
@@ -282,7 +283,7 @@ namespace Runtime.Infraestructure
                     // Keep playing current animation until cycle completes
                     break;
                 case State.Interacting:
-                    animator.Play(AnimInteracting);
+                    PlayInteractionAnimation(_currentInteractable.CurrentInteractionInfo);
                     break;
                 case State.Birth:
                     animator.Play(AnimBirth);
@@ -293,6 +294,21 @@ namespace Runtime.Infraestructure
             }
         }
 
+        private void PlayInteractionAnimation(InteractionInfo interactionInfo)
+        {
+            switch (interactionInfo.InteractionAnimation)
+            {
+                case "RepairComputer":
+                    animator.Play(AnimInteractingMachine);
+                    break;
+                case "CreateMoñeco":
+                    animator.Play(AnimInteracting);
+                    break;
+                default:
+                    animator.Play(AnimInteracting);
+                    break;
+            }
+        }
         private bool IsGrounded()
         {
             Vector2 origin = feetPosition.position;
