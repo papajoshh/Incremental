@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using Runtime.Application;
 using Runtime.Domain;
 using Runtime.Infrastructure;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Runtime.Infraestructure
@@ -17,7 +16,8 @@ namespace Runtime.Infraestructure
             Landing,
             Turning,
             Interacting,
-            Birth
+            Birth,
+            GoToBag
         }
 
         [Header("Movement")]
@@ -37,7 +37,6 @@ namespace Runtime.Infraestructure
 
         [Header("Initial State")]
         [SerializeField] private bool startWalking = true;
-
         
         public bool IsWalking => currentState == State.Walking;
         private State currentState;
@@ -229,6 +228,7 @@ namespace Runtime.Infraestructure
 
             transform.position += Vector3.down * fallStepDistance;
         }
+        
         public void OnLandingComplete()
         {
             if (currentState != State.Landing) return;
@@ -248,7 +248,11 @@ namespace Runtime.Infraestructure
             _birthTcs?.TrySetResult(true);
             Air();
         }
-
+        public void OnGoToBagComplete()
+        {
+            Destroy(gameObject);
+        }
+        
         private void StartWalking(int newDirection)
         {
             direction = newDirection;
@@ -365,6 +369,11 @@ namespace Runtime.Infraestructure
             _restored = true;
             direction = savedDirection;
             StartWalking(savedDirection);
+        }
+
+        public void GoToBag()
+        {
+            ChangeState(State.GoToBag);
         }
     }
 

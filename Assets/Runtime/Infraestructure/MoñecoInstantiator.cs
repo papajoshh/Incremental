@@ -10,6 +10,7 @@ namespace Runtime.Infraestructure
 
         [Inject] private readonly BagOfMoñecos _bagOfMoñecos;
         [Inject] private readonly MoñecosSaveHandler _saveHandler;
+        [Inject] private readonly DiContainer _diContainer;
 
         public MoñecoInstantiator(GameObject prefab)
         {
@@ -17,7 +18,7 @@ namespace Runtime.Infraestructure
         }
         public async Task<MoñecoMonoBehaviour> GiveBirth(Vector3 positionToSpawn)
         {
-            var moñeco = GameObject.Instantiate(_moñecoPrefab, positionToSpawn, Quaternion.identity).GetComponent<MoñecoMonoBehaviour>();
+            var moñeco = _diContainer.InstantiatePrefabForComponent<MoñecoMonoBehaviour>(_moñecoPrefab, positionToSpawn, Quaternion.identity, null);
             _saveHandler.Track(moñeco);
             await moñeco.Birth();
             _bagOfMoñecos.Add();
