@@ -228,13 +228,31 @@ namespace Runtime.Infraestructure
 
             transform.position += Vector3.down * fallStepDistance;
         }
-        
-        public void OnLandingComplete()
+
+        public void OnAnimComplete()
+        {
+            switch (currentState)
+            {
+                case State.Walking:
+                    OnWalkCycleComplete();
+                    break;
+                case State.Landing:
+                    OnLandingComplete();
+                    break;
+                case State.Birth:
+                    OnBirthComplete();
+                    break;
+                case State.GoToBag:
+                    OnGoToBagComplete();
+                    break;
+            }
+        }
+        private void OnLandingComplete()
         {
             if (currentState != State.Landing) return;
             StartWalking(direction);
         }
-        public void OnWalkCycleComplete()
+        private void OnWalkCycleComplete()
         {
             if (currentState != State.Turning) return;
 
@@ -242,13 +260,13 @@ namespace Runtime.Infraestructure
             direction *= -1;
             ChangeState(State.Walking);
         }
-        public void OnBirthComplete()
+        private void OnBirthComplete()
         {
             if (currentState != State.Birth) return;
             _birthTcs?.TrySetResult(true);
             Air();
         }
-        public void OnGoToBagComplete()
+        private void OnGoToBagComplete()
         {
             Destroy(gameObject);
         }

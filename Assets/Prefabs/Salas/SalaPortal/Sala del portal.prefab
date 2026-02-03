@@ -78,6 +78,10 @@ PrefabInstance:
       propertyPath: saveId
       value: SalaDelPortal
       objectReference: {fileID: 0}
+    - target: {fileID: 5597323819500431230, guid: bd9c1a6324dd5614fa23f6b12b55d994, type: 3}
+      propertyPath: saveId
+      value: EntradaPortal
+      objectReference: {fileID: 0}
     - target: {fileID: 6396717340840619784, guid: bd9c1a6324dd5614fa23f6b12b55d994, type: 3}
       propertyPath: m_LocalPosition.x
       value: 399.4
