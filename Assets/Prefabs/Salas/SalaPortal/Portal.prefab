@@ -94,6 +94,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5650517980041291541}
   - component: {fileID: 5147659971161903292}
+  - component: {fileID: 805180270942773009}
   m_Layer: 0
   m_Name: Portal
   m_TagString: Untagged
@@ -147,7 +148,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: -1.51, y: -33.27}
@@ -163,6 +164,31 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 8, y: 8}
   m_EdgeRadius: 0
+--- !u!114 &805180270942773009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3451205100468512170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17f3ea9e69a24a5fb1e060bfacb636f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stepDistance: 0.1
+  fallStepDistance: 0.15
+  feetPosition: {fileID: 0}
+  groundCheckDistance: 0.1
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  bodyPosition: {fileID: 0}
+  bodyHalfWidth: 0.25
+  wallLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  startWalking: 1
 --- !u!1 &6395085007882273309
 GameObject:
   m_ObjectHideFlags: 0

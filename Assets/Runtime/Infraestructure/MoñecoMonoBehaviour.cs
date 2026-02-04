@@ -2,12 +2,12 @@ using System.Threading.Tasks;
 using Runtime.Application;
 using Runtime.Domain;
 using Runtime.Infraestructure.MoñecoStates;
-using Runtime.Infrastructure;
 using UnityEngine;
+using Zenject;
 
 namespace Runtime.Infraestructure
 {
-    public class MoñecoMonoBehaviour : MonoBehaviour, Interactor, IMoñecoContext
+    public class MoñecoMonoBehaviour : MonoBehaviour, Interactor
     {
         [Header("Movement")]
         [SerializeField] private float stepDistance = 0.1f;
@@ -27,23 +27,21 @@ namespace Runtime.Infraestructure
         [SerializeField] private bool startWalking = true;
 
         private IMoñecoState _state;
-        private Animator _animator;
+        [SerializeField] private Animator _animator;
         private bool _restored;
         private TaskCompletionSource<bool> _birthTcs;
-        private Interactable _currentInteractable;
+        private TaskCompletionSource<bool> _enterTcs;
+        public Interactable CurrentInteractable { get; set; }
         private Interactable _pendingInteractable;
         private float? _walkToTargetX;
+        
+        [Inject] private readonly MoñecosSaveHandler _moñecosSaveHandler;
 
         public Transform Transform => transform;
         public int Direction { get; set; } = 1;
         public float StepDistance => stepDistance;
         public float FallStepDistance => fallStepDistance;
         public bool IsWalking => _state is WalkingState;
-
-        void Awake()
-        {
-            _animator = GetComponent<Animator>();
-        }
 
         void Start()
         {
@@ -88,6 +86,7 @@ namespace Runtime.Infraestructure
 
         public void ChangeState<T>() where T : IMoñecoState, new()
         {
+            if(_state is T) return;
             _state = new T();
             _state.OnEnter(this);
             var hash = _state.GetAnimationHash(this);
@@ -147,27 +146,20 @@ namespace Runtime.Infraestructure
         public void ArriveAtInteraction()
         {
             transform.position = new Vector3(_walkToTargetX.Value, transform.position.y, transform.position.z);
-            _currentInteractable = _pendingInteractable;
+            CurrentInteractable = _pendingInteractable;
             _pendingInteractable = null;
             _walkToTargetX = null;
             ChangeState<InteractingState>();
         }
 
-        public void TickInteraction() => _currentInteractable?.OnInteractionTick(this);
-
-        public int GetInteractionAnimationHash()
-        {
-            if (_currentInteractable == null) return AnimHashes.Interacting;
-            return _currentInteractable.CurrentInteractionInfo.InteractionAnimation switch
-            {
-                "RepairComputer" => AnimHashes.InteractingMachine,
-                _ => AnimHashes.Interacting
-            };
-        }
-
         public void CompleteBirth() => _birthTcs?.TrySetResult(true);
 
-        public void DestroySelf() => Destroy(gameObject);
+        public void DestroySelf()
+        {
+            _enterTcs.TrySetResult(true);
+            _moñecosSaveHandler.Untrack(this);
+            Destroy(gameObject);
+        }
 
         public void PauseInteraction()
         {
@@ -183,8 +175,8 @@ namespace Runtime.Infraestructure
 
         public void StopInteraction()
         {
-            _currentInteractable?.EndInteraction(this);
-            _currentInteractable = null;
+            CurrentInteractable?.EndInteraction(this);
+            CurrentInteractable = null;
             _walkToTargetX = null;
             _pendingInteractable = null;
             ChangeState<WalkingState>();
@@ -204,15 +196,21 @@ namespace Runtime.Infraestructure
             await _birthTcs.Task;
         }
 
-        public void GoToBag() => ChangeState<GoToBagState>();
+        public async Task EnterPortal()
+        {
+            ChangeState<EnterPortalState>();
+            _enterTcs = new TaskCompletionSource<bool>();
+            await _enterTcs.Task;
+        }
+
+        public void GoToBag() => ChangeState<EnterPortalState>();
 
         public MoñecoSaveData CaptureState()
         {
             string machineId = null;
-            if (_state is InteractingState && _currentInteractable is MonoBehaviour mb)
+            if (_state is InteractingState && CurrentInteractable != null)
             {
-                var _currentInteractable = mb.GetComponent<Interactable>();
-                machineId = _currentInteractable.CurrentInteractionInfo.InteractableId;
+                machineId = CurrentInteractable.CurrentInteractionInfo.InteractableId;
             }
 
             return new MoñecoSaveData
@@ -229,7 +227,7 @@ namespace Runtime.Infraestructure
         {
             _restored = true;
             Direction = savedDirection;
-            _currentInteractable = interactable;
+            CurrentInteractable = interactable;
             _pendingInteractable = null;
             _walkToTargetX = null;
             ChangeState<InteractingState>();

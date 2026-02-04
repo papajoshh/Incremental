@@ -2,8 +2,8 @@ namespace Runtime.Infraestructure.MoñecoStates
 {
     public class LandingState : IMoñecoState
     {
-        public int? GetAnimationHash(IMoñecoContext ctx) => AnimHashes.Landing;
+        public int? GetAnimationHash(MoñecoMonoBehaviour m) => AnimHashes.Landing;
 
-        public void OnComplete(IMoñecoContext ctx) => ctx.ChangeState<WalkingState>();
+        public void OnComplete(MoñecoMonoBehaviour m) => m.ChangeState<WalkingState>();
     }
 }

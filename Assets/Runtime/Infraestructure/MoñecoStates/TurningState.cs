@@ -2,12 +2,12 @@ namespace Runtime.Infraestructure.MoñecoStates
 {
     public class TurningState : IMoñecoState
     {
-        public int? GetAnimationHash(IMoñecoContext ctx) => null;
+        public int? GetAnimationHash(MoñecoMonoBehaviour m) => null;
 
-        public void OnComplete(IMoñecoContext ctx)
+        public void OnComplete(MoñecoMonoBehaviour m)
         {
-            ctx.Direction *= -1;
-            ctx.ChangeState<WalkingState>();
+            m.Direction *= -1;
+            m.ChangeState<WalkingState>();
         }
     }
 }

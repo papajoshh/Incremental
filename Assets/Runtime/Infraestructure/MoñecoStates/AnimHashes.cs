@@ -12,6 +12,6 @@ namespace Runtime.Infraestructure.MoñecoStates
         public static readonly int Birth = Animator.StringToHash("Birth");
         public static readonly int Interacting = Animator.StringToHash("Interacting");
         public static readonly int InteractingMachine = Animator.StringToHash("RepairComputer");
-        public static readonly int GoToBag = Animator.StringToHash("GoToBag");
+        public static readonly int EnterPortal = Animator.StringToHash("EnterPortal");
     }
 }

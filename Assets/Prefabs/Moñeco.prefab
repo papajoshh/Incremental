@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3032139354273568101}
   - component: {fileID: 1116293143659200446}
   - component: {fileID: 7812174875717832148}
-  - component: {fileID: 3016989229042271754}
+  - component: {fileID: 3180516519668865664}
   m_Layer: 6
   m_Name: "Mo\xF1eco"
   m_TagString: Untagged
@@ -84,7 +84,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!114 &3016989229042271754
+--- !u!114 &3180516519668865664
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -98,7 +98,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stepDistance: 2.355
   fallStepDistance: 7.065
-  continuousSpeed: 2
   feetPosition: {fileID: 6026317536363472177}
   groundCheckDistance: 0.5
   groundLayer:
@@ -110,6 +109,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   startWalking: 1
+  _animator: {fileID: 1116293143659200446}
 --- !u!1 &500096080631948985
 GameObject:
   m_ObjectHideFlags: 0

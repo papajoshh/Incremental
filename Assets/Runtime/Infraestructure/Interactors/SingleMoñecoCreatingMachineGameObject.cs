@@ -39,6 +39,7 @@ namespace Runtime.Infrastructure
         public string SaveId => saveId;
         public Vector3 InteractPosition => positionToInteract.position;
 
+        [Inject] private readonly MoñecoInstantiator instantiator;
         private Interactor _currentUser;
         private MoñecosSaveHandler _saveHandler;
 
@@ -99,12 +100,11 @@ namespace Runtime.Infrastructure
 
         public async Task GiveBirth()
         {
-            var moñeco = Instantiate(_moñecoPrefab, positionToSpawn.position, Quaternion.identity).GetComponent<MoñecoMonoBehaviour>();
-            _saveHandler.Track(moñeco);
             _canBeInteracted = false;
             _currentUser.PauseInteraction();
             ResetVisuals();
-            await moñeco.Birth();
+            var moñeco = instantiator.GiveBirth(positionToSpawn.position).Result; 
+
             while (!moñeco.IsWalking)
             {
                 await Task.Delay(500);
@@ -174,8 +174,7 @@ namespace Runtime.Infrastructure
 
         public MoñecoMonoBehaviour SpawnWorker()
         {
-            var go = Instantiate(_moñecoPrefab, positionToInteract.position, Quaternion.identity);
-            var moñeco = go.GetComponent<MoñecoMonoBehaviour>();
+            var moñeco = instantiator.Spawn(positionToInteract.position);
             _saveHandler.Track(moñeco);
             moñeco.RestoreInteraction(this, 1);
             RestoreWorker(moñeco);

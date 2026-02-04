@@ -27,7 +27,7 @@ namespace Runtime.Infraestructure
 
         public MoñecoMonoBehaviour Spawn(Vector3 position)
         {
-            var moñeco = GameObject.Instantiate(_moñecoPrefab, position, Quaternion.identity).GetComponent<MoñecoMonoBehaviour>();
+            var moñeco = _diContainer.InstantiatePrefabForComponent<MoñecoMonoBehaviour>(_moñecoPrefab, position, Quaternion.identity, null);
             _saveHandler.Track(moñeco);
             return moñeco;
         }

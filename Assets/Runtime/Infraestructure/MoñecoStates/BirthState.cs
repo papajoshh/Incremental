@@ -2,12 +2,12 @@ namespace Runtime.Infraestructure.MoñecoStates
 {
     public class BirthState : IMoñecoState
     {
-        public int? GetAnimationHash(IMoñecoContext ctx) => AnimHashes.Birth;
+        public int? GetAnimationHash(MoñecoMonoBehaviour m) => AnimHashes.Birth;
 
-        public void OnComplete(IMoñecoContext ctx)
+        public void OnComplete(MoñecoMonoBehaviour m)
         {
-            ctx.CompleteBirth();
-            ctx.EvaluateAir();
+            m.CompleteBirth();
+            m.EvaluateAir();
         }
     }
 }

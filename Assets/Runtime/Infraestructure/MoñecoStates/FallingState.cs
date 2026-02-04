@@ -4,18 +4,18 @@ namespace Runtime.Infraestructure.MoñecoStates
 {
     public class FallingState : IMoñecoState
     {
-        public int? GetAnimationHash(IMoñecoContext ctx) => AnimHashes.Falling;
+        public int? GetAnimationHash(MoñecoMonoBehaviour m) => AnimHashes.Falling;
 
-        public void OnStep(IMoñecoContext ctx)
+        public void OnStep(MoñecoMonoBehaviour m)
         {
-            if (ctx.CheckGroundBelow(out var hit))
+            if (m.CheckGroundBelow(out var hit))
             {
-                ctx.Move(Vector3.down * hit.distance);
-                ctx.ChangeState<LandingState>();
+                m.Move(Vector3.down * hit.distance);
+                m.ChangeState<LandingState>();
                 return;
             }
 
-            ctx.Move(Vector3.down * ctx.FallStepDistance);
+            m.Move(Vector3.down * m.FallStepDistance);
         }
     }
 }

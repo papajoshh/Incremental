@@ -5,14 +5,11 @@ using DG.Tweening;
 using Runtime.Application;
 using Runtime.Domain;
 using UnityEngine;
-using Zenject;
 
 namespace Runtime.Infraestructure
 {
     public class SaveManager : MonoBehaviour
     {
-        [Inject] private readonly BagOfMoñecos _bag;
-
         private string SavePath => Path.Combine(UnityEngine.Application.persistentDataPath, "save.json");
 
         private List<ISaveable> _saveables;
@@ -62,7 +59,6 @@ namespace Runtime.Infraestructure
             var data = new GameSaveData
             {
                 version = 1,
-                totalMoñecos = _bag.MoñecosInside,
                 cameraX = camera.transform.localPosition.x,
                 cameraY = camera.transform.localPosition.y,
                 cameraZ = camera.transform.localPosition.z,
@@ -89,8 +85,6 @@ namespace Runtime.Infraestructure
             var camera = Camera.main;
             camera.transform.localPosition = new Vector3(data.cameraX, data.cameraY, data.cameraZ);
             camera.orthographicSize = data.cameraSize;
-
-            _bag.RestoreCount(data.totalMoñecos);
 
             var lookup = new Dictionary<string, string>();
             for (int i = 0; i < data.saveIds.Length; i++)

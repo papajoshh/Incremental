@@ -2,12 +2,12 @@ namespace Runtime.Infraestructure.MoñecoStates
 {
     public class IdleState : IMoñecoState
     {
-        public int? GetAnimationHash(IMoñecoContext ctx) => AnimHashes.Idle;
+        public int? GetAnimationHash(MoñecoMonoBehaviour m) => AnimHashes.Idle;
 
-        public void OnUpdate(IMoñecoContext ctx)
+        public void OnUpdate(MoñecoMonoBehaviour m)
         {
-            if (!ctx.IsGrounded())
-                ctx.ChangeState<FallingState>();
+            if (!m.IsGrounded())
+                m.ChangeState<FallingState>();
         }
     }
 }

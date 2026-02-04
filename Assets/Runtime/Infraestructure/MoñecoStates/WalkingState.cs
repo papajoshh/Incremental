@@ -4,27 +4,27 @@ namespace Runtime.Infraestructure.MoñecoStates
 {
     public class WalkingState : IMoñecoState
     {
-        public int? GetAnimationHash(IMoñecoContext ctx) =>
-            ctx.Direction > 0 ? AnimHashes.WalkRight : AnimHashes.WalkLeft;
+        public int? GetAnimationHash(MoñecoMonoBehaviour m) =>
+            m.Direction > 0 ? AnimHashes.WalkRight : AnimHashes.WalkLeft;
 
-        public void OnStep(IMoñecoContext ctx)
+        public void OnStep(MoñecoMonoBehaviour m)
         {
-            if (ctx.CheckWallAhead(out _))
+            if (m.CheckWallAhead(out _))
             {
-                ctx.ChangeState<TurningState>();
+                m.ChangeState<TurningState>();
                 return;
             }
 
-            ctx.Move(Vector3.right * ctx.Direction * ctx.StepDistance);
+            m.Move(Vector3.right * m.Direction * m.StepDistance);
 
-            if (ctx.HasReachedInteractionTarget())
-                ctx.ArriveAtInteraction();
+            if (m.HasReachedInteractionTarget())
+                m.ArriveAtInteraction();
         }
 
-        public void OnUpdate(IMoñecoContext ctx)
+        public void OnUpdate(MoñecoMonoBehaviour m)
         {
-            if (!ctx.IsGrounded())
-                ctx.ChangeState<FallingState>();
+            if (!m.IsGrounded())
+                m.ChangeState<FallingState>();
         }
     }
 }

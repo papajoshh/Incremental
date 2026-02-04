@@ -20,7 +20,6 @@ namespace Runtime.Domain
     public class GameSaveData
     {
         public int version = 1;
-        public int totalMoñecos;
         public float cameraX;
         public float cameraY;
         public float cameraZ;
@@ -68,5 +67,12 @@ namespace Runtime.Domain
     {
         public string id;
         public bool discovered;
+    }
+
+    [Serializable]
+    public class BagSaveData
+    {
+        public int total;
+        public int inside;
     }
 }
