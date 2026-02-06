@@ -28,6 +28,9 @@ namespace Programental
         private void Awake()
         {
             Configure(GetComponent<ParticleSystem>());
+
+            var uiParticle = GetComponent<UIParticle>();
+            uiParticle.positionMode = UIParticle.PositionMode.Absolute;
         }
 
         private void Configure(ParticleSystem ps)
@@ -40,7 +43,7 @@ namespace Programental
             main.startSize = new ParticleSystem.MinMaxCurve(minSize, maxSize);
             main.startColor = new ParticleSystem.MinMaxGradient(colorA, colorB);
             main.gravityModifier = gravity;
-            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.simulationSpace = ParticleSystemSimulationSpace.Local;
             main.maxParticles = maxParticles;
             main.scalingMode = ParticleSystemScalingMode.Hierarchy;
 

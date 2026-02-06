@@ -28,13 +28,6 @@ namespace Programental
             base.Restore();
         }
 
-        private RectTransform _particlesRect;
-
-        private void Awake()
-        {
-            _particlesRect = particles.GetComponent<RectTransform>();
-        }
-
         private void OnChar(char c, string visibleText)
         {
             if (!Unlocked || c == '\0') return;
@@ -49,10 +42,8 @@ namespace Programental
                 return;
 
             var charInfo = textInfo.characterInfo[charIndex];
-            var charCenter = (Vector2)(charInfo.bottomLeft + charInfo.topRight) / 2f;
-
-            // charCenter is in TMP local space, offset by TMP's anchoredPosition to get parent space
-            _particlesRect.anchoredPosition = codeText.rectTransform.anchoredPosition + charCenter;
+            var charLocalPos = (charInfo.bottomLeft + charInfo.topRight) / 2f;
+            particles.transform.position = codeText.transform.TransformPoint(charLocalPos);
             particles.Emit(particlesPerKey);
         }
     }
