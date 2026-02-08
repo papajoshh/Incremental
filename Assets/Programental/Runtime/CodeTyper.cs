@@ -4,6 +4,10 @@ namespace Programental
 {
     public class CodeTyper
     {
+        private const int EasyLineCount = 30;
+        private const int EasyMinLength = 10;
+        private const int EasyMaxLength = 20;
+
         private string _currentLine;
         private int _currentCharIndex;
         private int _linesCompleted;
@@ -38,7 +42,10 @@ namespace Programental
 
         private void LoadNextLine()
         {
-            _currentLine = CodeLinePool.GetNext();
+            var isEasy = _linesCompleted < EasyLineCount;
+            _currentLine = isEasy
+                ? CodeLinePool.GetNext(EasyMinLength, EasyMaxLength)
+                : CodeLinePool.GetNext();
             _currentCharIndex = 0;
             OnCharTyped?.Invoke('\0', "");
         }

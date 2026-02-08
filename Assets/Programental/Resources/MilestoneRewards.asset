@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3175c2ea64da3f45a095e836891ee67, type: 3}
+  m_Name: MilestoneRewards
+  m_EditorClassIdentifier: 
+  milestones:
+  - linesRequired: 3
+    rewardId: ShowLineCounter
+  - linesRequired: 7
+    rewardId: PunchCounter
+  - linesRequired: 12
+    rewardId: DescriptiveCounter
+  - linesRequired: 15
+    rewardId: ShowFrame
+  - linesRequired: 20
+    rewardId: ShowDeleteButton
+  - linesRequired: 25
+    rewardId: EnableDeleteButton

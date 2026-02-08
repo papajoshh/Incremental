@@ -7,6 +7,8 @@ namespace Programental
 {
     public class KeypressPunchReward : MilestoneReward
     {
+        public override string RewardId => "KeypressPunch";
+
         [Inject] private CodeTyper codeTyper;
         [SerializeField] private TextMeshProUGUI codeText;
         [SerializeField] private Vector3 punchScale = new Vector3(0.03f, 0.03f, 0);

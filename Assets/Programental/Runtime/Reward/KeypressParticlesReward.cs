@@ -6,6 +6,8 @@ namespace Programental
 {
     public class KeypressParticlesReward : MilestoneReward
     {
+        public override string RewardId => "KeypressParticles";
+
         [Inject] private CodeTyper codeTyper;
         [SerializeField] private TextMeshProUGUI codeText;
         [SerializeField] private ParticleSystem particles;

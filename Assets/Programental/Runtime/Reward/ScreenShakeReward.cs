@@ -6,6 +6,8 @@ namespace Programental
 {
     public class ScreenShakeReward : MilestoneReward
     {
+        public override string RewardId => "ScreenShake";
+
         [Inject] private CodeTyper codeTyper;
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private RectTransform canvasRect;

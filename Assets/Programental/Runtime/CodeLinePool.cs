@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Programental
@@ -5,7 +6,6 @@ namespace Programental
     public static class CodeLinePool
     {
         private static string[] _lines;
-        private static int _index = -1;
         private static bool _initialized;
 
         public static void Init()
@@ -21,42 +21,68 @@ namespace Programental
                 return;
             }
 
-            _lines = textAsset.text.Split('\n');
-            // Filter empty lines
-            var filtered = new System.Collections.Generic.List<string>(_lines.Length);
-            for (int i = 0; i < _lines.Length; i++)
+            var raw = textAsset.text.Split('\n');
+            var filtered = new System.Collections.Generic.List<string>(raw.Length);
+            for (int i = 0; i < raw.Length; i++)
             {
-                var trimmed = _lines[i].Trim();
+                var trimmed = raw[i].Trim();
                 if (trimmed.Length > 0)
                     filtered.Add(trimmed);
             }
+
             _lines = filtered.ToArray();
-            Shuffle();
+            Array.Sort(_lines, (a, b) => a.Length.CompareTo(b.Length));
             _initialized = true;
 
             Debug.Log($"CodeLinePool: Loaded {_lines.Length} lines");
         }
 
-        public static string GetNext()
+        public static string GetNext(int minLength = 0, int maxLength = int.MaxValue)
         {
             if (!_initialized) Init();
 
-            _index++;
-            if (_index >= _lines.Length)
-            {
-                Shuffle();
-                _index = 0;
-            }
-            return _lines[_index];
+            var lo = FindLowerBound(minLength);
+            var hi = FindUpperBound(maxLength);
+            if (lo > hi) lo = hi;
+            return _lines[UnityEngine.Random.Range(lo, hi + 1)];
         }
 
-        private static void Shuffle()
+        private static int FindLowerBound(int minLength)
         {
-            for (int i = _lines.Length - 1; i > 0; i--)
+            int lo = 0, hi = _lines.Length - 1, result = 0;
+            while (lo <= hi)
             {
-                int j = Random.Range(0, i + 1);
-                (_lines[i], _lines[j]) = (_lines[j], _lines[i]);
+                var mid = (lo + hi) / 2;
+                if (_lines[mid].Length >= minLength)
+                {
+                    result = mid;
+                    hi = mid - 1;
+                }
+                else
+                {
+                    lo = mid + 1;
+                }
             }
+            return result;
+        }
+
+        private static int FindUpperBound(int maxLength)
+        {
+            int lo = 0, hi = _lines.Length - 1, result = 0;
+            while (lo <= hi)
+            {
+                var mid = (lo + hi) / 2;
+                if (_lines[mid].Length <= maxLength)
+                {
+                    result = mid;
+                    lo = mid + 1;
+                }
+                else
+                {
+                    hi = mid - 1;
+                }
+            }
+            return result;
         }
     }
 }

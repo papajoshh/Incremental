@@ -6,6 +6,8 @@ namespace Programental
 {
     public class HitstopReward : MilestoneReward
     {
+        public override string RewardId => "Hitstop";
+
         [Inject] private CodeTyper codeTyper;
         [SerializeField] private float hitstopDuration = 0.06f;
 
