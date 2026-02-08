@@ -4,7 +4,7 @@ namespace Programental
 {
     public class CodeTyper
     {
-        private const int EasyLineCount = 30;
+        private const int EasyLineCount = 100;
         private const int EasyMinLength = 10;
         private const int EasyMaxLength = 20;
 

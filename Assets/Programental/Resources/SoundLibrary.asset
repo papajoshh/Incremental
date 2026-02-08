@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b325ec828ec99e941b054a8880f497b1, type: 3}
+  m_Name: SoundLibrary
+  m_EditorClassIdentifier: 
+  sounds:
+  - key: keypress
+    clips:
+    - {fileID: 8300000, guid: 6c06e083cbb90a449baa9798ba04e92d, type: 3}
+    - {fileID: 8300000, guid: 621f4114956bf57408f4dca2ffc8a129, type: 3}
+    - {fileID: 8300000, guid: a23b4dfc22764884a936e1ed904fdc0a, type: 3}
+    - {fileID: 8300000, guid: 6de7546c49373e9419da55d1786584e0, type: 3}
+    - {fileID: 8300000, guid: e808a07d5c40896409f6473ec2cf41fc, type: 3}
+    - {fileID: 8300000, guid: 0fe8d2bd28b0f404c87370dd8cd49947, type: 3}
+    - {fileID: 8300000, guid: b6f5a667444b7304488433f3b529b8ca, type: 3}
+    volume: 1
+  - key: linecomplete
+    clips:
+    - {fileID: 8300000, guid: c7bcba099d81cc641b16d9d97b31fc73, type: 3}
+    - {fileID: 8300000, guid: 6974a3abda3301f4b805597e77555ad0, type: 3}
+    - {fileID: 8300000, guid: 6bbff11f7226ef342a399f6509f042e1, type: 3}
+    volume: 1

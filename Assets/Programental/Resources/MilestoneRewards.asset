@@ -25,3 +25,7 @@ MonoBehaviour:
     rewardId: ShowDeleteButton
   - linesRequired: 25
     rewardId: EnableDeleteButton
+  - linesRequired: 30
+    rewardId: KeypressSound
+  - linesRequired: 35
+    rewardId: LineCompleteSound
