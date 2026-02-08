@@ -18,6 +18,7 @@ namespace Programental
             _multipliers.CharsPerKeypress = _config.charsPerKeypressValue;
             return new BonusInfo
             {
+                BonusId = BonusId,
                 LocalizationKey = "Bonus/Speed",
                 Value = _config.charsPerKeypressValue,
                 Duration = _config.bonusDuration

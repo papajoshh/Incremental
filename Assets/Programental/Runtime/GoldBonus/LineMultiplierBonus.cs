@@ -18,6 +18,7 @@ namespace Programental
             _multipliers.LineMultiplier = _config.lineMultiplierValue;
             return new BonusInfo
             {
+                BonusId = BonusId,
                 LocalizationKey = "Bonus/LineMultiplier",
                 Value = _config.lineMultiplierValue,
                 Duration = _config.bonusDuration

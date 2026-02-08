@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GoldenCodeConfig
   m_EditorClassIdentifier: 
   firstSpawnDelay: 10
-  spawnInterval: 300
+  spawnInterval: 180
   wordLifetime: 15
   costBase: 2
   firstBonusId: LineMultiplier

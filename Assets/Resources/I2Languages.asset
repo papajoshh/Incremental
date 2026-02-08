@@ -49,6 +49,22 @@ MonoBehaviour:
       - "C\xD3DIGO +{0}s EN PANTALLA"
       Flags: 0000
       Languages_Touch: []
+    - Term: UI/GoldenCodeAvailable
+      TermType: 0
+      Description: 
+      Languages:
+      - 'Golden codes:'
+      - "C\xF3digos dorados:"
+      Flags: 0000
+      Languages_Touch: []
+    - Term: UI/GoldenCodeCompleted
+      TermType: 0
+      Description: 
+      Languages:
+      - 'Completed:'
+      - 'Completados:'
+      Flags: 0000
+      Languages_Touch: []
     CaseInsensitiveTerms: 0
     OnMissingTranslation: 1
     mTerm_AppName: 

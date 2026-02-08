@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using DG.Tweening;
 using UnityEngine;
 using Zenject;
 
@@ -13,6 +13,7 @@ namespace Programental
         [Inject] private DiContainer container;
         [Inject] private IBonusFeedback bonusFeedback;
         [Inject] private List<IGoldenCodeBonus> bonuses;
+        [Inject] private GoldenCodeMilestoneTracker milestoneTracker;
 
         [SerializeField] private GoldenCodeWord wordPrefab;
         [SerializeField] private RectTransform spawnArea;
@@ -23,11 +24,14 @@ namespace Programental
         private bool _firstSpawn = true;
         private bool _enabled;
         private readonly List<GoldenCodeWord> _activeWords = new();
+        private readonly Dictionary<string, float> _activeBonusTimers = new();
         private string[] _wordList;
 
         public int PoolSize => _poolSize;
         public int TotalPurchased => _totalPurchased;
         public int WordsCompleted { get; private set; }
+
+        public event Action OnStatsChanged;
 
         private void Start()
         {
@@ -46,12 +50,35 @@ namespace Programental
 
         private void Update()
         {
+            UpdateBonusTimers();
+
             if (!_enabled || _poolSize <= 0) return;
 
             _spawnTimer -= Time.deltaTime;
             if (!(_spawnTimer <= 0f)) return;
             SpawnWord();
             _spawnTimer = config.spawnInterval;
+        }
+
+        private void UpdateBonusTimers()
+        {
+            if (_activeBonusTimers.Count == 0) return;
+
+            var expired = new List<string>();
+            var keys = new List<string>(_activeBonusTimers.Keys);
+            foreach (var key in keys)
+            {
+                _activeBonusTimers[key] -= Time.deltaTime;
+                if (_activeBonusTimers[key] > 0f) continue;
+                expired.Add(key);
+            }
+
+            foreach (var id in expired)
+            {
+                _activeBonusTimers.Remove(id);
+                var bonus = bonuses.Find(b => b.BonusId == id);
+                bonus.Revert();
+            }
         }
 
         public void Enable()
@@ -71,6 +98,7 @@ namespace Programental
                 _totalPurchased++;
                 _poolSize++;
             }
+            OnStatsChanged?.Invoke();
         }
 
         private int GetCostForNext()
@@ -83,6 +111,7 @@ namespace Programental
         {
             if (_poolSize <= 0) return;
             _poolSize--;
+            OnStatsChanged?.Invoke();
 
             InstantiateWord();
 
@@ -112,6 +141,8 @@ namespace Programental
             WordsCompleted++;
             _activeWords.Remove(word);
             Destroy(word.gameObject);
+            OnStatsChanged?.Invoke();
+            milestoneTracker.CheckMilestones(WordsCompleted);
             ApplyRandomBonus();
         }
 
@@ -125,16 +156,25 @@ namespace Programental
         {
             var bonus = WordsCompleted == 1
                 ? bonuses.Find(b => b.BonusId == config.firstBonusId)
-                : bonuses[Random.Range(0, bonuses.Count)];
+                : bonuses[UnityEngine.Random.Range(0, bonuses.Count)];
 
             var info = bonus.Apply();
-            bonusFeedback.ShowBonus(info);
-            DOVirtual.DelayedCall(info.Duration, bonus.Revert);
+
+            if (_activeBonusTimers.ContainsKey(bonus.BonusId))
+            {
+                _activeBonusTimers[bonus.BonusId] += info.Duration;
+                bonusFeedback.ExtendBonus(bonus.BonusId, info.Duration);
+            }
+            else
+            {
+                _activeBonusTimers[bonus.BonusId] = info.Duration;
+                bonusFeedback.ShowBonus(info);
+            }
         }
 
         private string GetRandomWord()
         {
-            return _wordList[Random.Range(0, _wordList.Length)];
+            return _wordList[UnityEngine.Random.Range(0, _wordList.Length)];
         }
 
         private string[] LoadWordList()

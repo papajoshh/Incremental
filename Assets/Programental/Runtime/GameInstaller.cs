@@ -8,6 +8,7 @@ namespace Programental
         [SerializeField] private MilestonesConfig milestonesConfig;
         [SerializeField] private GoldenCodeConfig goldenCodeConfig;
         [SerializeField] private SoundLibrary soundLibrary;
+        [SerializeField] private GoldenCodeMilestonesConfig goldenCodeMilestonesConfig;
 
         public override void InstallBindings()
         {
@@ -20,6 +21,8 @@ namespace Programental
             Container.Bind<IGoldenCodeBonus>().To<SpeedBonus>().AsSingle();
             Container.Bind<IGoldenCodeBonus>().To<TimeBonus>().AsSingle();
             Container.Bind<MilestoneTracker>().AsSingle();
+            Container.BindInstance(goldenCodeMilestonesConfig);
+            Container.Bind<GoldenCodeMilestoneTracker>().AsSingle();
             Container.Bind<LinesTracker>().AsSingle();
             Container.Bind<CodeTyperMonoBehaviour>().FromComponentInHierarchy().AsSingle();
             Container.Bind<LineCounterView>().FromComponentInHierarchy().AsSingle();
@@ -28,6 +31,7 @@ namespace Programental
             Container.Bind<IBonusFeedback>().To<BonusFeedbackView>().FromComponentInHierarchy().AsSingle();
             Container.Bind<AudioPlayer>().FromComponentInHierarchy().AsSingle();
             Container.Bind<ScreenShaker>().FromComponentInHierarchy().AsSingle();
+            Container.Bind<GoldenCodeCounterView>().FromComponentInHierarchy().AsSingle();
         }
     }
 }
