@@ -11,6 +11,8 @@ namespace Programental
         [Inject] private GoldenCodeConfig config;
         [Inject] private BonusMultipliers bonusMultipliers;
         [Inject] private DiContainer container;
+        [Inject] private IBonusFeedback bonusFeedback;
+        [Inject] private List<IGoldenCodeBonus> bonuses;
 
         [SerializeField] private GoldenCodeWord wordPrefab;
         [SerializeField] private RectTransform spawnArea;
@@ -121,25 +123,13 @@ namespace Programental
 
         private void ApplyRandomBonus()
         {
-            var roll = Random.Range(0, 3);
-            switch (roll)
-            {
-                case 0:
-                    bonusMultipliers.LineMultiplier = config.lineMultiplierValue;
-                    DOVirtual.DelayedCall(config.bonusDuration, () =>
-                        bonusMultipliers.LineMultiplier = 1);
-                    break;
-                case 1:
-                    bonusMultipliers.CharsPerKeypress = config.charsPerKeypressValue;
-                    DOVirtual.DelayedCall(config.bonusDuration, () =>
-                        bonusMultipliers.CharsPerKeypress = 1);
-                    break;
-                case 2:
-                    bonusMultipliers.GoldenCodeTimeBonus = config.goldenCodeTimeBonus;
-                    DOVirtual.DelayedCall(config.bonusDuration, () =>
-                        bonusMultipliers.GoldenCodeTimeBonus = 0f);
-                    break;
-            }
+            var bonus = WordsCompleted == 1
+                ? bonuses.Find(b => b.BonusId == config.firstBonusId)
+                : bonuses[Random.Range(0, bonuses.Count)];
+
+            var info = bonus.Apply();
+            bonusFeedback.ShowBonus(info);
+            DOVirtual.DelayedCall(info.Duration, bonus.Revert);
         }
 
         private string GetRandomWord()

@@ -16,13 +16,18 @@ namespace Programental
             Container.BindInstance(goldenCodeConfig);
             Container.BindInstance(soundLibrary);
             Container.Bind<BonusMultipliers>().AsSingle();
+            Container.Bind<IGoldenCodeBonus>().To<LineMultiplierBonus>().AsSingle();
+            Container.Bind<IGoldenCodeBonus>().To<SpeedBonus>().AsSingle();
+            Container.Bind<IGoldenCodeBonus>().To<TimeBonus>().AsSingle();
             Container.Bind<MilestoneTracker>().AsSingle();
             Container.Bind<LinesTracker>().AsSingle();
             Container.Bind<CodeTyperMonoBehaviour>().FromComponentInHierarchy().AsSingle();
             Container.Bind<LineCounterView>().FromComponentInHierarchy().AsSingle();
             Container.Bind<DeleteCodeButtonView>().FromComponentInHierarchy().AsSingle();
             Container.Bind<GoldenCodeManager>().FromComponentInHierarchy().AsSingle();
+            Container.Bind<IBonusFeedback>().To<BonusFeedbackView>().FromComponentInHierarchy().AsSingle();
             Container.Bind<AudioPlayer>().FromComponentInHierarchy().AsSingle();
+            Container.Bind<ScreenShaker>().FromComponentInHierarchy().AsSingle();
         }
     }
 }

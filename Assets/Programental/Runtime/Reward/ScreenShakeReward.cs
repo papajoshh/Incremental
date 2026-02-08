@@ -1,4 +1,3 @@
-using DG.Tweening;
 using UnityEngine;
 using Zenject;
 
@@ -9,23 +8,20 @@ namespace Programental
         public override string RewardId => "ScreenShake";
 
         [Inject] private CodeTyper codeTyper;
-        [SerializeField] private Transform cameraTransform;
-        [SerializeField] private RectTransform canvasRect;
+        [Inject] private ScreenShaker screenShaker;
+
         [SerializeField] private float shakeDuration = 0.3f;
         [SerializeField] private float cameraShakeStrength = 0.3f;
         [SerializeField] private float uiShakeStrength = 15f;
 
-        private Tween _cameraTween;
-        private Tween _uiTween;
-
         private void OnEnable()
         {
-            if (codeTyper != null) codeTyper.OnLineCompleted += OnLine;
+            codeTyper.OnLineCompleted += OnLine;
         }
 
         private void OnDisable()
         {
-            if (codeTyper != null) codeTyper.OnLineCompleted -= OnLine;
+            codeTyper.OnLineCompleted -= OnLine;
         }
 
         public override void OnUnlock() { }
@@ -38,12 +34,7 @@ namespace Programental
         private void OnLine(string _, int __)
         {
             if (!Unlocked) return;
-
-            _cameraTween?.Complete();
-            _cameraTween = cameraTransform.DOShakePosition(shakeDuration, cameraShakeStrength, 20);
-
-            _uiTween?.Complete();
-            _uiTween = canvasRect.DOShakeAnchorPos(shakeDuration, uiShakeStrength, 20);
+            screenShaker.Shake(shakeDuration, cameraShakeStrength, uiShakeStrength);
         }
     }
 }

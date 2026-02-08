@@ -16,7 +16,8 @@ MonoBehaviour:
   spawnInterval: 300
   wordLifetime: 15
   costBase: 2
-  bonusDuration: 30
+  firstBonusId: LineMultiplier
+  bonusDuration: 20
   lineMultiplierValue: 2
   charsPerKeypressValue: 2
   goldenCodeTimeBonus: 10

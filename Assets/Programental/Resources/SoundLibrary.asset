@@ -29,3 +29,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 6974a3abda3301f4b805597e77555ad0, type: 3}
     - {fileID: 8300000, guid: 6bbff11f7226ef342a399f6509f042e1, type: 3}
     volume: 1
+  - key: delete
+    clips:
+    - {fileID: 8300000, guid: 7ec11350f9f16a7489b6e8a7461d73e7, type: 3}
+    volume: 1

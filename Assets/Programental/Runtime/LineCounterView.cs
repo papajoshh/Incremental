@@ -13,9 +13,12 @@ namespace Programental
         [SerializeField] private GameObject frame;
         [SerializeField] private string localizationKey = "UI/LinesOfCode";
 
+        [SerializeField] private Color deleteFlashColor = new Color(1f, 0.2f, 0.2f);
+
         private bool _visible;
         private bool _showLabel;
         private bool _punchOnIncrement;
+        private int _lastLines;
 
         private void Awake()
         {
@@ -66,7 +69,23 @@ namespace Programental
         private void OnLinesChanged(int availableLines)
         {
             if (!_visible) return;
+
+            var wasDelete = availableLines < _lastLines;
+            _lastLines = availableLines;
+
             UpdateText(availableLines);
+
+            if (wasDelete)
+            {
+                counterText.transform.DOComplete();
+                counterText.transform.DOPunchScale(Vector3.one * -0.4f, 0.4f, 12, 0);
+                counterText.transform.DOShakeRotation(0.3f, 15f, 20);
+                var originalColor = counterText.color;
+                counterText.DOColor(deleteFlashColor, 0.1f)
+                    .OnComplete(() => counterText.DOColor(originalColor, 0.3f));
+                return;
+            }
+
             if (!_punchOnIncrement) return;
             counterText.transform.DOComplete();
             counterText.transform.DOPunchScale(Vector3.one * 0.15f, 0.2f, 5, 0);

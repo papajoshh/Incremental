@@ -16,6 +16,7 @@ namespace Programental
         public float costBase = 2f;
 
         [Header("Bonuses")]
+        public string firstBonusId = "LineMultiplier";
         public float bonusDuration = 30f;
         public int lineMultiplierValue = 2;
         public int charsPerKeypressValue = 2;

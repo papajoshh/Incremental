@@ -23,7 +23,7 @@ namespace Programental
         {
             TotalLinesEver += _bonusMultipliers.LineMultiplier;
             OnAvailableLinesChanged?.Invoke(AvailableLines);
-            _milestoneTracker.CheckMilestones(TotalLinesEver);
+            _milestoneTracker.CheckMilestones(AvailableLines);
         }
 
         public int DeleteAllLines()

@@ -9,11 +9,14 @@ namespace Programental
     {
         [Inject] private LinesTracker linesTracker;
         [Inject] private GoldenCodeManager goldenCodeManager;
+        [Inject] private AudioPlayer audioPlayer;
+        [Inject] private ScreenShaker screenShaker;
 
         [SerializeField] private Button button;
         [SerializeField] private GameObject background;
         [SerializeField] private GameObject trashIcon;
         [SerializeField] private RectTransform buttonTransform;
+        [SerializeField] private string deleteSfxKey = "delete";
 
         private bool _functional;
 
@@ -85,6 +88,14 @@ namespace Programental
             var deleted = linesTracker.DeleteAllLines();
             goldenCodeManager.PurchaseWithLines(deleted);
             goldenCodeManager.Enable();
+
+            audioPlayer.PlaySfx(deleteSfxKey);
+            screenShaker.Shake(0.5f, 0.8f, 40f, 25);
+
+            // Botón se sacude con violencia
+            buttonTransform.DOShakeRotation(0.4f, 25f, 20);
+            trashIcon.transform.DOComplete();
+            trashIcon.transform.DOPunchScale(Vector3.one * -0.4f, 0.3f, 10, 0);
         }
     }
 }

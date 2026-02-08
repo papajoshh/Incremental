@@ -25,6 +25,30 @@ MonoBehaviour:
       - "L\xEDneas de c\xF3digo:"
       Flags: 0000
       Languages_Touch: []
+    - Term: Bonus/LineMultiplier
+      TermType: 0
+      Description: 
+      Languages:
+      - x{0} LINES
+      - "x{0} L\xCDNEAS"
+      Flags: 0000
+      Languages_Touch: []
+    - Term: Bonus/Speed
+      TermType: 0
+      Description: 
+      Languages:
+      - x{0} SPEED
+      - x{0} VELOCIDAD
+      Flags: 0000
+      Languages_Touch: []
+    - Term: Bonus/Time
+      TermType: 0
+      Description: 
+      Languages:
+      - CODE +{0}s ON SCREEN
+      - "C\xD3DIGO +{0}s EN PANTALLA"
+      Flags: 0000
+      Languages_Touch: []
     CaseInsensitiveTerms: 0
     OnMissingTranslation: 1
     mTerm_AppName: 
