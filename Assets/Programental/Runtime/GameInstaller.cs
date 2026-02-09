@@ -32,6 +32,7 @@ namespace Programental
             Container.Bind<AudioPlayer>().FromComponentInHierarchy().AsSingle();
             Container.Bind<ScreenShaker>().FromComponentInHierarchy().AsSingle();
             Container.Bind<GoldenCodeCounterView>().FromComponentInHierarchy().AsSingle();
+            Container.Bind<TaskbarView>().FromComponentInHierarchy().AsSingle();
         }
     }
 }

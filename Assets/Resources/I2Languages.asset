@@ -65,6 +65,22 @@ MonoBehaviour:
       - 'Completados:'
       Flags: 0000
       Languages_Touch: []
+    - Term: UI/CodeTabTitle
+      TermType: 0
+      Description: 
+      Languages:
+      - Code
+      - "C\xF3digo"
+      Flags: 0000
+      Languages_Touch: []
+    - Term: UI/UpgradeTabTitle
+      TermType: 0
+      Description: 
+      Languages:
+      - Upgrades
+      - Mejoras
+      Flags: 0000
+      Languages_Touch: []
     CaseInsensitiveTerms: 0
     OnMissingTranslation: 1
     mTerm_AppName: 

@@ -29,3 +29,11 @@ MonoBehaviour:
     rewardId: KeypressSound
   - linesRequired: 35
     rewardId: LineCompleteSound
+  - linesRequired: 45
+    rewardId: ShowTaskbar
+  - linesRequired: 50
+    rewardId: ShowTaskbarClock
+  - linesRequired: 60
+    rewardId: ShowCodeTab
+  - linesRequired: 65
+    rewardId: ShowUpgradesTab
