@@ -6,6 +6,7 @@ namespace Programental
     {
         private readonly MilestoneTracker _milestoneTracker;
         private readonly BonusMultipliers _bonusMultipliers;
+        private float _fractionalAccumulator;
 
         public int TotalLinesEver { get; private set; }
         public int TotalLinesDeleted { get; private set; }
@@ -21,14 +22,25 @@ namespace Programental
 
         public void AddCompletedLine()
         {
-            TotalLinesEver += _bonusMultipliers.LineMultiplier;
+            _fractionalAccumulator += _bonusMultipliers.TotalLineMultiplier;
+            var linesEarned = (int)_fractionalAccumulator;
+            _fractionalAccumulator -= linesEarned;
+            TotalLinesEver += linesEarned;
             OnAvailableLinesChanged?.Invoke(AvailableLines);
             _milestoneTracker.CheckMilestones(AvailableLines);
         }
 
+        public bool TrySpendLines(int cost)
+        {
+            if (AvailableLines < cost) return false;
+            TotalLinesDeleted += cost;
+            OnAvailableLinesChanged?.Invoke(AvailableLines);
+            return true;
+        }
+
         public int DeleteAllLines()
         {
-            int deleted = AvailableLines;
+            var deleted = AvailableLines;
             TotalLinesDeleted += deleted;
             OnAvailableLinesChanged?.Invoke(AvailableLines);
             return deleted;

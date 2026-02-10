@@ -21,6 +21,8 @@ MonoBehaviour:
     rewardId: DescriptiveCounter
   - linesRequired: 15
     rewardId: ShowFrame
+  - linesRequired: 19
+    rewardId: EnableGoldenCode
   - linesRequired: 20
     rewardId: ShowDeleteButton
   - linesRequired: 25

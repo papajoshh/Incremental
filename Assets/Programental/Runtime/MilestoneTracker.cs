@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Programental
@@ -10,7 +11,8 @@ namespace Programental
 
         public MilestoneTracker(MilestonesConfig config)
         {
-            _milestones = config.milestones;
+            _milestones = (Milestone[])config.milestones.Clone();
+            Array.Sort(_milestones, (a, b) => a.linesRequired.CompareTo(b.linesRequired));
         }
 
         public void Register(string rewardId, MilestoneReward reward)

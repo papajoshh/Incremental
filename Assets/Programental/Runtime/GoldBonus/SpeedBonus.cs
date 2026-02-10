@@ -15,7 +15,7 @@ namespace Programental
 
         public BonusInfo Apply()
         {
-            _multipliers.CharsPerKeypress = _config.charsPerKeypressValue;
+            _multipliers.BonusCharsPerKeypress = _config.charsPerKeypressValue;
             return new BonusInfo
             {
                 BonusId = BonusId,
@@ -27,7 +27,7 @@ namespace Programental
 
         public void Revert()
         {
-            _multipliers.CharsPerKeypress = 1;
+            _multipliers.BonusCharsPerKeypress = 0;
         }
     }
 }

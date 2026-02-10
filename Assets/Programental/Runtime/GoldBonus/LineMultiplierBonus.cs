@@ -15,7 +15,7 @@ namespace Programental
 
         public BonusInfo Apply()
         {
-            _multipliers.LineMultiplier = _config.lineMultiplierValue;
+            _multipliers.TemporaryLineMultiplier = _config.lineMultiplierValue;
             return new BonusInfo
             {
                 BonusId = BonusId,
@@ -27,7 +27,7 @@ namespace Programental
 
         public void Revert()
         {
-            _multipliers.LineMultiplier = 1;
+            _multipliers.TemporaryLineMultiplier = 1f;
         }
     }
 }

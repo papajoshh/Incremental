@@ -73,8 +73,6 @@ namespace Programental
                 return;
             }
 
-            _progress = 0;
-            UpdateDisplay();
             wordText.transform.DOComplete();
             wordText.DOColor(wrongColor, 0.1f)
                 .OnComplete(() => UpdateDisplay());

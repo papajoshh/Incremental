@@ -8,7 +8,7 @@ namespace Programental
     public class DeleteCodeButtonView : MonoBehaviour
     {
         [Inject] private LinesTracker linesTracker;
-        [Inject] private GoldenCodeManager goldenCodeManager;
+        [Inject] private BaseMultiplierTracker baseMultiplierTracker;
         [Inject] private AudioPlayer audioPlayer;
         [Inject] private ScreenShaker screenShaker;
 
@@ -86,13 +86,11 @@ namespace Programental
             if (linesTracker.AvailableLines <= 0) return;
 
             var deleted = linesTracker.DeleteAllLines();
-            goldenCodeManager.PurchaseWithLines(deleted);
-            goldenCodeManager.Enable();
+            baseMultiplierTracker.AddDeletedLines(deleted);
 
             audioPlayer.PlaySfx(deleteSfxKey);
             screenShaker.Shake(0.5f, 0.8f, 40f, 25);
 
-            // Botón se sacude con violencia
             buttonTransform.DOShakeRotation(0.4f, 25f, 20);
             trashIcon.transform.DOComplete();
             trashIcon.transform.DOPunchScale(Vector3.one * -0.4f, 0.3f, 10, 0);

@@ -13,13 +13,10 @@ namespace Programental
         [Inject] private DiContainer container;
         [Inject] private IBonusFeedback bonusFeedback;
         [Inject] private List<IGoldenCodeBonus> bonuses;
-        [Inject] private GoldenCodeMilestoneTracker milestoneTracker;
 
         [SerializeField] private GoldenCodeWord wordPrefab;
         [SerializeField] private RectTransform spawnArea;
 
-        private int _poolSize;
-        private int _totalPurchased;
         private float _spawnTimer;
         private bool _firstSpawn = true;
         private bool _enabled;
@@ -27,8 +24,6 @@ namespace Programental
         private readonly Dictionary<string, float> _activeBonusTimers = new();
         private string[] _wordList;
 
-        public int PoolSize => _poolSize;
-        public int TotalPurchased => _totalPurchased;
         public int WordsCompleted { get; private set; }
 
         public event Action OnStatsChanged;
@@ -36,6 +31,7 @@ namespace Programental
         private void Start()
         {
             _wordList = LoadWordList();
+            WordsCompleted = LoadWordsCompleted();
         }
 
         private void OnEnable()
@@ -52,7 +48,7 @@ namespace Programental
         {
             UpdateBonusTimers();
 
-            if (!_enabled || _poolSize <= 0) return;
+            if (!_enabled) return;
 
             _spawnTimer -= Time.deltaTime;
             if (!(_spawnTimer <= 0f)) return;
@@ -87,37 +83,12 @@ namespace Programental
             _spawnTimer = _firstSpawn ? config.firstSpawnDelay : config.spawnInterval;
         }
 
-        public void PurchaseWithLines(int deletedLines)
-        {
-            var budget = deletedLines;
-            while (true)
-            {
-                var cost = GetCostForNext();
-                if (budget < cost) break;
-                budget -= cost;
-                _totalPurchased++;
-                _poolSize++;
-            }
-            OnStatsChanged?.Invoke();
-        }
-
-        private int GetCostForNext()
-        {
-            return Mathf.RoundToInt(Mathf.Pow(config.costBase, _totalPurchased));
-        }
-
-
         private void SpawnWord()
         {
-            if (_poolSize <= 0) return;
-            _poolSize--;
-            OnStatsChanged?.Invoke();
-
             InstantiateWord();
-
             _firstSpawn = false;
         }
-        
+
         [ContextMenu("Instantiate Word")]
         private void InstantiateWord()
         {
@@ -139,10 +110,10 @@ namespace Programental
         private void HandleWordCompleted(GoldenCodeWord word)
         {
             WordsCompleted++;
+            SaveWordsCompleted();
             _activeWords.Remove(word);
             Destroy(word.gameObject);
             OnStatsChanged?.Invoke();
-            milestoneTracker.CheckMilestones(WordsCompleted);
             ApplyRandomBonus();
         }
 
@@ -189,6 +160,17 @@ namespace Programental
                 if (trimmed.Length > 0) result.Add(trimmed);
             }
             return result.ToArray();
+        }
+
+        private int LoadWordsCompleted()
+        {
+            return PlayerPrefs.GetInt("GoldenWordsCompleted", 0);
+        }
+
+        private void SaveWordsCompleted()
+        {
+            PlayerPrefs.SetInt("GoldenWordsCompleted", WordsCompleted);
+            PlayerPrefs.Save();
         }
     }
 }

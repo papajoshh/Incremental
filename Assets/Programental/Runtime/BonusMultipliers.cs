@@ -2,8 +2,16 @@ namespace Programental
 {
     public class BonusMultipliers
     {
-        public int LineMultiplier { get; set; } = 1;
-        public int CharsPerKeypress { get; set; } = 1;
+        public float BaseMultiplier { get; set; } = 1f;
+        public float TemporaryLineMultiplier { get; set; } = 1f;
+        public float TotalLineMultiplier => BaseMultiplier * TemporaryLineMultiplier;
+
+        public int BaseCharsPerKeypress { get; set; } = 1;
+        public int BonusCharsPerKeypress { get; set; }
+        public int CharsPerKeypress => BaseCharsPerKeypress + BonusCharsPerKeypress;
+
         public float GoldenCodeTimeBonus { get; set; }
+
+        public int AutoTypeCount { get; set; }
     }
 }
