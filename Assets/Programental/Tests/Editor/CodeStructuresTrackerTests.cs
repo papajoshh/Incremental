@@ -35,6 +35,13 @@ namespace Programental.Tests
                     localizationKey = "Class",
                     costBase = 2f,
                     abilityId = "multi_key"
+                },
+                new StructureDefinition
+                {
+                    id = "system",
+                    localizationKey = "System",
+                    costBase = 2f,
+                    abilityId = "clone_lines"
                 }
             };
 
@@ -303,6 +310,53 @@ namespace Programental.Tests
 
             Assert.That(tracker2.GetLevel(0), Is.EqualTo(2), "El nivel debe persistir via CaptureState/RestoreState");
             Assert.That(tracker2.IsRevealed(0), Is.True, "El revealed debe persistir");
+        }
+
+        [Test]
+        public void CloneLinesAbility_Nivel1_SeteaCloneLineCount()
+        {
+            GivenAvailableLines(200);
+            _tracker = new CodeStructuresTracker(_structuresConfig, _linesTracker, _bonusMultipliers);
+            for (var i = 0; i < 6; i++) _tracker.TryPurchase(0);
+            _tracker.TryPurchase(1);
+            _tracker.TryPurchase(1);
+
+            var result = _tracker.TryPurchase(2);
+
+            Assert.That(result, Is.True, "Debe comprar System nivel 1 exitosamente");
+            Assert.That(_bonusMultipliers.CloneLineCount, Is.EqualTo(1), "clone_lines nivel 1 debe setear CloneLineCount = 1");
+        }
+
+        [Test]
+        public void CloneLinesAbility_Nivel3_SeteaCloneLineCount()
+        {
+            _tracker = new CodeStructuresTracker(_structuresConfig, _linesTracker, _bonusMultipliers);
+            _tracker.RestoreState(new[]
+            {
+                new StructureData { level = 10, spentOnNext = 0, revealed = true },
+                new StructureData { level = 5, spentOnNext = 0, revealed = true },
+                new StructureData { level = 3, spentOnNext = 0, revealed = true }
+            });
+
+            Assert.That(_tracker.GetLevel(2), Is.EqualTo(3), "System debe estar en nivel 3");
+            Assert.That(_bonusMultipliers.CloneLineCount, Is.EqualTo(3), "clone_lines nivel 3 debe setear CloneLineCount = 3");
+        }
+
+        [Test]
+        public void CloneLinesAbility_ConFlagTrue_EscalaConAvailable()
+        {
+            _structuresConfig.abilityScalesWithAvailable = true;
+            _tracker = new CodeStructuresTracker(_structuresConfig, _linesTracker, _bonusMultipliers);
+            _tracker.RestoreState(new[]
+            {
+                new StructureData { level = 10, spentOnNext = 3, revealed = true },
+                new StructureData { level = 5, spentOnNext = 2, revealed = true },
+                new StructureData { level = 3, spentOnNext = 1, revealed = true }
+            });
+            var systemAvailable = _tracker.GetAvailable(2);
+
+            Assert.That(systemAvailable, Is.EqualTo(2), "System.Available = 3 - 1 = 2");
+            Assert.That(_bonusMultipliers.CloneLineCount, Is.EqualTo(systemAvailable), "clone_lines debe escalar con Available cuando flag=true");
         }
 
         private void GivenAvailableLines(int count)

@@ -13,5 +13,6 @@ namespace Programental
         public float GoldenCodeTimeBonus { get; set; }
 
         public int AutoTypeLevel { get; set; }
+        public int CloneLineCount { get; set; }
     }
 }

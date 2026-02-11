@@ -37,15 +37,24 @@
 ❌ NO testeable sin refactoring:
 - **SaveManager**: Usa PlayerPrefs y Time.deltaTime directo — es un Humble Object que orquesta, tests no aportarían valor
 - **GoldenCodeManager**: MonoBehaviour con lógica acoplada al ciclo de Unity
+- **CodeLineCloneManager**: MonoBehaviour que orquesta clones — lógica pura ya testeada en CodeTyper y CodeStructuresTracker
 
 ## Cobertura crítica — CodeStructuresTracker
-✅ Tests escritos (17 tests en CodeStructuresTrackerTests.cs):
+✅ Tests escritos (20 tests en CodeStructuresTrackerTests.cs):
 - TrySpendLines (éxito/fallo)
 - Costos exponenciales (2^N)
-- Cadena de monedas (Lines → Method → Class)
-- Abilities (auto_type, multi_key)
+- Cadena de monedas (Lines → Method → Class → System)
+- Abilities (auto_type, multi_key, clone_lines)
 - Scaling con flags (abilityScalesWithAvailable true/false)
 - Reveal y persistencia (CaptureState/RestoreState incluido)
+
+## Cobertura crítica — CodeTyper (clase plana)
+✅ Tests escritos (5 tests en CodeTyperTests.cs):
+- OnCharTyped dispara con cada carácter
+- OnLineCompleted dispara al finalizar línea
+- LinesCompleted incrementa correctamente
+- **Múltiples CodeTypers independientes**: Crítico para clone_lines — cada clon produce líneas sin interferir
+- Eventos separados entre instancias (test de aislamiento)
 
 ## Lecciones de diseño
 - **Regla**: Si necesitas `PlayerPrefs.DeleteAll()` en tests, tu diseño tiene un code smell

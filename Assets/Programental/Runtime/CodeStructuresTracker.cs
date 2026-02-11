@@ -95,6 +95,9 @@ namespace Programental
                     case "multi_key":
                         _bonusMultipliers.BaseCharsPerKeypress = 1 + Mathf.Max(0, effectiveLevel);
                         break;
+                    case "clone_lines":
+                        _bonusMultipliers.CloneLineCount = Mathf.Max(0, effectiveLevel);
+                        break;
                 }
             }
         }

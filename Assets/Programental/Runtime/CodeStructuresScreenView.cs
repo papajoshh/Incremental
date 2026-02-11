@@ -160,6 +160,8 @@ namespace Programental
                     return string.Format(LocalizationManager.GetTranslation("CodeStructures/AutoType"), level);
                 case "multi_key":
                     return string.Format(LocalizationManager.GetTranslation("CodeStructures/MultiKey"), 1 + level);
+                case "clone_lines":
+                    return string.Format(LocalizationManager.GetTranslation("CodeStructures/CloneLines"), level);
                 default:
                     return null;
             }

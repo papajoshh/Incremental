@@ -31,7 +31,7 @@ MonoBehaviour:
     localizationKey: CodeStructures/System
     costBase: 2
     costOffset: 10
-    abilityId: 
+    abilityId: clone_lines
   - id: program
     localizationKey: CodeStructures/Program
     costBase: 2
