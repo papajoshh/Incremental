@@ -36,7 +36,7 @@ namespace Programental
         public int GetNextCost(int index)
         {
             var def = _config.structures[index];
-            return (int)Mathf.Pow(def.costBase, _states[index].Level + 1);
+            return (int)Mathf.Pow(def.costBase, _states[index].Level + 1) + def.costOffset;
         }
 
         public int GetCurrency(int index)
@@ -90,7 +90,7 @@ namespace Programental
                 switch (abilityId)
                 {
                     case "auto_type":
-                        _bonusMultipliers.AutoTypeCount = Mathf.Max(0, effectiveLevel);
+                        _bonusMultipliers.AutoTypeLevel = Mathf.Max(0, effectiveLevel);
                         break;
                     case "multi_key":
                         _bonusMultipliers.BaseCharsPerKeypress = 1 + Mathf.Max(0, effectiveLevel);

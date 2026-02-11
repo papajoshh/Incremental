@@ -45,6 +45,7 @@ namespace Programental
 
             Container.BindInterfacesAndSelfTo<SaveManager>().AsSingle();
             Container.Bind<SaveLifecycleHook>().FromNewComponentOnNewGameObject().AsSingle().NonLazy();
+            Container.Bind<QaToolMonoBehaviour>().FromNewComponentOnNewGameObject().AsSingle().NonLazy();
         }
     }
 }

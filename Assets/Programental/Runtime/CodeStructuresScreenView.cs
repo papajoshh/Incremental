@@ -25,12 +25,9 @@ namespace Programental
             for (var i = 0; i < slots.Length; i++)
             {
                 slots[i].Hide();
+                slots[i].SetConvertVisible(false);
 
-                if (i == slots.Length - 1)
-                {
-                    slots[i].SetConvertVisible(false);
-                    continue;
-                }
+                if (i == slots.Length - 1) continue;
 
                 var structIndex = i;
                 slots[i].OnConvertClicked += () => _tracker.TryPurchase(structIndex);
@@ -102,7 +99,7 @@ namespace Programental
             {
                 var slotIndex = i + 1;
                 if (slots[slotIndex].gameObject.activeSelf) continue;
-                if (!_tracker.CanAfford(i)) continue;
+                if (!_tracker.IsRevealed(i)) continue;
                 slots[slotIndex].Reveal(true);
                 UpdateSlot(slotIndex);
             }
@@ -131,6 +128,7 @@ namespace Programental
                 var cost = _tracker.GetNextCost(0);
                 var canConvert = _tracker.CanAfford(0);
                 slots[0].UpdateData(name, count, cost, canConvert);
+                slots[0].SetConvertVisible(canConvert || _tracker.IsRevealed(0));
                 return;
             }
 
@@ -144,6 +142,9 @@ namespace Programental
             var ability = FormatAbility(structIndex);
 
             slots[slotIndex].UpdateData(structName, structCount, convertCost, canAfford, ability);
+
+            if (!isLast)
+                slots[slotIndex].SetConvertVisible(canAfford || _tracker.IsRevealed(structIndex + 1));
         }
 
         private string FormatAbility(int structIndex)

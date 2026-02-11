@@ -125,16 +125,24 @@ MonoBehaviour:
       TermType: 0
       Description: 
       Languages:
-      - 'Auto type: {0}'
-      - 'Auto escritura: {0}'
+      - A key is pressed by {0} s
+      - Una tecla se presiona cada {0} s
       Flags: 0000
       Languages_Touch: []
     - Term: CodeStructures/MultiKey
       TermType: 0
       Description: 
       Languages:
-      - x{0} chars / keypress
-      - x{3} letras / tecla pulsada
+      - x{0} chars written by keypress
+      - x{3} letras escritas por cada tecla pulsada
+      Flags: 0000
+      Languages_Touch: []
+    - Term: CodeStructures/Lines
+      TermType: 0
+      Description: 
+      Languages:
+      - Lines of code
+      - "L\xEDneas de c\xF3digo"
       Flags: 0000
       Languages_Touch: []
     CaseInsensitiveTerms: 0

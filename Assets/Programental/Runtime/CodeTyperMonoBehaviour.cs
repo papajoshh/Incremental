@@ -27,15 +27,17 @@ namespace Programental
 
         private void HandleAutoType()
         {
-            if (_bonusMultipliers.AutoTypeCount <= 0) return;
+            if (_bonusMultipliers.AutoTypeLevel <= 0) return;
 
             _autoTypeTimer -= Time.deltaTime;
             if (_autoTypeTimer > 0f) return;
 
-            for (var i = 0; i < _bonusMultipliers.AutoTypeCount; i++)
+            for (var i = 0; i < _bonusMultipliers.CharsPerKeypress; i++)
                 _codeTyper.TypeNextChar();
 
-            _autoTypeTimer = _structuresConfig.autoTypeBaseInterval;
+            var interval = _structuresConfig.autoTypeBaseInterval
+                           - _bonusMultipliers.AutoTypeLevel * _structuresConfig.autoTypeReductionPerLevel;
+            _autoTypeTimer = Mathf.Max(interval, _structuresConfig.autoTypeMinInterval);
         }
 
         private void HandleManualType()

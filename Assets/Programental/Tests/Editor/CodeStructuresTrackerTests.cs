@@ -140,7 +140,7 @@ namespace Programental.Tests
             _tracker.TryPurchase(0);
             _tracker.TryPurchase(0);
 
-            Assert.That(_bonusMultipliers.AutoTypeCount, Is.EqualTo(2), "auto_type debe ser Level (2) cuando flag=false");
+            Assert.That(_bonusMultipliers.AutoTypeLevel, Is.EqualTo(2), "auto_type debe ser Level (2) cuando flag=false");
         }
 
         [Test]
@@ -158,7 +158,7 @@ namespace Programental.Tests
             _tracker.TryPurchase(1);
 
             Assert.That(methodLevel, Is.EqualTo(3), "Method debe estar en nivel 3");
-            Assert.That(_bonusMultipliers.AutoTypeCount, Is.EqualTo(methodAvailable - 2), "auto_type debe ser Available después de gastar en Class");
+            Assert.That(_bonusMultipliers.AutoTypeLevel, Is.EqualTo(methodAvailable - 2), "auto_type debe ser Available después de gastar en Class");
         }
 
         [Test]
@@ -170,10 +170,10 @@ namespace Programental.Tests
             _tracker.TryPurchase(0);
             _tracker.TryPurchase(0);
             _tracker.TryPurchase(0);
-            var autoTypeBeforeSpend = _bonusMultipliers.AutoTypeCount;
+            var autoTypeBeforeSpend = _bonusMultipliers.AutoTypeLevel;
 
             _tracker.TryPurchase(1);
-            var autoTypeAfterSpend = _bonusMultipliers.AutoTypeCount;
+            var autoTypeAfterSpend = _bonusMultipliers.AutoTypeLevel;
 
             Assert.That(autoTypeBeforeSpend, Is.EqualTo(3), "Antes de gastar: auto_type = Available = Level = 3");
             Assert.That(autoTypeAfterSpend, Is.LessThan(autoTypeBeforeSpend), "Después de gastar en Class, auto_type debe bajar");
@@ -245,7 +245,7 @@ namespace Programental.Tests
             _tracker.TryPurchase(0);
             _tracker.TryPurchase(0);
             _tracker.TryPurchase(0);
-            var autoTypeBeforeClassPurchase = _bonusMultipliers.AutoTypeCount;
+            var autoTypeBeforeClassPurchase = _bonusMultipliers.AutoTypeLevel;
 
             var eventFiredForMethod = false;
             _tracker.OnStructureChanged += index =>
@@ -256,7 +256,7 @@ namespace Programental.Tests
             _tracker.TryPurchase(1);
 
             Assert.That(eventFiredForMethod, Is.True, "Debe disparar OnStructureChanged para Method (tier anterior)");
-            Assert.That(_bonusMultipliers.AutoTypeCount, Is.LessThan(autoTypeBeforeClassPurchase), "auto_type debe reducirse porque Method.Available bajó");
+            Assert.That(_bonusMultipliers.AutoTypeLevel, Is.LessThan(autoTypeBeforeClassPurchase), "auto_type debe reducirse porque Method.Available bajó");
         }
 
         [Test]

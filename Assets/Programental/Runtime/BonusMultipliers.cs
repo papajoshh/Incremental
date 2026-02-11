@@ -12,6 +12,6 @@ namespace Programental
 
         public float GoldenCodeTimeBonus { get; set; }
 
-        public int AutoTypeCount { get; set; }
+        public int AutoTypeLevel { get; set; }
     }
 }
