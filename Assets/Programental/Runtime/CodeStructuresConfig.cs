@@ -15,7 +15,7 @@ namespace Programental
     public class StructureDefinition
     {
         public string id;
-        public string displayName;
+        public string localizationKey;
         public float costBase = 2f;
         public string abilityId;
     }

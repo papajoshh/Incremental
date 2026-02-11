@@ -1,4 +1,5 @@
 using System;
+using I2.Loc;
 using UnityEngine;
 
 namespace Programental
@@ -32,7 +33,7 @@ namespace Programental
         }
 
         public int StructureCount => _config.structures.Length;
-        public string GetDisplayName(int index) => _config.structures[index].displayName;
+        public string GetDisplayName(int index) => LocalizationManager.GetTranslation(_config.structures[index].localizationKey);
         public int GetLevel(int index) => _states[index].Level;
         public int GetAvailable(int index) => _states[index].Level - _states[index].SpentOnNext;
         public bool IsRevealed(int index) => _states[index].Revealed;
@@ -50,6 +51,13 @@ namespace Programental
         }
 
         public bool CanAfford(int index) => GetCurrency(index) >= GetNextCost(index);
+        public string GetAbilityId(int index) => _config.structures[index].abilityId;
+
+        public int GetAbilityEffectiveLevel(int index)
+        {
+            var level = _config.abilityScalesWithAvailable ? GetAvailable(index) : _states[index].Level;
+            return Mathf.Max(0, level);
+        }
 
         public bool TryPurchase(int index)
         {

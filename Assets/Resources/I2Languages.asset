@@ -81,6 +81,46 @@ MonoBehaviour:
       - Mejoras
       Flags: 0000
       Languages_Touch: []
+    - Term: UI/Ide
+      TermType: 0
+      Description: 
+      Languages:
+      - IDE
+      - IDE
+      Flags: 0000
+      Languages_Touch: []
+    - Term: CodeStructures/Method
+      TermType: 0
+      Description: 
+      Languages:
+      - Methods
+      - "M\xE9todos"
+      Flags: 0000
+      Languages_Touch: []
+    - Term: CodeStructures/Class
+      TermType: 0
+      Description: 
+      Languages:
+      - Classes
+      - Clases
+      Flags: 0000
+      Languages_Touch: []
+    - Term: CodeStructures/System
+      TermType: 0
+      Description: 
+      Languages:
+      - Systems
+      - Sistemas
+      Flags: 0000
+      Languages_Touch: []
+    - Term: CodeStructures/Program
+      TermType: 0
+      Description: 
+      Languages:
+      - Programs
+      - Programas
+      Flags: 0000
+      Languages_Touch: []
     CaseInsensitiveTerms: 0
     OnMissingTranslation: 1
     mTerm_AppName: 

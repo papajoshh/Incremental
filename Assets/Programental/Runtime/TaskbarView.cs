@@ -11,8 +11,8 @@ namespace Programental
         [SerializeField] private Button codeTabButton;
         [SerializeField] private Button upgradesTabButton;
         [SerializeField] private TaskbarClock clock;
-        [SerializeField] private GameObject codePanel;
-        [SerializeField] private GameObject upgradesPanel;
+        [SerializeField] private IDEScreenView ideScreen;
+        [SerializeField] private CodeStructuresScreenView structuresScreen;
 
         private void Awake()
         {
@@ -20,7 +20,6 @@ namespace Programental
             codeTabButton.gameObject.SetActive(false);
             upgradesTabButton.gameObject.SetActive(false);
             clock.gameObject.SetActive(false);
-            upgradesPanel.SetActive(false);
         }
 
         private void OnEnable()
@@ -90,14 +89,14 @@ namespace Programental
 
         private void SwitchToCode()
         {
-            codePanel.SetActive(true);
-            upgradesPanel.SetActive(false);
+            ideScreen.Show();
+            structuresScreen.Hide();
         }
 
         private void SwitchToUpgrades()
         {
-            codePanel.SetActive(false);
-            upgradesPanel.SetActive(true);
+            ideScreen.Hide();
+            structuresScreen.Show();
         }
     }
 }

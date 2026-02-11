@@ -19,5 +19,5 @@ MonoBehaviour:
   firstBonusId: LineMultiplier
   bonusDuration: 20
   lineMultiplierValue: 2
-  charsPerKeypressValue: 2
+  charsPerKeypressValue: 1
   goldenCodeTimeBonus: 10

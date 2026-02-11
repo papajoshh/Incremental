@@ -27,14 +27,14 @@ namespace Programental.Tests
                 new StructureDefinition
                 {
                     id = "method",
-                    displayName = "Method",
+                    localizationKey = "Method",
                     costBase = 2f,
                     abilityId = "auto_type"
                 },
                 new StructureDefinition
                 {
                     id = "class",
-                    displayName = "Class",
+                    localizationKey = "Class",
                     costBase = 2f,
                     abilityId = "multi_key"
                 }

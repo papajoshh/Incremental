@@ -1,8 +1,6 @@
-using System;
 using DG.Tweening;
-using TMPro;
+using I2.Loc;
 using UnityEngine;
-using UnityEngine.UI;
 using Zenject;
 
 namespace Programental
@@ -11,6 +9,7 @@ namespace Programental
     {
         [SerializeField] private CanvasGroup canvasGroup;
         [SerializeField] private StructureSlotUI[] slots;
+        [SerializeField] private string linesLocalizationKey = "CodeStructures/Lines";
 
         [Inject] private CodeStructuresTracker _tracker;
         [Inject] private LinesTracker _linesTracker;
@@ -25,9 +24,16 @@ namespace Programental
 
             for (var i = 0; i < slots.Length; i++)
             {
-                slots[i].root.SetActive(false);
-                var index = i;
-                slots[i].buyButton.onClick.AddListener(() => OnBuyClicked(index));
+                slots[i].Hide();
+
+                if (i == slots.Length - 1)
+                {
+                    slots[i].SetConvertVisible(false);
+                    continue;
+                }
+
+                var structIndex = i;
+                slots[i].OnConvertClicked += () => _tracker.TryPurchase(structIndex);
             }
         }
 
@@ -61,16 +67,26 @@ namespace Programental
                 transform.localScale = Vector3.one;
             }
 
+            if (!slots[0].gameObject.activeSelf) slots[0].Reveal(animate);
+
             RefreshAll();
             CheckReveals();
         }
 
-        private void HandleStructureChanged(int index)
+        private void HandleStructureChanged(int structIndex)
         {
             if (!_shown) return;
             RefreshAll();
             CheckReveals();
-            slots[index].root.transform.DOPunchScale(Vector3.one * 0.15f, 0.3f, 8, 0);
+            slots[structIndex + 1].PunchScale();
+        }
+
+        public void Hide()
+        {
+            _shown = false;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+            canvasGroup.DOFade(0f, 0.2f);
         }
 
         private void HandleCurrencyChanged(int _)
@@ -82,61 +98,70 @@ namespace Programental
 
         private void CheckReveals()
         {
-            for (var i = 0; i < slots.Length; i++)
+            for (var i = 0; i < _tracker.StructureCount; i++)
             {
-                if (slots[i].root.activeSelf) continue;
+                var slotIndex = i + 1;
+                if (slots[slotIndex].gameObject.activeSelf) continue;
                 if (!_tracker.CanAfford(i)) continue;
-                RevealSlot(i);
+                slots[slotIndex].Reveal(true);
+                UpdateSlot(slotIndex);
             }
-        }
-
-        private void RevealSlot(int index)
-        {
-            var slot = slots[index];
-            slot.root.SetActive(true);
-            slot.root.transform.localScale = Vector3.zero;
-            slot.root.transform.DOScale(1f, 0.4f).SetEase(Ease.OutBack);
-            UpdateSlot(index);
         }
 
         private void RefreshAll()
         {
-            for (var i = 0; i < slots.Length; i++)
+            UpdateSlot(0);
+
+            for (var i = 0; i < _tracker.StructureCount; i++)
             {
-                if (!_tracker.IsRevealed(i) && !slots[i].root.activeSelf) continue;
-                if (!slots[i].root.activeSelf)
-                {
-                    slots[i].root.SetActive(true);
-                    slots[i].root.transform.localScale = Vector3.one;
-                }
-                UpdateSlot(i);
+                var slotIndex = i + 1;
+                if (!_tracker.IsRevealed(i) && !slots[slotIndex].gameObject.activeSelf) continue;
+
+                if (!slots[slotIndex].gameObject.activeSelf) slots[slotIndex].Reveal(false);
+                UpdateSlot(slotIndex);
             }
         }
 
-        private void UpdateSlot(int index)
+        private void UpdateSlot(int slotIndex)
         {
-            var slot = slots[index];
-            slot.nameText.text = _tracker.GetDisplayName(index);
-            slot.levelText.text = $"Lv {_tracker.GetLevel(index)}";
-            slot.costText.text = $"{_tracker.GetNextCost(index)}";
-            slot.currencyText.text = $"{_tracker.GetCurrency(index)}";
-            slot.buyButton.interactable = _tracker.CanAfford(index);
+            if (slotIndex == 0)
+            {
+                var name = LocalizationManager.GetTranslation(linesLocalizationKey);
+                var count = _linesTracker.AvailableLines;
+                var cost = _tracker.GetNextCost(0);
+                var canConvert = _tracker.CanAfford(0);
+                slots[0].UpdateData(name, count, cost, canConvert);
+                return;
+            }
+
+            var structIndex = slotIndex - 1;
+            var isLast = slotIndex == slots.Length - 1;
+
+            var structName = _tracker.GetDisplayName(structIndex);
+            var structCount = _tracker.GetAvailable(structIndex);
+            var convertCost = isLast ? 0 : _tracker.GetNextCost(structIndex + 1);
+            var canAfford = !isLast && _tracker.CanAfford(structIndex + 1);
+            var ability = FormatAbility(structIndex);
+
+            slots[slotIndex].UpdateData(structName, structCount, convertCost, canAfford, ability);
         }
 
-        private void OnBuyClicked(int index)
+        private string FormatAbility(int structIndex)
         {
-            _tracker.TryPurchase(index);
-        }
+            var abilityId = _tracker.GetAbilityId(structIndex);
+            if (string.IsNullOrEmpty(abilityId)) return null;
 
-        [Serializable]
-        public class StructureSlotUI
-        {
-            public GameObject root;
-            public TMP_Text nameText;
-            public TMP_Text levelText;
-            public TMP_Text costText;
-            public TMP_Text currencyText;
-            public Button buyButton;
+            var level = _tracker.GetAbilityEffectiveLevel(structIndex);
+
+            switch (abilityId)
+            {
+                case "auto_type":
+                    return string.Format(LocalizationManager.GetTranslation("CodeStructures/AutoType"), level);
+                case "multi_key":
+                    return string.Format(LocalizationManager.GetTranslation("CodeStructures/MultiKey"), 1 + level);
+                default:
+                    return null;
+            }
         }
     }
 }
