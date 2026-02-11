@@ -40,6 +40,7 @@ namespace Programental
 
             if (!animate)
             {
+                bar.anchoredPosition = new Vector2(bar.anchoredPosition.x, 0);
                 MoveDeleteButtonAboveBar();
                 return;
             }

@@ -134,7 +134,7 @@ MonoBehaviour:
       Description: 
       Languages:
       - x{0} chars written by keypress
-      - x{3} letras escritas por cada tecla pulsada
+      - x{0} letras escritas por cada tecla pulsada
       Flags: 0000
       Languages_Touch: []
     - Term: CodeStructures/Lines
@@ -143,6 +143,14 @@ MonoBehaviour:
       Languages:
       - Lines of code
       - "L\xEDneas de c\xF3digo"
+      Flags: 0000
+      Languages_Touch: []
+    - Term: CodeStructures/CloneLines
+      TermType: 0
+      Description: 
+      Languages:
+      - Add {0} cloned coding lines
+      - "A\xF1ade {0} l\xEDneas de c\xF3digo clonadas"
       Flags: 0000
       Languages_Touch: []
     CaseInsensitiveTerms: 0

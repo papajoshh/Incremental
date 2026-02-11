@@ -154,17 +154,13 @@ namespace Programental
 
             var level = _tracker.GetAbilityEffectiveLevel(structIndex);
 
-            switch (abilityId)
+            return abilityId switch
             {
-                case "auto_type":
-                    return string.Format(LocalizationManager.GetTranslation("CodeStructures/AutoType"), level);
-                case "multi_key":
-                    return string.Format(LocalizationManager.GetTranslation("CodeStructures/MultiKey"), 1 + level);
-                case "clone_lines":
-                    return string.Format(LocalizationManager.GetTranslation("CodeStructures/CloneLines"), level);
-                default:
-                    return null;
-            }
+                "auto_type" => string.Format(LocalizationManager.GetTranslation("CodeStructures/AutoType"), level),
+                "multi_key" => string.Format(LocalizationManager.GetTranslation("CodeStructures/MultiKey"), 1 + level),
+                "clone_lines" => string.Format(LocalizationManager.GetTranslation("CodeStructures/CloneLines"), level),
+                _ => null
+            };
         }
     }
 }

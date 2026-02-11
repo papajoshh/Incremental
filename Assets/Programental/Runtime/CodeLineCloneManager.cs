@@ -9,6 +9,8 @@ namespace Programental
     {
         [SerializeField] private TMP_Text cloneLinePrefab;
         [SerializeField] private Transform clonesParent;
+        [SerializeField] private float positionRange = 50f;
+        [SerializeField] private Vector2 scaleRange = new(0.4f, 0.8f);
 
         [Inject] private CodeTyper _mainTyper;
         [Inject] private LinesTracker _linesTracker;
@@ -61,6 +63,13 @@ namespace Programental
 
             var text = Instantiate(cloneLinePrefab, clonesParent);
             text.richText = false;
+
+            var rt = text.rectTransform;
+            rt.anchoredPosition = new Vector2(
+                Random.Range(-positionRange, positionRange),
+                Random.Range(-positionRange, positionRange));
+            var scale = Random.Range(scaleRange.x, scaleRange.y);
+            rt.localScale = Vector3.one * scale;
 
             typer.OnCharTyped += (c, visibleText) => text.text = visibleText;
             typer.OnLineCompleted += (line, total) => _linesTracker.AddCompletedLine();

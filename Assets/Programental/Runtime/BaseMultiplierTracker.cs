@@ -67,7 +67,8 @@ namespace Programental
             _currentLevel = data.currentLevel;
             _availableLinesToInvest = data.availableLinesToInvest;
             UpdateMultiplier();
-            OnMultiplierChanged?.Invoke();
+            if (_currentLevel > 0)
+                OnMultiplierChanged?.Invoke();
         }
     }
 }
