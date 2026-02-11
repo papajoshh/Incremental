@@ -45,5 +45,23 @@ namespace Programental
             OnAvailableLinesChanged?.Invoke(AvailableLines);
             return deleted;
         }
+
+        public LinesData CaptureState()
+        {
+            return new LinesData
+            {
+                totalLinesEver = TotalLinesEver,
+                totalLinesDeleted = TotalLinesDeleted,
+                fractionalAccumulator = _fractionalAccumulator
+            };
+        }
+
+        public void RestoreState(LinesData data)
+        {
+            TotalLinesEver = data.totalLinesEver;
+            TotalLinesDeleted = data.totalLinesDeleted;
+            _fractionalAccumulator = data.fractionalAccumulator;
+            OnAvailableLinesChanged?.Invoke(AvailableLines);
+        }
     }
 }

@@ -5,7 +5,10 @@
       "Bash(ls -la \"D:\\\\Repositorios\\\\Incremental\\\\Assets\\\\Runtime\\\\Infraestructure\"\" 2>&1 | grep -i \".cs \")",
       "Bash(ls:*)",
       "Bash(timeout 60 dotnet build:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(dir:*)",
+      "Bash(\"C:\\\\Program Files\\\\Unity\\\\Hub\\\\Editor\\\\6000.0.33f1\\\\Editor\\\\Unity.exe\" -runTests -batchmode -projectPath . -testResults TestResults.xml -testPlatform EditMode -logFile -)",
+      "Bash(Select-String -Pattern \"\\(Test:|passed|failed|FAILED|ERROR\\)\" -Context 0,1)"
     ]
   }
 }

@@ -42,6 +42,9 @@ namespace Programental
             Container.Bind<BaseMultiplierCounterView>().FromComponentInHierarchy().AsSingle();
             Container.Bind<CodeStructuresScreenView>().FromComponentInHierarchy().AsSingle();
             Container.Bind<TaskbarView>().FromComponentInHierarchy().AsSingle();
+
+            Container.BindInterfacesAndSelfTo<SaveManager>().AsSingle();
+            Container.Bind<SaveLifecycleHook>().FromNewComponentOnNewGameObject().AsSingle().NonLazy();
         }
     }
 }

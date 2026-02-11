@@ -7,10 +7,10 @@
 
 ## Anti-patterns encontrados en producción
 
-### CodeStructuresTracker
+### CodeStructuresTracker (RESUELTO)
 - **PlayerPrefs directo en lógica**: Guardado/carga de estado en líneas 101-116 hace tests difíciles
-  - WORKAROUND: `PlayerPrefs.DeleteAll()` en SetUp/TearDown funciona pero es frágil
-  - MEJOR: Extraer persistencia a interface inyectable (Humble Object)
+  - ✅ RESUELTO: Se extrajo `CaptureState()/RestoreState()` a SaveManager con Humble Object pattern
+  - Ver: GameSaveData.cs, SaveManager.cs (implementado Feb 2026)
 
 ### LinesTracker
 - **Dependency innecesaria**: Necesita `MilestoneTracker` solo para `CheckMilestones()` — no relevante para tests de CodeStructuresTracker
@@ -21,21 +21,31 @@
 - `Assert.That(actual, Is.Expected, "mensaje descriptivo")` obligatorio
 - Helper `GivenAvailableLines(count)` para setup común — preferir esto sobre duplicar loops
 - ScriptableObjects se crean con `ScriptableObject.CreateInstance<T>()` y se destruyen en TearDown
+- **MonoBehaviours en tests**: Usar GameObject + AddComponent<T>(), destruir en TearDown con `Object.DestroyImmediate(gameObject)`
 - Namespace separado `Programental.Tests` para evitar colisiones
 
-## Cobertura crítica para CodeStructuresTracker
-✅ Tests escritos (17 tests):
+## Cobertura crítica — Sistema de guardado (CaptureState/RestoreState)
+
+✅ Tests escritos (Feb 2026):
+- **LinesTrackerSaveTests** (7 tests): TotalLinesEver, TotalLinesDeleted, fractionalAccumulator, eventos
+  - **Crítico**: `fractionalAccumulator` afecta income real del jugador — no perder progreso fraccional entre sesiones
+- **MilestoneTrackerSaveTests** (8 tests): nextMilestoneIndex, llamadas a Restore() en rewards
+  - **Crítico**: `RestoreState()` debe llamar `Restore()` (no `Unlock()`) en rewards ya conseguidos
+- **BaseMultiplierTrackerSaveTests** (8 tests): currentLevel, availableLinesToInvest, UpdateMultiplier(), eventos
+  - **Crítico**: `RestoreState()` debe actualizar BonusMultipliers.BaseMultiplier vía `UpdateMultiplier()`
+
+❌ NO testeable sin refactoring:
+- **SaveManager**: Usa PlayerPrefs y Time.deltaTime directo — es un Humble Object que orquesta, tests no aportarían valor
+- **GoldenCodeManager**: MonoBehaviour con lógica acoplada al ciclo de Unity
+
+## Cobertura crítica — CodeStructuresTracker
+✅ Tests escritos (17 tests en CodeStructuresTrackerTests.cs):
 - TrySpendLines (éxito/fallo)
 - Costos exponenciales (2^N)
 - Cadena de monedas (Lines → Method → Class)
 - Abilities (auto_type, multi_key)
 - Scaling con flags (abilityScalesWithAvailable true/false)
-- Reveal y persistencia
-
-❌ NO testeado (y probablemente no vale la pena):
-- PlayerPrefs internals (SaveState/LoadState) — test de persistencia cubre el comportamiento observable
-- OnStructureChanged event ordering — frágil, implementación detail
-- Casos de borde con >2 tiers — sin config real que lo use
+- Reveal y persistencia (CaptureState/RestoreState incluido)
 
 ## Lecciones de diseño
 - **Regla**: Si necesitas `PlayerPrefs.DeleteAll()` en tests, tu diseño tiene un code smell

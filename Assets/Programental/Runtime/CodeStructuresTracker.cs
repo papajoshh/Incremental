@@ -24,12 +24,7 @@ namespace Programental
 
             _states = new StructureState[config.structures.Length];
             for (var i = 0; i < _states.Length; i++)
-            {
                 _states[i] = new StructureState();
-                LoadState(i);
-            }
-
-            ApplyAllAbilities();
         }
 
         public int StructureCount => _config.structures.Length;
@@ -71,13 +66,11 @@ namespace Programental
             {
                 if (GetAvailable(index - 1) < cost) return false;
                 _states[index - 1].SpentOnNext += cost;
-                SaveState(index - 1);
                 OnStructureChanged?.Invoke(index - 1);
             }
 
             _states[index].Level++;
             if (!_states[index].Revealed) _states[index].Revealed = true;
-            SaveState(index);
             ApplyAllAbilities();
             OnStructureChanged?.Invoke(index);
             return true;
@@ -106,21 +99,30 @@ namespace Programental
             }
         }
 
-        private void SaveState(int index)
+        public StructureData[] CaptureState()
         {
-            var id = _config.structures[index].id;
-            PlayerPrefs.SetInt($"Structure_{id}_Level", _states[index].Level);
-            PlayerPrefs.SetInt($"Structure_{id}_SpentOnNext", _states[index].SpentOnNext);
-            PlayerPrefs.SetInt($"Structure_{id}_Revealed", _states[index].Revealed ? 1 : 0);
-            PlayerPrefs.Save();
+            var result = new StructureData[_states.Length];
+            for (var i = 0; i < _states.Length; i++)
+            {
+                result[i] = new StructureData
+                {
+                    level = _states[i].Level,
+                    spentOnNext = _states[i].SpentOnNext,
+                    revealed = _states[i].Revealed
+                };
+            }
+            return result;
         }
 
-        private void LoadState(int index)
+        public void RestoreState(StructureData[] data)
         {
-            var id = _config.structures[index].id;
-            _states[index].Level = PlayerPrefs.GetInt($"Structure_{id}_Level", 0);
-            _states[index].SpentOnNext = PlayerPrefs.GetInt($"Structure_{id}_SpentOnNext", 0);
-            _states[index].Revealed = PlayerPrefs.GetInt($"Structure_{id}_Revealed", 0) == 1;
+            for (var i = 0; i < data.Length && i < _states.Length; i++)
+            {
+                _states[i].Level = data[i].level;
+                _states[i].SpentOnNext = data[i].spentOnNext;
+                _states[i].Revealed = data[i].revealed;
+            }
+            ApplyAllAbilities();
         }
 
         private class StructureState

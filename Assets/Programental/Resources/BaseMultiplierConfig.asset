@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce39f1ce8ddd33648a08e533caef1ec8, type: 3}
   m_Name: BaseMultiplierConfig
   m_EditorClassIdentifier: 
-  costBase: 2
+  costBase: 500
   levelIncrement: 0.05

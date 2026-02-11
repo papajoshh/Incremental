@@ -14,7 +14,12 @@
 ## Key Patterns
 - Views subscribe in OnEnable, unsubscribe in OnDisable
 - Rewards: OnUnlock() for first-time effect, Restore() for reload
-- PlayerPrefs for persistence (no save system yet)
+- PlayerPrefs for persistence scattered across trackers (migration to centralized SaveManager pending)
+- Save system decision: direct SaveManager (no ISaveable interface) — 5 known classes, all Zenject-injected
+- Each tracker gets a typed Restore() method, SaveManager reads public props directly
+- GameSaveData: single flat DTO + StructureStateData[] for array state
+- MilestoneTracker._nextMilestoneIndex is recalculable from TotalLinesEver, no persistence needed
+- Prototype old/ has ISaveable pattern (FindObjectsOfType-based) — NOT suitable for current arch
 - IGoldenCodeBonus interface: Apply()/Revert() pattern for temporary bonuses
 - Event-driven UI updates, NOT polling in Update (BaseMultiplierCounterView pattern)
 - Trackers modify BonusMultipliers directly, no abstraction needed
@@ -36,3 +41,6 @@
 - Feature flags in prototypes rejected: hardcode decision, iterate later
 - BonusMultipliers at ~9 props acceptable for incremental genre
 - TrySpendLines if-check is business logic, not defensive programming
+- ISaveable interface rejected for save system: only 5 known classes, all compile-time, interface adds indirection without benefit
+- RestoreOrder rejected: explicit call order in SaveManager.Load() is simpler and debuggable
+- ITickable auto-save rejected: save on-change or InvokeRepeating is sufficient for incremental

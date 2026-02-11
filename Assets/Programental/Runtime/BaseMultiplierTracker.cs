@@ -21,9 +21,6 @@ namespace Programental
             _costBase = costBase;
             _levelIncrement = levelIncrement;
             _bonusMultipliers = bonusMultipliers;
-            _currentLevel = LoadLevel();
-            _availableLinesToInvest = 0;
-            UpdateMultiplier();
         }
 
         public void AddDeletedLines(int count)
@@ -41,7 +38,6 @@ namespace Programental
 
                 _availableLinesToInvest -= cost;
                 _currentLevel++;
-                SaveLevel();
                 UpdateMultiplier();
                 OnMultiplierChanged?.Invoke();
             }
@@ -57,15 +53,21 @@ namespace Programental
             return (int)Math.Pow(_costBase, level);
         }
 
-        private int LoadLevel()
+        public BaseMultiplierData CaptureState()
         {
-            return UnityEngine.PlayerPrefs.GetInt("BaseMultiplierLevel", 0);
+            return new BaseMultiplierData
+            {
+                currentLevel = _currentLevel,
+                availableLinesToInvest = _availableLinesToInvest
+            };
         }
 
-        private void SaveLevel()
+        public void RestoreState(BaseMultiplierData data)
         {
-            UnityEngine.PlayerPrefs.SetInt("BaseMultiplierLevel", _currentLevel);
-            UnityEngine.PlayerPrefs.Save();
+            _currentLevel = data.currentLevel;
+            _availableLinesToInvest = data.availableLinesToInvest;
+            UpdateMultiplier();
+            OnMultiplierChanged?.Invoke();
         }
     }
 }

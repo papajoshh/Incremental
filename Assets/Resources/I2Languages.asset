@@ -121,6 +121,22 @@ MonoBehaviour:
       - Programas
       Flags: 0000
       Languages_Touch: []
+    - Term: CodeStructures/AutoType
+      TermType: 0
+      Description: 
+      Languages:
+      - 'Auto type: {0}'
+      - 'Auto escritura: {0}'
+      Flags: 0000
+      Languages_Touch: []
+    - Term: CodeStructures/MultiKey
+      TermType: 0
+      Description: 
+      Languages:
+      - x{0} chars / keypress
+      - x{3} letras / tecla pulsada
+      Flags: 0000
+      Languages_Touch: []
     CaseInsensitiveTerms: 0
     OnMissingTranslation: 1
     mTerm_AppName: 

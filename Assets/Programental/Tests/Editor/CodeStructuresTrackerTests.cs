@@ -15,8 +15,6 @@ namespace Programental.Tests
         [SetUp]
         public void Setup()
         {
-            PlayerPrefs.DeleteAll();
-
             _milestonesConfig = ScriptableObject.CreateInstance<MilestonesConfig>();
             _milestonesConfig.milestones = new Milestone[0];
 
@@ -51,7 +49,6 @@ namespace Programental.Tests
         [TearDown]
         public void TearDown()
         {
-            PlayerPrefs.DeleteAll();
             Object.DestroyImmediate(_milestonesConfig);
             Object.DestroyImmediate(_structuresConfig);
         }
@@ -293,17 +290,18 @@ namespace Programental.Tests
         }
 
         [Test]
-        public void Constructor_PersistenciaDePlayerPrefs()
+        public void CaptureState_YRestoreState_PreservaEstado()
         {
             GivenAvailableLines(100);
             var tracker1 = new CodeStructuresTracker(_structuresConfig, _linesTracker, _bonusMultipliers);
             tracker1.TryPurchase(0);
             tracker1.TryPurchase(0);
-            var level = tracker1.GetLevel(0);
+            var captured = tracker1.CaptureState();
 
             var tracker2 = new CodeStructuresTracker(_structuresConfig, _linesTracker, _bonusMultipliers);
+            tracker2.RestoreState(captured);
 
-            Assert.That(tracker2.GetLevel(0), Is.EqualTo(level), "El nivel debe persistir entre instancias via PlayerPrefs");
+            Assert.That(tracker2.GetLevel(0), Is.EqualTo(2), "El nivel debe persistir via CaptureState/RestoreState");
             Assert.That(tracker2.IsRevealed(0), Is.True, "El revealed debe persistir");
         }
 

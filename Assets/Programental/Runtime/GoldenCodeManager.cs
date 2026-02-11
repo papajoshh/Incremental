@@ -31,7 +31,6 @@ namespace Programental
         private void Start()
         {
             _wordList = LoadWordList();
-            WordsCompleted = LoadWordsCompleted();
         }
 
         private void OnEnable()
@@ -110,7 +109,6 @@ namespace Programental
         private void HandleWordCompleted(GoldenCodeWord word)
         {
             WordsCompleted++;
-            SaveWordsCompleted();
             _activeWords.Remove(word);
             Destroy(word.gameObject);
             OnStatsChanged?.Invoke();
@@ -162,15 +160,15 @@ namespace Programental
             return result.ToArray();
         }
 
-        private int LoadWordsCompleted()
+        public GoldenCodeData CaptureState()
         {
-            return PlayerPrefs.GetInt("GoldenWordsCompleted", 0);
+            return new GoldenCodeData { wordsCompleted = WordsCompleted };
         }
 
-        private void SaveWordsCompleted()
+        public void RestoreState(GoldenCodeData data)
         {
-            PlayerPrefs.SetInt("GoldenWordsCompleted", WordsCompleted);
-            PlayerPrefs.Save();
+            WordsCompleted = data.wordsCompleted;
+            OnStatsChanged?.Invoke();
         }
     }
 }

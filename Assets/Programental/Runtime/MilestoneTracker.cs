@@ -31,5 +31,22 @@ namespace Programental
                 _nextMilestoneIndex++;
             }
         }
+
+        public MilestoneData CaptureState()
+        {
+            return new MilestoneData { nextMilestoneIndex = _nextMilestoneIndex };
+        }
+
+        public void RestoreState(MilestoneData data)
+        {
+            _nextMilestoneIndex = data.nextMilestoneIndex;
+
+            for (var i = 0; i < _nextMilestoneIndex && i < _milestones.Length; i++)
+            {
+                var id = _milestones[i].rewardId;
+                if (_rewards.TryGetValue(id, out var reward))
+                    reward.Restore();
+            }
+        }
     }
 }
