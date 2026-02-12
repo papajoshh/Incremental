@@ -1697,7 +1697,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wordPrefab: {fileID: 3579672922850224737, guid: 40e9ec3757e888e4a8c1088f6d00d01c, type: 3}
-  spawnArea: {fileID: 910155451}
+  spawnArea: {fileID: 1066506174}
 --- !u!4 &636231798
 Transform:
   m_ObjectHideFlags: 0

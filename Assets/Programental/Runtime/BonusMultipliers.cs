@@ -10,7 +10,7 @@ namespace Programental
         public int BonusCharsPerKeypress { get; set; }
         public int CharsPerKeypress => BaseCharsPerKeypress + BonusCharsPerKeypress;
 
-        public float GoldenCodeTimeBonus { get; set; }
+        public float BonusDurationMultiplier { get; set; } = 1f;
 
         public int AutoTypeLevel { get; set; }
         public int CloneLineCount { get; set; }

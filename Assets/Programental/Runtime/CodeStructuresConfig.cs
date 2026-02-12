@@ -7,9 +7,7 @@ namespace Programental
     public class CodeStructuresConfig : ScriptableObject
     {
         public bool abilityScalesWithAvailable = true;
-        public float autoTypeBaseInterval = 5f;
-        public float autoTypeReductionPerLevel = 0.05f;
-        public float autoTypeMinInterval = 0.1f;
+        public int autoKeystrokesPerSecPerLevel = 1;
         public StructureDefinition[] structures;
     }
 
@@ -18,8 +16,8 @@ namespace Programental
     {
         public string id;
         public string localizationKey;
-        public float costBase = 2f;
-        public int costOffset;
+        public float baseCost = 30f;
+        public float growthRate = 1.15f;
         public string abilityId;
     }
 }

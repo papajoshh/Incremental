@@ -17,9 +17,17 @@ namespace Programental
 
         [Header("Bonuses")]
         public string firstBonusId = "LineMultiplier";
-        public float bonusDuration = 30f;
+
+        [Header("Line Multiplier")]
         public int lineMultiplierValue = 2;
+        public float lineMultiplierDuration = 20f;
+
+        [Header("Speed")]
         public int charsPerKeypressValue = 2;
-        public float goldenCodeTimeBonus = 10f;
+        public float speedBonusDuration = 20f;
+
+        [Header("Duration")]
+        public float durationMultiplierFactor = 2f;
+        public float durationBonusDuration = 120f;
     }
 }

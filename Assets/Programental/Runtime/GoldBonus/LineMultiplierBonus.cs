@@ -21,7 +21,7 @@ namespace Programental
                 BonusId = BonusId,
                 LocalizationKey = "Bonus/LineMultiplier",
                 Value = _config.lineMultiplierValue,
-                Duration = _config.bonusDuration
+                Duration = _config.lineMultiplierDuration
             };
         }
 

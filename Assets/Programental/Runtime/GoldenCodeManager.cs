@@ -93,8 +93,7 @@ namespace Programental
         {
             var word = container.InstantiatePrefabForComponent<GoldenCodeWord>(
                 wordPrefab, spawnArea);
-            var lifetime = config.wordLifetime + bonusMultipliers.GoldenCodeTimeBonus;
-            word.Init(GetRandomWord(), lifetime, spawnArea);
+            word.Init(GetRandomWord(), config.wordLifetime, spawnArea);
             word.OnCompleted += HandleWordCompleted;
             word.OnExpired += HandleWordExpired;
             _activeWords.Add(word);
@@ -128,16 +127,34 @@ namespace Programental
                 : bonuses[UnityEngine.Random.Range(0, bonuses.Count)];
 
             var info = bonus.Apply();
+            var duration = info.Duration * bonusMultipliers.BonusDurationMultiplier;
 
             if (_activeBonusTimers.ContainsKey(bonus.BonusId))
             {
-                _activeBonusTimers[bonus.BonusId] += info.Duration;
-                bonusFeedback.ExtendBonus(bonus.BonusId, info.Duration);
+                _activeBonusTimers[bonus.BonusId] += duration;
+                bonusFeedback.ExtendBonus(bonus.BonusId, duration);
             }
             else
             {
-                _activeBonusTimers[bonus.BonusId] = info.Duration;
+                _activeBonusTimers[bonus.BonusId] = duration;
+                info.Duration = duration;
                 bonusFeedback.ShowBonus(info);
+            }
+
+            if (bonus.BonusId == "Duration")
+                ExtendAllActiveTimers(config.durationMultiplierFactor);
+        }
+
+        private void ExtendAllActiveTimers(float multiplier)
+        {
+            var keys = new List<string>(_activeBonusTimers.Keys);
+            foreach (var key in keys)
+            {
+                if (key == "Duration") continue;
+                var remaining = _activeBonusTimers[key];
+                var added = remaining * (multiplier - 1f);
+                _activeBonusTimers[key] += added;
+                bonusFeedback.ExtendBonus(key, added);
             }
         }
 

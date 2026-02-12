@@ -20,9 +20,7 @@ namespace Programental.Tests
             _codeTyper = new CodeTyper();
             _bonusMultipliers = new BonusMultipliers();
             _structuresConfig = ScriptableObject.CreateInstance<CodeStructuresConfig>();
-            _structuresConfig.autoTypeBaseInterval = 0.1f;
-            _structuresConfig.autoTypeReductionPerLevel = 0.01f;
-            _structuresConfig.autoTypeMinInterval = 0.02f;
+            _structuresConfig.autoKeystrokesPerSecPerLevel = 10;
 
             _go = new GameObject("TestTyper");
             _typerMono = _go.AddComponent<CodeTyperMonoBehaviour>();
@@ -75,9 +73,8 @@ namespace Programental.Tests
             yield return null;
             yield return new WaitForSeconds(0.25f);
 
-            // Nivel 5: interval = 0.1 - 5*0.01 = 0.05s → más ticks en 0.25s
-            // Nivel 1: interval = 0.1 - 1*0.01 = 0.09s → menos ticks
-            Assert.That(charCountFast, Is.GreaterThanOrEqualTo(4), "Nivel alto debe teclear más rápido (intervalo menor)");
+            // Nivel 5: 5 * 10 = 50 keystrokes/sec → ~12 chars en 0.25s
+            Assert.That(charCountFast, Is.GreaterThanOrEqualTo(4), "Nivel alto debe teclear más rápido (más keystrokes/sec)");
         }
 
         [UnityTest]

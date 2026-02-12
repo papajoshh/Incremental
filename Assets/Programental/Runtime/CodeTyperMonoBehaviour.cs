@@ -11,12 +11,11 @@ namespace Programental
         [Inject] private CodeStructuresConfig _structuresConfig;
 
         public event Action<char> OnKeyPressed;
-        private float _autoTypeTimer;
+        private float _autoTypeAccumulator;
 
         private void Start()
         {
             _codeTyper.Initialize();
-            _autoTypeTimer = _structuresConfig.autoTypeBaseInterval;
         }
 
         private void Update()
@@ -29,15 +28,15 @@ namespace Programental
         {
             if (_bonusMultipliers.AutoTypeLevel <= 0) return;
 
-            _autoTypeTimer -= Time.deltaTime;
-            if (_autoTypeTimer > 0f) return;
+            var keystrokesPerSecond = _bonusMultipliers.AutoTypeLevel * _structuresConfig.autoKeystrokesPerSecPerLevel;
+            _autoTypeAccumulator += keystrokesPerSecond * Time.deltaTime;
 
-            for (var i = 0; i < _bonusMultipliers.CharsPerKeypress; i++)
-                _codeTyper.TypeNextChar();
-
-            var interval = _structuresConfig.autoTypeBaseInterval
-                           - _bonusMultipliers.AutoTypeLevel * _structuresConfig.autoTypeReductionPerLevel;
-            _autoTypeTimer = Mathf.Max(interval, _structuresConfig.autoTypeMinInterval);
+            while (_autoTypeAccumulator >= 1f)
+            {
+                for (var i = 0; i < _bonusMultipliers.CharsPerKeypress; i++)
+                    _codeTyper.TypeNextChar();
+                _autoTypeAccumulator -= 1f;
+            }
         }
 
         private void HandleManualType()

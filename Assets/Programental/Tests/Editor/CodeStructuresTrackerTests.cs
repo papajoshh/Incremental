@@ -26,21 +26,24 @@ namespace Programental.Tests
                 {
                     id = "method",
                     localizationKey = "Method",
-                    costBase = 2f,
+                    baseCost = 2f,
+                    growthRate = 2f,
                     abilityId = "auto_type"
                 },
                 new StructureDefinition
                 {
                     id = "class",
                     localizationKey = "Class",
-                    costBase = 2f,
+                    baseCost = 2f,
+                    growthRate = 2f,
                     abilityId = "multi_key"
                 },
                 new StructureDefinition
                 {
                     id = "system",
                     localizationKey = "System",
-                    costBase = 2f,
+                    baseCost = 2f,
+                    growthRate = 2f,
                     abilityId = "clone_lines"
                 }
             };
@@ -278,9 +281,9 @@ namespace Programental.Tests
             _tracker.TryPurchase(0);
             var cost2 = _tracker.GetNextCost(0);
 
-            Assert.That(cost0, Is.EqualTo(2), "Nivel 0 → Nivel 1: 2^1 = 2");
-            Assert.That(cost1, Is.EqualTo(4), "Nivel 1 → Nivel 2: 2^2 = 4");
-            Assert.That(cost2, Is.EqualTo(8), "Nivel 2 → Nivel 3: 2^3 = 8");
+            Assert.That(cost0, Is.EqualTo(2), "Nivel 0 → Nivel 1: 2 * 2^0 = 2");
+            Assert.That(cost1, Is.EqualTo(4), "Nivel 1 → Nivel 2: 2 * 2^1 = 4");
+            Assert.That(cost2, Is.EqualTo(8), "Nivel 2 → Nivel 3: 2 * 2^2 = 8");
         }
 
         [Test]

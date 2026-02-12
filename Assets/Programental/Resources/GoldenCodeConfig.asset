@@ -11,13 +11,15 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b72171e1fee8cfc4cbda78455fb51d32, type: 3}
   m_Name: GoldenCodeConfig
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   firstSpawnDelay: 10
   spawnInterval: 180
   wordLifetime: 15
   costBase: 2
   firstBonusId: LineMultiplier
-  bonusDuration: 20
   lineMultiplierValue: 2
+  lineMultiplierDuration: 20
   charsPerKeypressValue: 1
-  goldenCodeTimeBonus: 10
+  speedBonusDuration: 20
+  durationMultiplierFactor: 2
+  durationBonusDuration: 120

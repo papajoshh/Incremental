@@ -13,27 +13,25 @@ MonoBehaviour:
   m_Name: CodeStructuresConfig
   m_EditorClassIdentifier: 
   abilityScalesWithAvailable: 1
-  autoTypeBaseInterval: 5
-  autoTypeReductionPerLevel: 0.05
-  autoTypeMinInterval: 0.1
+  autoKeystrokesPerSecPerLevel: 1
   structures:
   - id: method
     localizationKey: CodeStructures/Method
-    costBase: 2
-    costOffset: 198
+    baseCost: 15
+    growthRate: 1.15
     abilityId: auto_type
   - id: class
     localizationKey: CodeStructures/Class
-    costBase: 2
-    costOffset: 10
+    baseCost: 5
+    growthRate: 1.15
     abilityId: multi_key
   - id: system
     localizationKey: CodeStructures/System
-    costBase: 2
-    costOffset: 10
+    baseCost: 10
+    growthRate: 1.15
     abilityId: clone_lines
   - id: program
     localizationKey: CodeStructures/Program
-    costBase: 2
-    costOffset: 10
+    baseCost: 3
+    growthRate: 1.15
     abilityId: 

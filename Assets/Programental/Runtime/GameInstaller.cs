@@ -22,7 +22,7 @@ namespace Programental
             Container.Bind<BonusMultipliers>().AsSingle();
             Container.Bind<IGoldenCodeBonus>().To<LineMultiplierBonus>().AsSingle();
             Container.Bind<IGoldenCodeBonus>().To<SpeedBonus>().AsSingle();
-            Container.Bind<IGoldenCodeBonus>().To<TimeBonus>().AsSingle();
+            Container.Bind<IGoldenCodeBonus>().To<DurationBonus>().AsSingle();
             Container.Bind<MilestoneTracker>().AsSingle();
             Container.Bind<LinesTracker>().AsSingle();
             Container.Bind<BaseMultiplierTracker>().FromMethod(ctx =>

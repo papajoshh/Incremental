@@ -36,7 +36,7 @@ namespace Programental
         public int GetNextCost(int index)
         {
             var def = _config.structures[index];
-            return (int)Mathf.Pow(def.costBase, _states[index].Level + 1) + def.costOffset;
+            return Mathf.Max(1, Mathf.RoundToInt(def.baseCost * Mathf.Pow(def.growthRate, GetAvailable(index))));
         }
 
         public int GetCurrency(int index)

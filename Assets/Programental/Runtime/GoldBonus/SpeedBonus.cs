@@ -21,7 +21,7 @@ namespace Programental
                 BonusId = BonusId,
                 LocalizationKey = "Bonus/Speed",
                 Value = _config.charsPerKeypressValue,
-                Duration = _config.bonusDuration
+                Duration = _config.speedBonusDuration
             };
         }
 
