@@ -44,3 +44,43 @@
 - ISaveable interface rejected for save system: only 5 known classes, all compile-time, interface adds indirection without benefit
 - RestoreOrder rejected: explicit call order in SaveManager.Load() is simpler and debuggable
 - ITickable auto-save rejected: save on-change or InvokeRepeating is sufficient for incremental
+
+## TypingDefense Subproject
+- Path: Assets/TypingDefense/Runtime/
+- Installer: TypingDefenseInstaller (MonoInstaller), separate from Programental's GameInstaller
+- PlayerStats: mutable bag, ResetToBase() + ApplyUpgrade(UpgradeId) switch, ~40 upgrade cases (ECO/OFF/DEF/SUR/UTI + DMG/BDMG/BEHP + CONV_*)
+- WordManager: ITickable, 11 events (added Boss*, WordTextChanged), handles spawning/input/matching/crits/warp/auto-type/boss
+- DefenseWord: HP system (MaxHp, CurrentHp, TakeDamage), ChangeText for multi-hit words, IsBoss flag
+- WordViewBridge: bridges WordManager events to DefenseWordView + BossWordView
+- GameFlowController: LazyInject to break circular deps, orchestrates state transitions
+- GameState enum: Menu, Playing, Converting, GameOver, Paused
+- UpgradeId enum: type-safe, ~40 values (added DMG, BDMG, BEHP, CONV_SPEED/SIZE/AUTO/EXTRA)
+- UpgradeGraphConfig: DAG with nodeId strings, lazy cached lookup + parentMap, InvalidateCache() for editor
+- UpgradeTracker: fog of war (_revealedNodes), parent validation, CaptureState/RestoreState with UpgradeSaveEntry[]
+- ConverterManager: ITickable, BlackHole physics, letter suction/collection, converts letters to coins
+- ConverterView: manages BlackHole + ConverterLetterView lifecycle, uses Factory pattern
+- BossConfig: bossLevel, bossHp, orbitalSpeed/Radius, prestigeReward
+- ConverterConfig: level arrays for speed/size/autoMove/extraHoles, suction/collect radius
+- DefenseSaveManager: IInitializable + ITickable, auto-save 5s, PlayerPrefs JSON
+- UpgradeGraphEditorWindow: visual DAG editor, drag nodes, ctrl+click connections, inspector panel (~350 lines)
+
+### TypingDefense Review Decisions
+- ConverterStats rejected: use PlayerStats for all player stats (combat + converter)
+- UpgradeGraphEditorWindow: implemented and compact, justified now that graph is a DAG (not linear tiers)
+- Boss HP logic IN WordManager: boss is a DefenseWord with IsBoss=true, ApplyDamageToWord handles both
+- DefenseWord: HP is NOT boss-only anymore (normal words get HP scaling with level)
+- BossWordView justified: orbital vs linear movement is fundamental difference
+- Graph nodeId as string OK for topology, keep UpgradeId enum for effects (type safety)
+- ConverterManager split: logic (ITickable) + view (MonoBehaviour), same as WordManager/WordViewBridge
+- ApplyUpgrade(id, level=1): default param for backwards compat with 30 legacy upgrades
+- RunManager.PrestigeCurrency: currently in RunManager, should move to own tracker (different lifecycle)
+
+### TypingDefense Known Issues (from review)
+- ConverterManager depends on ArenaView (view in logic class) -- should receive center position as param
+- ConverterManager has Input.GetKey + Camera.main in logic class -- move to ConverterView or InputHandler
+- ConverterView subscribes in Construct but SetActive(false) -- events fire when inactive (bug)
+- ConverterView calls StartConverting (orchestration in view) -- move to GameFlowController
+- LetterTracker.RemoveLetter fires N events for bulk clear -- needs ClearLetters() method
+- Magic number 5 for LetterType count scattered in 5+ files
+- GetSize() formula duplicated in ConverterView and ConverterManager
+- Subscription pattern inconsistent: ConverterView/HudView/MenuView use Construct+OnDestroy, UpgradeGraphView uses OnEnable+OnDisable

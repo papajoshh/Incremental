@@ -9,7 +9,10 @@
       "Bash(dir:*)",
       "Bash(\"C:\\\\Program Files\\\\Unity\\\\Hub\\\\Editor\\\\6000.0.33f1\\\\Editor\\\\Unity.exe\" -runTests -batchmode -projectPath . -testResults TestResults.xml -testPlatform EditMode -logFile -)",
       "Bash(Select-String -Pattern \"\\(Test:|passed|failed|FAILED|ERROR\\)\" -Context 0,1)",
-      "Bash(del \"D:\\\\Repositorios\\\\Incremental\\\\Assets\\\\Programental\\\\Runtime\\\\GoldBonus\\\\TimeBonus.cs\")"
+      "Bash(del \"D:\\\\Repositorios\\\\Incremental\\\\Assets\\\\Programental\\\\Runtime\\\\GoldBonus\\\\TimeBonus.cs\")",
+      "WebSearch",
+      "Bash(python3:*)",
+      "Bash(powershell:*)"
     ]
   }
 }
