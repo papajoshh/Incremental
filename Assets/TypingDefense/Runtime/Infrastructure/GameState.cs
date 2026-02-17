@@ -1,4 +1,4 @@
 namespace TypingDefense
 {
-    public enum GameState { Menu, Playing, Converting, GameOver, Paused }
+    public enum GameState { Menu, Playing, GameOver, Paused }
 }

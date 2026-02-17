@@ -45,6 +45,7 @@ namespace TypingDefense
             Container.Bind<WordViewBridge>().FromComponentInHierarchy().AsSingle();
             Container.Bind<UpgradeGraphView>().FromComponentInHierarchy().AsSingle();
             Container.Bind<ConverterView>().FromComponentInHierarchy().AsSingle();
+            Container.Bind<CameraShaker>().FromComponentInHierarchy().AsSingle();
 
             Container.BindFactory<DefenseWordView, DefenseWordView.Factory>()
                 .FromComponentInNewPrefab(wordViewPrefab);

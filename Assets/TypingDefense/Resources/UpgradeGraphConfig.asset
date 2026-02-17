@@ -13,21 +13,82 @@ MonoBehaviour:
   m_Name: UpgradeGraphConfig
   m_EditorClassIdentifier: 
   rootNodeId: ROOT
+  baseStats:
+    MaxHp: 1
+    MaxEnergy: 5
+    DrainMultiplier: 1
+    LettersPerKill: 1
+    CritChance: 0
+    AutoTypeInterval: 0
+    AutoTypeCount: 0
+    EnergyPerKill: 0
+    BaseDamage: 1
+    BossBonusDamage: 0
+    EnergyPerBossHit: 0
+    PowerUpKillInterval: 10
+    PowerUpDurationBonus: 0
+    ConverterSpeed: 3
+    ConverterSize: 0.8
+    ConverterAutoMoveRatio: 0
+    ConverterExtraHoles: 1
   nodes:
-  - nodeId: NODE_0
-    upgradeId: 0
-    displayName: New Node
-    description: 
-    position: {x: 10.300004, y: 6.2}
+  - nodeId: ROOT
+    upgradeId: 1
+    displayName: "Energ\xEDa"
+    description: "qu\xE9 rica la energ\xEDa"
+    position: {x: 0, y: 0}
     connectedTo:
     - NODE_1
-    maxLevel: 1
-    costsPerLevel: 64000000
+    - NODE_2
+    - NODE_3
+    maxLevel: 3
+    costsPerLevel: 010000000300000005000000
+    valuesPerLevel:
+    - 7
+    - 10
+    - 15
   - nodeId: NODE_1
-    upgradeId: 0
-    displayName: New Node
+    upgradeId: 7
+    displayName: "Energ\xEDa por palabra"
     description: 
-    position: {x: 9.999999, y: 13.05}
+    position: {x: 0, y: 7.1214323}
     connectedTo: []
-    maxLevel: 1
-    costsPerLevel: 64000000
+    maxLevel: 3
+    costsPerLevel: 0a000000140000001e000000
+    valuesPerLevel:
+    - 0.1
+    - 0.2
+    - 0.3
+  - nodeId: NODE_2
+    upgradeId: 16
+    displayName: "Da\xF1o"
+    description: 
+    position: {x: 11.250011, y: 0}
+    connectedTo: []
+    maxLevel: 3
+    costsPerLevel: 050000000a00000014000000
+    valuesPerLevel:
+    - 2
+    - 3
+    - 4
+  - nodeId: NODE_3
+    upgradeId: 19
+    displayName: "Velocidad cu\xE1ntica"
+    description: 
+    position: {x: 0, y: -6.399998}
+    connectedTo: []
+    maxLevel: 3
+    costsPerLevel: 640000006400000064000000
+    valuesPerLevel:
+    - 1
+    - 1
+    - 1
+  upgradeIcons:
+  - upgradeId: 16
+    icon: {fileID: 21300000, guid: 89aa9292944cbe24b98b3689ce83a0f6, type: 3}
+  - upgradeId: 19
+    icon: {fileID: 21300000, guid: 5a1249ed197a292488eac721c2f8adb6, type: 3}
+  - upgradeId: 7
+    icon: {fileID: 21300000, guid: ce91a8f993fc941409b0112afdfcacf6, type: 3}
+  - upgradeId: 1
+    icon: {fileID: 21300000, guid: a2441c0a0e61d6d4e8340e574986e1b9, type: 3}

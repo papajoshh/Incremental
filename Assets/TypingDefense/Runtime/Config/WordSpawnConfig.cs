@@ -10,5 +10,10 @@ namespace TypingDefense
         public float speedVariance = 0.3f;
         public float spawnIntervalScalePerLevel = 0.2f;
         public float wordSpeedScalePerLevel = 0.1f;
+        public int baseMinWordLength = 4;
+        public int baseMaxWordLength = 7;
+        public int wordLengthGrowthPerLevel = 1;
+        public int baseWordHp = 1;
+        public int wordHpGrowthPerLevel = 0;
     }
 }

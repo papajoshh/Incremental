@@ -1,26 +1,39 @@
 using System.Collections.Generic;
 using DG.Tweening;
-using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Zenject;
 
 namespace TypingDefense
 {
-    public class UpgradeGraphView : MonoBehaviour
+    public class UpgradeGraphView : MonoBehaviour, IPointerDownHandler, IDragHandler, IScrollHandler
     {
+        [Header("Graph")]
         [SerializeField] RectTransform graphContainer;
-        [SerializeField] GameObject nodeButtonPrefab;
+        [SerializeField] UpgradeNodeView nodeViewPrefab;
         [SerializeField] GameObject connectionLinePrefab;
-        [SerializeField] float positionScale = 80f;
+        [SerializeField] float positionScale = 35f;
 
-        UpgradeGraphConfig graphConfig;
-        UpgradeTracker upgradeTracker;
-        LetterTracker letterTracker;
-        GameFlowController gameFlow;
+        [Header("Tooltip")]
+        [SerializeField] UpgradeTooltipView tooltipView;
 
-        readonly Dictionary<string, RectTransform> nodeRects = new();
-        readonly List<GameObject> connectionObjects = new();
+        [Header("Pan & Zoom")]
+        [SerializeField] float zoomMin = 0.5f;
+        [SerializeField] float zoomMax = 2.5f;
+        [SerializeField] float zoomSpeed = 0.1f;
+
+        UpgradeGraphConfig _graphConfig;
+        UpgradeTracker _upgradeTracker;
+        LetterTracker _letterTracker;
+        GameFlowController _gameFlow;
+
+        readonly Dictionary<string, UpgradeNodeView> _nodeViews = new();
+        readonly Dictionary<(string, string), ConnectionLine> _connections = new();
+
+        UpgradeNodeView _hoveredNode;
+        float _currentZoom = 1f;
+        Vector2 _dragStart;
 
         [Inject]
         public void Construct(
@@ -29,158 +42,297 @@ namespace TypingDefense
             LetterTracker letterTracker,
             GameFlowController gameFlow)
         {
-            this.graphConfig = graphConfig;
-            this.upgradeTracker = upgradeTracker;
-            this.letterTracker = letterTracker;
-            this.gameFlow = gameFlow;
+            _graphConfig = graphConfig;
+            _upgradeTracker = upgradeTracker;
+            _letterTracker = letterTracker;
+            _gameFlow = gameFlow;
 
-            upgradeTracker.OnNodePurchased += OnNodePurchased;
-            letterTracker.OnCoinsChanged += RefreshAllNodes;
-            gameFlow.OnStateChanged += OnStateChanged;
+            _upgradeTracker.OnNodePurchased += OnNodePurchased;
+            _letterTracker.OnCoinsChanged += RefreshAllNodeVisuals;
+            _gameFlow.OnStateChanged += OnStateChanged;
         }
 
-        void Start()
-        {
-            OnStateChanged(gameFlow.State);
-        }
+        void Start() => OnStateChanged(_gameFlow.State);
 
         void OnDestroy()
         {
-            upgradeTracker.OnNodePurchased -= OnNodePurchased;
-            letterTracker.OnCoinsChanged -= RefreshAllNodes;
-            gameFlow.OnStateChanged -= OnStateChanged;
+            _upgradeTracker.OnNodePurchased -= OnNodePurchased;
+            _letterTracker.OnCoinsChanged -= RefreshAllNodeVisuals;
+            _gameFlow.OnStateChanged -= OnStateChanged;
         }
 
         void OnStateChanged(GameState state)
         {
             if (state != GameState.Menu) return;
-            RebuildGraph();
+            BuildInitialGraph();
         }
 
         void OnNodePurchased(string nodeId)
         {
-            RebuildGraph();
+            if (_nodeViews.TryGetValue(nodeId, out var nodeView))
+            {
+                var node = _graphConfig.GetNode(nodeId);
+                var level = _upgradeTracker.GetNodeLevel(nodeId);
+                var canAfford = CanAffordNextLevel(nodeId);
+
+                nodeView.UpdateVisualState(level, node.maxLevel, canAfford);
+                nodeView.PlayPurchaseJuice();
+
+                if (tooltipView.IsShowingNode(nodeId))
+                    tooltipView.Refresh(node, level, canAfford);
+            }
+
+            RevealNewNodes(nodeId);
+            RefreshAllNodeVisuals();
         }
 
-        void RebuildGraph()
+        // --- Graph building ---
+
+        void BuildInitialGraph()
         {
             ClearGraph();
 
-            foreach (var node in graphConfig.GetAllNodes())
+            var entranceDelay = 0f;
+            foreach (var node in _graphConfig.GetAllNodes())
             {
-                if (!upgradeTracker.IsNodeRevealed(node.nodeId)) continue;
-                CreateNodeButton(node);
+                if (!_upgradeTracker.IsNodeRevealed(node.nodeId)) continue;
+                CreateNodeView(node, entranceDelay);
+                entranceDelay += 0.05f;
             }
 
-            DrawConnections();
+            BuildAllConnections();
+        }
+
+        void RevealNewNodes(string purchasedNodeId)
+        {
+            var parentNode = _graphConfig.GetNode(purchasedNodeId);
+            var entranceDelay = 0f;
+
+            foreach (var childId in parentNode.connectedTo)
+            {
+                if (_nodeViews.ContainsKey(childId)) continue;
+                if (!_upgradeTracker.IsNodeRevealed(childId)) continue;
+
+                var childNode = _graphConfig.GetNode(childId);
+                CreateNodeView(childNode, entranceDelay);
+                entranceDelay += 0.08f;
+
+                CreateConnection(parentNode.nodeId, childId);
+            }
+        }
+
+        void CreateNodeView(UpgradeNode node, float entranceDelay)
+        {
+            var view = Instantiate(nodeViewPrefab, graphContainer);
+            var anchoredPos = node.position * positionScale;
+
+            var icon = _graphConfig.GetIcon(node.upgradeId);
+            view.Initialize(
+                node.nodeId, icon, anchoredPos,
+                OnNodeHoverEnter, OnNodeHoverExit, OnNodeClicked);
+
+            var level = _upgradeTracker.GetNodeLevel(node.nodeId);
+            var canAfford = CanAffordNextLevel(node.nodeId);
+            view.UpdateVisualState(level, node.maxLevel, canAfford);
+            view.PlayEntranceAnimation(entranceDelay);
+
+            _nodeViews[node.nodeId] = view;
         }
 
         void ClearGraph()
         {
-            foreach (var kvp in nodeRects)
+            tooltipView.Hide();
+            _hoveredNode = null;
+
+            foreach (var kvp in _nodeViews)
                 Destroy(kvp.Value.gameObject);
 
-            foreach (var conn in connectionObjects)
-                Destroy(conn);
+            foreach (var kvp in _connections)
+                Destroy(kvp.Value.gameObject);
 
-            nodeRects.Clear();
-            connectionObjects.Clear();
+            _nodeViews.Clear();
+            _connections.Clear();
         }
 
-        void CreateNodeButton(UpgradeNode node)
+        // --- Connections ---
+
+        void BuildAllConnections()
         {
-            var go = Instantiate(nodeButtonPrefab, graphContainer);
-            var rect = go.GetComponent<RectTransform>();
-            rect.anchoredPosition = node.position * positionScale;
-
-            var btn = go.GetComponent<Button>();
-            var label = go.GetComponentInChildren<TextMeshProUGUI>();
-
-            var currentLevel = upgradeTracker.GetNodeLevel(node.nodeId);
-            var isMaxLevel = upgradeTracker.IsNodeMaxLevel(node.nodeId);
-
-            if (isMaxLevel)
+            foreach (var node in _graphConfig.GetAllNodes())
             {
-                label.text = $"<color=#4CAF50>{node.displayName}</color>\n<size=60%>MAX ({currentLevel}/{node.maxLevel})</size>";
-                btn.interactable = false;
-            }
-            else
-            {
-                var nextCost = node.costsPerLevel[currentLevel];
-                var canAfford = letterTracker.GetCoins() >= nextCost;
-                var costColor = canAfford ? "#FFFFFF" : "#FF4444";
-
-                label.text = $"{node.displayName} [{currentLevel}/{node.maxLevel}]"
-                             + $"\n<size=60%><color={costColor}>{nextCost} coins</color></size>"
-                             + $"\n<size=50%>{node.description}</size>";
-
-                btn.interactable = canAfford;
-            }
-
-            var image = go.GetComponent<Image>();
-            image.color = currentLevel > 0
-                ? new Color(0.3f, 0.7f, 1f, 1f)
-                : new Color(0.4f, 0.4f, 0.4f, 1f);
-
-            var capturedId = node.nodeId;
-            btn.onClick.AddListener(() =>
-            {
-                if (!upgradeTracker.TryPurchase(capturedId)) return;
-
-                rect.DOComplete();
-                rect.DOPunchScale(Vector3.one * 0.3f, 0.3f, 8);
-            });
-
-            nodeRects[node.nodeId] = rect;
-        }
-
-        void DrawConnections()
-        {
-            foreach (var node in graphConfig.GetAllNodes())
-            {
-                if (!nodeRects.ContainsKey(node.nodeId)) continue;
-
-                var fromRect = nodeRects[node.nodeId];
+                if (!_nodeViews.ContainsKey(node.nodeId)) continue;
 
                 foreach (var childId in node.connectedTo)
                 {
-                    if (!nodeRects.ContainsKey(childId)) continue;
-
-                    var toRect = nodeRects[childId];
-                    var lineGo = Instantiate(connectionLinePrefab, graphContainer);
-                    lineGo.transform.SetAsFirstSibling();
-
-                    var lineRect = lineGo.GetComponent<RectTransform>();
-                    var from = fromRect.anchoredPosition;
-                    var to = toRect.anchoredPosition;
-                    var mid = (from + to) / 2f;
-                    var diff = to - from;
-                    var length = diff.magnitude;
-                    var angle = Mathf.Atan2(diff.y, diff.x) * Mathf.Rad2Deg;
-
-                    lineRect.anchoredPosition = mid;
-                    lineRect.sizeDelta = new Vector2(length, 2f);
-                    lineRect.localRotation = Quaternion.Euler(0, 0, angle);
-
-                    var lineImage = lineGo.GetComponent<Image>();
-                    var fromPurchased = upgradeTracker.GetNodeLevel(node.nodeId) > 0;
-                    var toPurchased = upgradeTracker.GetNodeLevel(childId) > 0;
-
-                    if (fromPurchased && toPurchased)
-                        lineImage.color = new Color(0.3f, 0.7f, 1f, 0.8f);
-                    else if (fromPurchased)
-                        lineImage.color = new Color(1f, 1f, 1f, 0.4f);
-                    else
-                        lineImage.color = new Color(0.3f, 0.3f, 0.3f, 0.3f);
-
-                    connectionObjects.Add(lineGo);
+                    if (!_nodeViews.ContainsKey(childId)) continue;
+                    CreateConnection(node.nodeId, childId);
                 }
             }
         }
 
-        void RefreshAllNodes()
+        void CreateConnection(string fromId, string toId)
         {
-            RebuildGraph();
+            var key = (fromId, toId);
+            if (_connections.ContainsKey(key)) return;
+
+            var fromRect = (RectTransform)_nodeViews[fromId].transform;
+            var toRect = (RectTransform)_nodeViews[toId].transform;
+
+            var lineGo = Instantiate(connectionLinePrefab, graphContainer);
+            lineGo.transform.SetAsFirstSibling();
+
+            var lineRect = lineGo.GetComponent<RectTransform>();
+            var from = fromRect.anchoredPosition;
+            var to = toRect.anchoredPosition;
+            var mid = (from + to) * 0.5f;
+            var diff = to - from;
+            var length = diff.magnitude;
+            var angle = Mathf.Atan2(diff.y, diff.x) * Mathf.Rad2Deg;
+
+            lineRect.anchoredPosition = mid;
+            lineRect.sizeDelta = new Vector2(length, 4f);
+            lineRect.localRotation = Quaternion.Euler(0, 0, angle);
+
+            var lineImage = lineGo.GetComponent<Image>();
+            var conn = new ConnectionLine(lineGo, lineImage, fromId, toId);
+            UpdateConnectionColor(conn);
+
+            _connections[key] = conn;
+        }
+
+        void UpdateConnectionColor(ConnectionLine conn)
+        {
+            var fromLevel = _upgradeTracker.GetNodeLevel(conn.fromId);
+            var toLevel = _upgradeTracker.GetNodeLevel(conn.toId);
+
+            if (fromLevel > 0 && toLevel > 0)
+                conn.image.color = new Color(0.3f, 0.7f, 1f, 0.8f);
+            else if (fromLevel > 0)
+                conn.image.color = new Color(1f, 1f, 1f, 0.4f);
+            else
+                conn.image.color = new Color(0.3f, 0.3f, 0.3f, 0.3f);
+        }
+
+        void RefreshAllConnectionColors()
+        {
+            foreach (var kvp in _connections)
+                UpdateConnectionColor(kvp.Value);
+        }
+
+        // --- Visual refresh (no rebuild) ---
+
+        void RefreshAllNodeVisuals()
+        {
+            foreach (var kvp in _nodeViews)
+            {
+                var node = _graphConfig.GetNode(kvp.Key);
+                var level = _upgradeTracker.GetNodeLevel(kvp.Key);
+                var canAfford = CanAffordNextLevel(kvp.Key);
+                kvp.Value.UpdateVisualState(level, node.maxLevel, canAfford);
+            }
+
+            RefreshAllConnectionColors();
+            RefreshTooltipIfVisible();
+        }
+
+        void RefreshTooltipIfVisible()
+        {
+            if (_hoveredNode == null) return;
+
+            var node = _graphConfig.GetNode(_hoveredNode.NodeId);
+            var level = _upgradeTracker.GetNodeLevel(_hoveredNode.NodeId);
+            var canAfford = CanAffordNextLevel(_hoveredNode.NodeId);
+            tooltipView.Refresh(node, level, canAfford);
+        }
+
+        // --- Hover & Click ---
+
+        void OnNodeHoverEnter(UpgradeNodeView nodeView)
+        {
+            _hoveredNode = nodeView;
+
+            var node = _graphConfig.GetNode(nodeView.NodeId);
+            var level = _upgradeTracker.GetNodeLevel(nodeView.NodeId);
+            var canAfford = CanAffordNextLevel(nodeView.NodeId);
+
+            var worldPos = nodeView.transform.position;
+            var screenPos = RectTransformUtility.WorldToScreenPoint(null, worldPos);
+
+            tooltipView.Show(node, level, canAfford, screenPos);
+        }
+
+        void OnNodeHoverExit(UpgradeNodeView nodeView)
+        {
+            _hoveredNode = null;
+            tooltipView.Hide();
+        }
+
+        void OnNodeClicked(string nodeId)
+        {
+            _upgradeTracker.TryPurchase(nodeId);
+        }
+
+        // --- Pan & Zoom ---
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                (RectTransform)transform, eventData.position, eventData.pressEventCamera, out _dragStart);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                (RectTransform)transform, eventData.position, eventData.pressEventCamera, out var current);
+
+            var delta = current - _dragStart;
+            graphContainer.anchoredPosition += delta;
+            _dragStart = current;
+        }
+
+        public void OnScroll(PointerEventData eventData)
+        {
+            var previousZoom = _currentZoom;
+            _currentZoom += eventData.scrollDelta.y * zoomSpeed;
+            _currentZoom = Mathf.Clamp(_currentZoom, zoomMin, zoomMax);
+
+            if (Mathf.Approximately(previousZoom, _currentZoom)) return;
+
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                graphContainer, eventData.position, eventData.pressEventCamera, out var localMouse);
+
+            var scaleFactor = _currentZoom / previousZoom;
+            graphContainer.localScale = Vector3.one * _currentZoom;
+
+            var newLocalMouse = localMouse * scaleFactor;
+            var correction = (localMouse - newLocalMouse) * _currentZoom;
+            graphContainer.anchoredPosition += correction;
+        }
+
+        // --- Helpers ---
+
+        bool CanAffordNextLevel(string nodeId)
+        {
+            var node = _graphConfig.GetNode(nodeId);
+            var level = _upgradeTracker.GetNodeLevel(nodeId);
+            if (level >= node.maxLevel) return false;
+            return _letterTracker.GetCoins() >= node.costsPerLevel[level];
+        }
+
+        readonly struct ConnectionLine
+        {
+            public readonly GameObject gameObject;
+            public readonly Image image;
+            public readonly string fromId;
+            public readonly string toId;
+
+            public ConnectionLine(GameObject go, Image img, string from, string to)
+            {
+                gameObject = go;
+                image = img;
+                fromId = from;
+                toId = to;
+            }
         }
     }
 }

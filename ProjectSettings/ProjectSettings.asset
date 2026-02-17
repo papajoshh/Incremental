@@ -697,23 +697,23 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Android: DOTWEEN;TextMeshPro
-    EmbeddedLinux: DOTWEEN;TextMeshPro
+    Android: DOTWEEN;TextMeshPro;UNITY_POST_PROCESSING_STACK_V2
+    EmbeddedLinux: DOTWEEN;TextMeshPro;UNITY_POST_PROCESSING_STACK_V2
     GameCoreScarlett: DOTWEEN
-    GameCoreXboxOne: DOTWEEN;TextMeshPro
+    GameCoreXboxOne: DOTWEEN;TextMeshPro;UNITY_POST_PROCESSING_STACK_V2
     LinuxHeadlessSimulation: DOTWEEN
-    Nintendo Switch: DOTWEEN;TextMeshPro
-    PS4: DOTWEEN;TextMeshPro
-    PS5: DOTWEEN;TextMeshPro
-    QNX: DOTWEEN;TextMeshPro
-    Stadia: DOTWEEN;TextMeshPro
-    Standalone: DOTWEEN;TextMeshPro
-    VisionOS: DOTWEEN;TextMeshPro
-    WebGL: DOTWEEN;TextMeshPro
+    Nintendo Switch: DOTWEEN;TextMeshPro;UNITY_POST_PROCESSING_STACK_V2
+    PS4: DOTWEEN;TextMeshPro;UNITY_POST_PROCESSING_STACK_V2
+    PS5: DOTWEEN;TextMeshPro;UNITY_POST_PROCESSING_STACK_V2
+    QNX: DOTWEEN;TextMeshPro;UNITY_POST_PROCESSING_STACK_V2
+    Stadia: DOTWEEN;TextMeshPro;UNITY_POST_PROCESSING_STACK_V2
+    Standalone: DOTWEEN;TextMeshPro;UNITY_POST_PROCESSING_STACK_V2
+    VisionOS: DOTWEEN;TextMeshPro;UNITY_POST_PROCESSING_STACK_V2
+    WebGL: DOTWEEN;TextMeshPro;UNITY_POST_PROCESSING_STACK_V2
     Windows Store Apps: DOTWEEN
-    XboxOne: DOTWEEN;TextMeshPro
+    XboxOne: DOTWEEN;TextMeshPro;UNITY_POST_PROCESSING_STACK_V2
     iPhone: DOTWEEN;TextMeshPro
-    tvOS: DOTWEEN;TextMeshPro
+    tvOS: DOTWEEN;TextMeshPro;UNITY_POST_PROCESSING_STACK_V2
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}

@@ -8,10 +8,13 @@ namespace TypingDefense
     public class UpgradeGraphConfig : ScriptableObject
     {
         public string rootNodeId = "ROOT";
+        public BaseStatsData baseStats = new();
         public UpgradeNode[] nodes = Array.Empty<UpgradeNode>();
+        public UpgradeIconEntry[] upgradeIcons = Array.Empty<UpgradeIconEntry>();
 
         Dictionary<string, UpgradeNode> _lookup;
         Dictionary<string, List<string>> _parentMap;
+        Dictionary<UpgradeId, Sprite> _iconLookup;
 
         void BuildLookup()
         {
@@ -42,6 +45,21 @@ namespace TypingDefense
         {
             _lookup = null;
             _parentMap = null;
+            _iconLookup = null;
+        }
+
+        void BuildIconLookup()
+        {
+            _iconLookup = new Dictionary<UpgradeId, Sprite>();
+            foreach (var entry in upgradeIcons)
+                _iconLookup[entry.upgradeId] = entry.icon;
+        }
+
+        public Sprite GetIcon(UpgradeId upgradeId)
+        {
+            if (_iconLookup == null) BuildIconLookup();
+            _iconLookup.TryGetValue(upgradeId, out var icon);
+            return icon;
         }
 
         public UpgradeNode GetNode(string nodeId)
@@ -69,8 +87,31 @@ namespace TypingDefense
         public void InvalidateCache()
         {
             _lookup = null;
+            _iconLookup = null;
             _parentMap = null;
         }
+    }
+
+    [Serializable]
+    public class BaseStatsData
+    {
+        public int MaxHp = 1;
+        public float MaxEnergy = 5f;
+        public float DrainMultiplier = 1f;
+        public int LettersPerKill = 1;
+        public float CritChance = 0f;
+        public float AutoTypeInterval = 0f;
+        public int AutoTypeCount = 0;
+        public float EnergyPerKill = 0f;
+        public int BaseDamage = 1;
+        public int BossBonusDamage = 0;
+        public float EnergyPerBossHit = 0f;
+        public int PowerUpKillInterval = 10;
+        public float PowerUpDurationBonus = 0f;
+        public float ConverterSpeed = 3f;
+        public float ConverterSize = 0.8f;
+        public float ConverterAutoMoveRatio = 0f;
+        public int ConverterExtraHoles = 1;
     }
 
     [Serializable]
@@ -84,5 +125,13 @@ namespace TypingDefense
         public string[] connectedTo = Array.Empty<string>();
         public int maxLevel = 1;
         public int[] costsPerLevel = { 100 };
+        public float[] valuesPerLevel = { 1f };
+    }
+
+    [Serializable]
+    public class UpgradeIconEntry
+    {
+        public UpgradeId upgradeId;
+        public Sprite icon;
     }
 }

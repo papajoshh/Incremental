@@ -15,6 +15,7 @@ namespace TypingDefense
         public GameState State { get; private set; }
 
         public event Action<GameState> OnStateChanged;
+        public event Action OnReturnedFromRun;
 
         public GameFlowController(
             LazyInject<RunManager> runManager,
@@ -50,17 +51,15 @@ namespace TypingDefense
 
         public void HandleRunEnded()
         {
+            if (State != GameState.Playing) return;
+
             _saveManager.Value.MarkFirstRunCompleted();
 
             if (_runManager.Value.CurrentLevel >= 10)
                 _saveManager.Value.MarkLevel10Reached();
 
-            SetState(GameState.Converting);
-        }
-
-        public void HandleConvertingComplete()
-        {
             SetState(GameState.Menu);
+            OnReturnedFromRun?.Invoke();
         }
 
         public void ReturnToMenu()

@@ -11,17 +11,20 @@ namespace TypingDefense
         readonly PlayerStats _playerStats;
         readonly LetterTracker _letterTracker;
         readonly LetterConfig _letterConfig;
-        readonly GameFlowController _gameFlow;
         readonly ArenaView _arenaView;
 
         readonly List<ConverterLetter> _activeLetters = new();
         readonly List<BlackHole> _blackHoles = new();
 
+        bool _isConverting;
+
         public event Action<ConverterLetter> OnLetterSpawned;
         public event Action<ConverterLetter> OnLetterCollected;
         public event Action<int> OnCoinsEarned;
         public event Action OnConvertingStarted;
+        public event Action OnConvertingFinished;
 
+        public bool IsConverting => _isConverting;
         public IReadOnlyList<BlackHole> BlackHoles => _blackHoles;
         public IReadOnlyList<ConverterLetter> ActiveLetters => _activeLetters;
 
@@ -30,29 +33,28 @@ namespace TypingDefense
             PlayerStats playerStats,
             LetterTracker letterTracker,
             LetterConfig letterConfig,
-            GameFlowController gameFlow,
             ArenaView arenaView)
         {
             _config = config;
             _playerStats = playerStats;
             _letterTracker = letterTracker;
             _letterConfig = letterConfig;
-            _gameFlow = gameFlow;
             _arenaView = arenaView;
         }
 
         public void Tick()
         {
-            if (_gameFlow.State != GameState.Converting) return;
+            if (!_isConverting) return;
 
             UpdateBlackHoles(Time.deltaTime);
-            UpdateLetters(Time.deltaTime);
+            CollectAndSuckLetters();
         }
 
         public void StartConverting()
         {
             _activeLetters.Clear();
             _blackHoles.Clear();
+            _isConverting = true;
 
             SpawnLettersFromInventory();
             SpawnBlackHoles();
@@ -62,40 +64,32 @@ namespace TypingDefense
 
         public void FinishConverting()
         {
+            _isConverting = false;
             _activeLetters.Clear();
             _blackHoles.Clear();
-            _gameFlow.HandleConvertingComplete();
+            OnConvertingFinished?.Invoke();
         }
 
-        float GetSpeed() => _config.speedLevels[Mathf.Min(_playerStats.ConverterSpeedLevel, _config.speedLevels.Length - 1)];
-        float GetSize() => _config.sizeLevels[Mathf.Min(_playerStats.ConverterSizeLevel, _config.sizeLevels.Length - 1)];
-        int GetTotalHoles() => _config.extraHolesLevels[Mathf.Min(_playerStats.ConverterExtraHolesLevel, _config.extraHolesLevels.Length - 1)];
-        bool HasAutoMove() => _playerStats.ConverterAutoMoveLevel > 0;
-        float GetAutoMoveRatio() => _playerStats.ConverterAutoMoveLevel > 0
-            ? _config.autoMoveSpeedRatios[Mathf.Min(_playerStats.ConverterAutoMoveLevel - 1, _config.autoMoveSpeedRatios.Length - 1)]
-            : 0f;
+        float GetSpeed() => _playerStats.ConverterSpeed;
+        float GetSize() => _playerStats.ConverterSize;
+        int GetTotalHoles() => Mathf.Max(1, _playerStats.ConverterExtraHoles);
+        bool HasAutoMove() => _playerStats.ConverterAutoMoveRatio > 0f;
+        float GetAutoMoveRatio() => _playerStats.ConverterAutoMoveRatio;
 
         void SpawnLettersFromInventory()
         {
-            var center = _arenaView.CenterPosition;
-
             for (var type = 0; type < 5; type++)
             {
                 var count = _letterTracker.GetLetterCount((LetterType)type);
 
                 for (var i = 0; i < count; i++)
                 {
-                    var randomPos = center + new Vector3(
-                        UnityEngine.Random.Range(-_config.letterSpawnSpread, _config.letterSpawnSpread),
-                        UnityEngine.Random.Range(-_config.letterSpawnSpread, _config.letterSpawnSpread),
-                        0f);
-
+                    var randomPos = _arenaView.GetRandomInteriorPosition();
                     var letter = new ConverterLetter((LetterType)type, randomPos);
                     _activeLetters.Add(letter);
                     OnLetterSpawned?.Invoke(letter);
                 }
 
-                // Clear inventory for this type (letters are now in the converter)
                 while (_letterTracker.GetLetterCount((LetterType)type) > 0)
                     _letterTracker.RemoveLetter((LetterType)type);
             }
@@ -131,8 +125,6 @@ namespace TypingDefense
                 {
                     ApplyAutoMove(hole, dt, 1f);
                 }
-
-                CollectNearbyLetters(hole);
             }
         }
 
@@ -156,7 +148,7 @@ namespace TypingDefense
             if (input.sqrMagnitude > 0.01f)
             {
                 input.Normalize();
-                hole.Position += input * GetSpeed() * dt;
+                hole.Position = _arenaView.ClampToInterior(hole.Position + input * GetSpeed() * dt);
             }
         }
 
@@ -166,7 +158,7 @@ namespace TypingDefense
 
             var closest = FindClosestLetter(hole.Position);
             var dir = (closest.Position - hole.Position).normalized;
-            hole.Position += dir * GetSpeed() * speedRatio * dt;
+            hole.Position = _arenaView.ClampToInterior(hole.Position + dir * GetSpeed() * speedRatio * dt);
         }
 
         ConverterLetter FindClosestLetter(Vector3 position)
@@ -186,44 +178,50 @@ namespace TypingDefense
             return closest;
         }
 
-        void UpdateLetters(float dt)
+        void CollectAndSuckLetters()
         {
-            foreach (var letter in _activeLetters)
-            {
-                if (!letter.IsBeingSucked) continue;
-
-                var dir = (letter.SuckTarget - letter.Position).normalized;
-                letter.Position += dir * _config.suctionForce * dt;
-            }
-        }
-
-        void CollectNearbyLetters(BlackHole hole)
-        {
-            var sizeRatio = GetSize() / _config.sizeLevels[0];
-            var suctionRadius = _config.suctionRadius * sizeRatio;
-            var collectRadius = _config.collectRadius * sizeRatio;
+            var size = GetSize();
+            var suctionRadius = _config.suctionRadius * size;
+            var collectRadius = _config.collectRadius * size;
 
             for (var i = _activeLetters.Count - 1; i >= 0; i--)
             {
                 var letter = _activeLetters[i];
-                var dist = Vector3.Distance(letter.Position, hole.Position);
+                var closestHole = FindClosestHole(letter.Position);
+                var dist = Vector3.Distance(letter.Position, closestHole.Position);
 
                 if (dist <= collectRadius)
                 {
                     var coins = _letterConfig.GetConversionValue(letter.Type);
                     _letterTracker.DirectAddCoins(coins);
+                    _activeLetters.RemoveAt(i);
                     OnLetterCollected?.Invoke(letter);
                     OnCoinsEarned?.Invoke(coins);
-                    _activeLetters.RemoveAt(i);
                     continue;
                 }
 
                 if (dist <= suctionRadius)
                 {
-                    letter.IsBeingSucked = true;
-                    letter.SuckTarget = hole.Position;
+                    var dir = (closestHole.Position - letter.Position).normalized;
+                    letter.Position += dir * _config.suctionForce * Time.deltaTime;
                 }
             }
+        }
+
+        BlackHole FindClosestHole(Vector3 position)
+        {
+            var closest = _blackHoles[0];
+            var closestDist = Vector3.SqrMagnitude(closest.Position - position);
+
+            for (var i = 1; i < _blackHoles.Count; i++)
+            {
+                var dist = Vector3.SqrMagnitude(_blackHoles[i].Position - position);
+                if (dist >= closestDist) continue;
+                closest = _blackHoles[i];
+                closestDist = dist;
+            }
+
+            return closest;
         }
     }
 
@@ -231,8 +229,6 @@ namespace TypingDefense
     {
         public LetterType Type { get; }
         public Vector3 Position { get; set; }
-        public bool IsBeingSucked { get; set; }
-        public Vector3 SuckTarget { get; set; }
 
         public ConverterLetter(LetterType type, Vector3 position)
         {

@@ -153,6 +153,30 @@ MonoBehaviour:
       - "A\xF1ade {0} l\xEDneas de c\xF3digo clonadas"
       Flags: 0000
       Languages_Touch: []
+    - Term: UI/BlackHole
+      TermType: 0
+      Description: 
+      Languages:
+      - Black Hole
+      - Agujero negro
+      Flags: 0000
+      Languages_Touch: []
+    - Term: UI/PlayButtonTittle
+      TermType: 0
+      Description: 
+      Languages:
+      - PLAY
+      - JUGAR
+      Flags: 0000
+      Languages_Touch: []
+    - Term: HUD/Retreat
+      TermType: 0
+      Description: 
+      Languages:
+      - Retreat
+      - Retirarse
+      Flags: 0000
+      Languages_Touch: []
     CaseInsensitiveTerms: 0
     OnMissingTranslation: 1
     mTerm_AppName: 

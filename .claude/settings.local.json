@@ -12,7 +12,10 @@
       "Bash(del \"D:\\\\Repositorios\\\\Incremental\\\\Assets\\\\Programental\\\\Runtime\\\\GoldBonus\\\\TimeBonus.cs\")",
       "WebSearch",
       "Bash(python3:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "mcp__unityMCP__manage_scene",
+      "mcp__unityMCP__refresh_unity",
+      "mcp__unityMCP__read_console"
     ]
   }
 }

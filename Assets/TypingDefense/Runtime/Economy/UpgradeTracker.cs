@@ -41,7 +41,7 @@ namespace TypingDefense
             if (!_letterTracker.TrySpendCoins(cost)) return false;
 
             _nodeLevels[nodeId] = currentLevel + 1;
-            _playerStats.ApplyUpgrade(node.upgradeId, currentLevel + 1);
+            _playerStats.ApplyUpgrade(node.upgradeId, node.valuesPerLevel[currentLevel]);
 
             if (currentLevel == 0)
                 RevealConnections(nodeId);
@@ -71,7 +71,7 @@ namespace TypingDefense
             foreach (var kvp in _nodeLevels)
             {
                 var node = _graphConfig.GetNode(kvp.Key);
-                _playerStats.ApplyUpgrade(node.upgradeId, kvp.Value);
+                _playerStats.ApplyUpgrade(node.upgradeId, node.valuesPerLevel[kvp.Value - 1]);
             }
         }
 

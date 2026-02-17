@@ -12,8 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1663f61e4231cd84b9f1827976f108cb, type: 3}
   m_Name: WordSpawnConfig
   m_EditorClassIdentifier: 
-  baseSpawnInterval: 3
-  baseWordSpeed: 0.8
+  baseSpawnInterval: 1.5
+  baseWordSpeed: 0.5
   speedVariance: 0.3
   spawnIntervalScalePerLevel: 0.2
   wordSpeedScalePerLevel: 0.1
+  baseMinWordLength: 4
+  baseMaxWordLength: 7
+  wordLengthGrowthPerLevel: 1
+  baseWordHp: 1
+  wordHpGrowthPerLevel: 0

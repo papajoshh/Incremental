@@ -14,15 +14,29 @@ namespace TypingDefense.Editor
         bool isCreatingConnection;
         int connectionSourceIndex;
         Vector2 lastMousePos;
+        bool showBaseStats;
+        bool showIcons;
+        float zoom = 1f;
 
         const float NodeWidth = 160f;
         const float NodeHeight = 60f;
         const float GridSize = 20f;
+        const float MinZoom = 0.3f;
+        const float MaxZoom = 2f;
+        const string ConfigGuidPref = "TypingDefense_UpgradeGraphEditor_ConfigGuid";
 
         [MenuItem("TypingDefense/Upgrade Graph Editor")]
         static void Open()
         {
             GetWindow<UpgradeGraphEditorWindow>("Upgrade Graph");
+        }
+
+        void OnEnable()
+        {
+            var guid = EditorPrefs.GetString(ConfigGuidPref, "");
+            if (string.IsNullOrEmpty(guid)) return;
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            config = AssetDatabase.LoadAssetAtPath<UpgradeGraphConfig>(path);
         }
 
         void OnGUI()
@@ -47,6 +61,8 @@ namespace TypingDefense.Editor
             GUI.EndClip();
 
             DrawInspector();
+            DrawBaseStatsPanel();
+            DrawIconsPanel();
 
             if (GUI.changed)
             {
@@ -66,16 +82,20 @@ namespace TypingDefense.Editor
             {
                 config = newConfig;
                 selectedNodeIndex = -1;
+                var guid = config != null ? AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(config)) : "";
+                EditorPrefs.SetString(ConfigGuidPref, guid);
             }
 
             if (GUILayout.Button("Add Node", EditorStyles.toolbarButton, GUILayout.Width(80)))
             {
                 Undo.RecordObject(config, "Add Node");
+                var isFirst = config.nodes.Length == 0;
+                var nodeId = isFirst ? config.rootNodeId : $"NODE_{config.nodes.Length}";
                 var list = config.nodes.ToList();
                 list.Add(new UpgradeNode
                 {
-                    nodeId = $"NODE_{list.Count}",
-                    displayName = "New Node",
+                    nodeId = nodeId,
+                    displayName = isFirst ? "Root" : "New Node",
                     position = -graphOffset / GridSize,
                     maxLevel = 1,
                     costsPerLevel = new[] { 100 }
@@ -104,16 +124,36 @@ namespace TypingDefense.Editor
 
             GUILayout.FlexibleSpace();
 
+            if (GUILayout.Button(showBaseStats ? "Hide Base Stats" : "Base Stats", EditorStyles.toolbarButton, GUILayout.Width(100)))
+                showBaseStats = !showBaseStats;
+
+            if (GUILayout.Button(showIcons ? "Hide Icons" : "Icons", EditorStyles.toolbarButton, GUILayout.Width(70)))
+                showIcons = !showIcons;
+
             if (GUILayout.Button("Center", EditorStyles.toolbarButton, GUILayout.Width(60)))
+            {
                 graphOffset = Vector2.zero;
+                zoom = 1f;
+            }
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        Rect GetInspectorRect()
+        {
+            return new Rect(position.width - 280, 30, 270, 500);
         }
 
         void HandleInput(Rect graphRect)
         {
             var e = Event.current;
             var mousePos = e.mousePosition - graphRect.position;
+
+            if (showBaseStats && GetBaseStatsRect().Contains(e.mousePosition))
+                return;
+
+            if (selectedNodeIndex >= 0 && GetInspectorRect().Contains(e.mousePosition))
+                return;
 
             switch (e.type)
             {
@@ -150,7 +190,7 @@ namespace TypingDefense.Editor
 
                 case EventType.MouseDrag when isDraggingNode && selectedNodeIndex >= 0:
                     Undo.RecordObject(config, "Move Node");
-                    config.nodes[selectedNodeIndex].position += e.delta / GridSize;
+                    config.nodes[selectedNodeIndex].position += e.delta / (GridSize * zoom);
                     e.Use();
                     Repaint();
                     break;
@@ -191,6 +231,15 @@ namespace TypingDefense.Editor
                 case EventType.MouseUp when e.button == 2:
                     isDraggingCanvas = false;
                     break;
+
+                case EventType.ScrollWheel:
+                    var oldZoom = zoom;
+                    zoom = Mathf.Clamp(zoom - e.delta.y * 0.05f, MinZoom, MaxZoom);
+                    // Zoom towards mouse position
+                    graphOffset += mousePos * (1f - zoom / oldZoom);
+                    e.Use();
+                    Repaint();
+                    break;
             }
         }
 
@@ -207,20 +256,23 @@ namespace TypingDefense.Editor
 
         Rect GetNodeRect(UpgradeNode node)
         {
-            var pos = node.position * GridSize + graphOffset;
-            return new Rect(pos.x - NodeWidth / 2, pos.y - NodeHeight / 2, NodeWidth, NodeHeight);
+            var pos = node.position * GridSize * zoom + graphOffset;
+            var w = NodeWidth * zoom;
+            var h = NodeHeight * zoom;
+            return new Rect(pos.x - w / 2, pos.y - h / 2, w, h);
         }
 
         void DrawGrid(Rect graphRect)
         {
             Handles.color = new Color(0.3f, 0.3f, 0.3f, 0.3f);
-            var startX = graphOffset.x % GridSize;
-            var startY = graphOffset.y % GridSize;
+            var scaledGrid = GridSize * zoom;
+            var startX = graphOffset.x % scaledGrid;
+            var startY = graphOffset.y % scaledGrid;
 
-            for (var x = startX; x < graphRect.width; x += GridSize)
+            for (var x = startX; x < graphRect.width; x += scaledGrid)
                 Handles.DrawLine(new Vector3(x, 0), new Vector3(x, graphRect.height));
 
-            for (var y = startY; y < graphRect.height; y += GridSize)
+            for (var y = startY; y < graphRect.height; y += scaledGrid)
                 Handles.DrawLine(new Vector3(0, y), new Vector3(graphRect.width, y));
         }
 
@@ -230,14 +282,14 @@ namespace TypingDefense.Editor
 
             foreach (var node in config.nodes)
             {
-                var fromPos = node.position * GridSize + graphOffset;
+                var fromPos = node.position * GridSize * zoom + graphOffset;
 
                 foreach (var childId in node.connectedTo)
                 {
                     var child = config.nodes.FirstOrDefault(n => n.nodeId == childId);
                     if (child == null) continue;
 
-                    var toPos = child.position * GridSize + graphOffset;
+                    var toPos = child.position * GridSize * zoom + graphOffset;
                     Handles.DrawLine(
                         new Vector3(fromPos.x, fromPos.y),
                         new Vector3(toPos.x, toPos.y));
@@ -270,11 +322,11 @@ namespace TypingDefense.Editor
                 {
                     alignment = TextAnchor.MiddleCenter,
                     normal = { textColor = Color.white },
-                    fontSize = 10,
+                    fontSize = Mathf.Max(8, (int)(10 * zoom)),
                     wordWrap = true
                 };
 
-                GUI.Label(rect, $"{node.displayName}\n{node.nodeId} (Lv{node.maxLevel})", labelStyle);
+                GUI.Label(rect, $"{node.displayName}\n{node.upgradeId} — Lv{node.maxLevel}", labelStyle);
             }
         }
 
@@ -283,7 +335,7 @@ namespace TypingDefense.Editor
             if (!isCreatingConnection) return;
 
             var source = config.nodes[connectionSourceIndex];
-            var fromPos = source.position * GridSize + graphOffset;
+            var fromPos = source.position * GridSize * zoom + graphOffset;
             var toPos = Event.current.mousePosition;
 
             Handles.color = Color.yellow;
@@ -299,7 +351,7 @@ namespace TypingDefense.Editor
             if (selectedNodeIndex < 0 || selectedNodeIndex >= config.nodes.Length) return;
 
             var node = config.nodes[selectedNodeIndex];
-            var inspectorRect = new Rect(position.width - 280, 30, 270, 400);
+            var inspectorRect = GetInspectorRect();
 
             GUI.Box(inspectorRect, "");
             GUILayout.BeginArea(new Rect(inspectorRect.x + 5, inspectorRect.y + 5,
@@ -318,7 +370,7 @@ namespace TypingDefense.Editor
             node.maxLevel = EditorGUILayout.IntField("Max Level", node.maxLevel);
 
             EditorGUILayout.Space(4);
-            EditorGUILayout.LabelField("Costs Per Level", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Levels", EditorStyles.boldLabel);
 
             if (node.costsPerLevel == null || node.costsPerLevel.Length != node.maxLevel)
             {
@@ -328,8 +380,24 @@ namespace TypingDefense.Editor
                     node.costsPerLevel[i] = i < old.Length ? old[i] : 100;
             }
 
-            for (var i = 0; i < node.costsPerLevel.Length; i++)
-                node.costsPerLevel[i] = EditorGUILayout.IntField($"  Level {i + 1}", node.costsPerLevel[i]);
+            if (node.valuesPerLevel == null || node.valuesPerLevel.Length != node.maxLevel)
+            {
+                var old = node.valuesPerLevel ?? new float[0];
+                node.valuesPerLevel = new float[node.maxLevel];
+                for (var i = 0; i < node.valuesPerLevel.Length; i++)
+                    node.valuesPerLevel[i] = i < old.Length ? old[i] : 1f;
+            }
+
+            for (var i = 0; i < node.maxLevel; i++)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField($"  Lv{i + 1}", GUILayout.Width(35));
+                node.costsPerLevel[i] = EditorGUILayout.IntField(node.costsPerLevel[i], GUILayout.Width(60));
+                EditorGUILayout.LabelField("coins", GUILayout.Width(35));
+                node.valuesPerLevel[i] = EditorGUILayout.FloatField(node.valuesPerLevel[i], GUILayout.Width(60));
+                EditorGUILayout.LabelField("val", GUILayout.Width(25));
+                EditorGUILayout.EndHorizontal();
+            }
 
             EditorGUILayout.Space(4);
             EditorGUILayout.LabelField($"Connections: {node.connectedTo.Length}", EditorStyles.boldLabel);
@@ -349,6 +417,140 @@ namespace TypingDefense.Editor
             }
 
             GUILayout.EndArea();
+        }
+
+        Rect GetBaseStatsRect()
+        {
+            return new Rect(10, 30, 220, 560);
+        }
+
+        void DrawBaseStatsPanel()
+        {
+            if (!showBaseStats) return;
+
+            var rect = GetBaseStatsRect();
+            GUI.Box(rect, "");
+            GUILayout.BeginArea(new Rect(rect.x + 5, rect.y + 5, rect.width - 10, rect.height - 10));
+
+            EditorGUILayout.LabelField("Base Stats", EditorStyles.boldLabel);
+            EditorGUILayout.Space(2);
+
+            Undo.RecordObject(config, "Edit Base Stats");
+            var b = config.baseStats;
+
+            EditorGUILayout.LabelField("Combat", EditorStyles.miniLabel);
+            b.MaxHp = EditorGUILayout.IntField("Max HP", b.MaxHp);
+            b.BaseDamage = EditorGUILayout.IntField("Base Damage", b.BaseDamage);
+            b.CritChance = EditorGUILayout.FloatField("Crit Chance", b.CritChance);
+            b.BossBonusDamage = EditorGUILayout.IntField("Boss Bonus Dmg", b.BossBonusDamage);
+            b.EnergyPerBossHit = EditorGUILayout.FloatField("Energy/Boss Hit", b.EnergyPerBossHit);
+
+            EditorGUILayout.Space(4);
+            EditorGUILayout.LabelField("Energy", EditorStyles.miniLabel);
+            b.MaxEnergy = EditorGUILayout.FloatField("Max Energy", b.MaxEnergy);
+            b.DrainMultiplier = EditorGUILayout.FloatField("Drain Multiplier", b.DrainMultiplier);
+            b.EnergyPerKill = EditorGUILayout.FloatField("Energy/Kill", b.EnergyPerKill);
+
+            EditorGUILayout.Space(4);
+            EditorGUILayout.LabelField("Economy", EditorStyles.miniLabel);
+            b.LettersPerKill = EditorGUILayout.IntField("Letters/Kill", b.LettersPerKill);
+
+            EditorGUILayout.Space(4);
+            EditorGUILayout.LabelField("Utility", EditorStyles.miniLabel);
+            b.AutoTypeInterval = EditorGUILayout.FloatField("AutoType Interval", b.AutoTypeInterval);
+            b.AutoTypeCount = EditorGUILayout.IntField("AutoType Count", b.AutoTypeCount);
+            b.PowerUpKillInterval = EditorGUILayout.IntField("PowerUp Interval", b.PowerUpKillInterval);
+            b.PowerUpDurationBonus = EditorGUILayout.FloatField("PowerUp Bonus", b.PowerUpDurationBonus);
+
+            EditorGUILayout.Space(4);
+            EditorGUILayout.LabelField("Converter", EditorStyles.miniLabel);
+            b.ConverterSpeed = EditorGUILayout.FloatField("Speed", b.ConverterSpeed);
+            b.ConverterSize = EditorGUILayout.FloatField("Size", b.ConverterSize);
+            b.ConverterAutoMoveRatio = EditorGUILayout.FloatField("AutoMove Ratio", b.ConverterAutoMoveRatio);
+            b.ConverterExtraHoles = EditorGUILayout.IntField("Extra Holes", b.ConverterExtraHoles);
+
+            GUILayout.EndArea();
+        }
+
+        Rect GetIconsRect()
+        {
+            var x = showBaseStats ? 240 : 10;
+            return new Rect(x, 30, 260, 560);
+        }
+
+        void DrawIconsPanel()
+        {
+            if (!showIcons) return;
+
+            var rect = GetIconsRect();
+            GUI.Box(rect, "");
+            GUILayout.BeginArea(new Rect(rect.x + 5, rect.y + 5, rect.width - 10, rect.height - 10));
+
+            EditorGUILayout.LabelField("Upgrade Icons", EditorStyles.boldLabel);
+            EditorGUILayout.Space(4);
+
+            var usedIds = System.Enum.GetValues(typeof(UpgradeId))
+                .Cast<UpgradeId>()
+                .OrderBy(id => id.ToString())
+                .ToArray();
+
+            foreach (var upgradeId in usedIds)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(upgradeId.ToString(), GUILayout.Width(120));
+
+                var currentSprite = GetIconForId(upgradeId);
+                var newSprite = (Sprite)EditorGUILayout.ObjectField(
+                    currentSprite, typeof(Sprite), false, GUILayout.Width(100));
+
+                if (newSprite != currentSprite)
+                {
+                    Undo.RecordObject(config, "Change Upgrade Icon");
+                    SetIconForId(upgradeId, newSprite);
+                }
+
+                EditorGUILayout.EndHorizontal();
+            }
+
+            GUILayout.EndArea();
+        }
+
+        Sprite GetIconForId(UpgradeId id)
+        {
+            if (config.upgradeIcons == null) return null;
+
+            foreach (var entry in config.upgradeIcons)
+            {
+                if (entry.upgradeId == id) return entry.icon;
+            }
+            return null;
+        }
+
+        void SetIconForId(UpgradeId id, Sprite sprite)
+        {
+            var list = (config.upgradeIcons ?? System.Array.Empty<UpgradeIconEntry>()).ToList();
+
+            for (var i = 0; i < list.Count; i++)
+            {
+                if (list[i].upgradeId != id) continue;
+
+                if (sprite == null)
+                {
+                    list.RemoveAt(i);
+                }
+                else
+                {
+                    list[i].icon = sprite;
+                }
+
+                config.upgradeIcons = list.ToArray();
+                return;
+            }
+
+            if (sprite == null) return;
+
+            list.Add(new UpgradeIconEntry { upgradeId = id, icon = sprite });
+            config.upgradeIcons = list.ToArray();
         }
     }
 }

@@ -53,7 +53,7 @@
 - DefenseWord: HP system (MaxHp, CurrentHp, TakeDamage), ChangeText for multi-hit words, IsBoss flag
 - WordViewBridge: bridges WordManager events to DefenseWordView + BossWordView
 - GameFlowController: LazyInject to break circular deps, orchestrates state transitions
-- GameState enum: Menu, Playing, Converting, GameOver, Paused
+- GameState enum: Menu, Playing, GameOver, Paused (Converting removed -- converter is a menu-phase activity, not a game state)
 - UpgradeId enum: type-safe, ~40 values (added DMG, BDMG, BEHP, CONV_SPEED/SIZE/AUTO/EXTRA)
 - UpgradeGraphConfig: DAG with nodeId strings, lazy cached lookup + parentMap, InvalidateCache() for editor
 - UpgradeTracker: fog of war (_revealedNodes), parent validation, CaptureState/RestoreState with UpgradeSaveEntry[]
@@ -84,3 +84,27 @@
 - Magic number 5 for LetterType count scattered in 5+ files
 - GetSize() formula duplicated in ConverterView and ConverterManager
 - Subscription pattern inconsistent: ConverterView/HudView/MenuView use Construct+OnDestroy, UpgradeGraphView uses OnEnable+OnDisable
+
+### TypingDefense Review Decisions (Feb 2026 - Tabs/Retreat/Juice)
+- GameState.Converting REMOVED: converter is a menu activity, not a game state. ConverterManager uses _isConverting bool
+- GameFlowController.OnReturnedFromRun event added (replaces SetState(Converting))
+- HandleConvertingComplete() removed from GameFlowController
+- ScreenShakeService rejected: merge subs into CameraShaker MonoBehaviour (Construct+OnDestroy for cleanup)
+- MenuTab enum lives inside MenuView (2 values, impl detail)
+- MenuView controls tab panels via [SerializeField] not Zenject injection of ConverterView
+- HoldButton: standalone MonoBehaviour (~30 lines) with IPointerDown/Up/ExitHandler, reusable
+- Juice values hardcoded OK for prototype, move to SO when stabilized
+- ConverterView.CleanUp null checks flagged as defensive programming -- remove them
+
+### TypingDefense Review Decisions (Feb 2026 - UpgradeGraph Redesign)
+- 5 visual states -> 3 (Max, Available, Locked). purchased+affordable vs unpurchased+affordable indistinguishable to player
+- Node colors as [SerializeField] on prefab, NOT static readonly in code (consistent with positionScale pattern)
+- Initialize() params grouped into NodeDisplayData readonly struct (avoids 8+ param method)
+- Tooltip managed by node directly (IPointerEnter/Exit), NOT via callback to GraphView parent
+- Only 1 callback needed: OnClicked(nodeId). Hover handled locally by node.
+- Pan/zoom inline in UpgradeGraphView (~30 lines), no PanZoomController extraction (1 consumer)
+- ConnectionLine as readonly struct internal to UpgradeGraphView (Image + FromId + ToId)
+- No NodeState enum for 3 states, if-else on IsMaxLevel/CanAfford sufficient
+- UpgradeNode needs Sprite icon field added to UpgradeGraphConfig.cs
+- Refresh diferencial: nodes persist, Refresh(data) updates visual. No destroy/recreate.
+- DOComplete() before every new tween (established pattern in HudView)

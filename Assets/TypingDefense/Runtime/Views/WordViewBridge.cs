@@ -17,6 +17,8 @@ namespace TypingDefense
         DefenseWordView warpView;
         BossWordView activeBossView;
 
+        GameFlowController gameFlow;
+
         [Inject]
         public void Construct(
             WordManager wordManager,
@@ -24,7 +26,8 @@ namespace TypingDefense
             BossWordView.Factory bossFactory,
             ArenaView arenaView,
             WordSpawnConfig spawnConfig,
-            RunManager runManager)
+            RunManager runManager,
+            GameFlowController gameFlow)
         {
             this.wordManager = wordManager;
             this.wordFactory = wordFactory;
@@ -32,10 +35,9 @@ namespace TypingDefense
             this.arenaView = arenaView;
             this.spawnConfig = spawnConfig;
             this.runManager = runManager;
-        }
+            this.gameFlow = gameFlow;
 
-        void OnEnable()
-        {
+            gameFlow.OnStateChanged += OnStateChanged;
             wordManager.OnWordSpawned += OnWordSpawned;
             wordManager.OnWordCompleted += OnWordCompleted;
             wordManager.OnWordCriticalKill += OnWordCriticalKill;
@@ -48,8 +50,9 @@ namespace TypingDefense
             wordManager.OnWordTextChanged += OnWordTextChanged;
         }
 
-        void OnDisable()
+        void OnDestroy()
         {
+            gameFlow.OnStateChanged -= OnStateChanged;
             wordManager.OnWordSpawned -= OnWordSpawned;
             wordManager.OnWordCompleted -= OnWordCompleted;
             wordManager.OnWordCriticalKill -= OnWordCriticalKill;
@@ -60,6 +63,27 @@ namespace TypingDefense
             wordManager.OnBossHit -= OnBossHit;
             wordManager.OnBossDefeated -= OnBossDefeated;
             wordManager.OnWordTextChanged -= OnWordTextChanged;
+        }
+
+        void OnStateChanged(GameState state)
+        {
+            if (state == GameState.Playing) return;
+
+            foreach (var kvp in activeViews)
+                Destroy(kvp.Value.gameObject);
+            activeViews.Clear();
+
+            if (warpView != null)
+            {
+                Destroy(warpView.gameObject);
+                warpView = null;
+            }
+
+            if (activeBossView != null)
+            {
+                Destroy(activeBossView.gameObject);
+                activeBossView = null;
+            }
         }
 
         void OnWordSpawned(DefenseWord word)

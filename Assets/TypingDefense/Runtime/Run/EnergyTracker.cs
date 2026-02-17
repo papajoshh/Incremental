@@ -11,8 +11,6 @@ namespace TypingDefense
         private readonly RunManager _runManager;
         private readonly GameFlowController _gameFlow;
 
-        private float _drainTimer;
-
         public float CurrentEnergy { get; private set; }
 
         public event Action<float> OnEnergyChanged;
@@ -33,16 +31,12 @@ namespace TypingDefense
         {
             if (_gameFlow.State != GameState.Playing) return;
 
-            _drainTimer -= Time.deltaTime;
-            var drainInterval = CalculateDrainInterval();
-
-            if (_drainTimer > 0f) return;
-
-            CurrentEnergy -= 1;
-            _drainTimer = drainInterval;
+            var drainPerSecond = 1f / CalculateDrainInterval();
+            CurrentEnergy -= drainPerSecond * Time.deltaTime;
+            CurrentEnergy = Mathf.Max(CurrentEnergy, 0f);
             OnEnergyChanged?.Invoke(CurrentEnergy);
 
-            if (CurrentEnergy <= 0) _runManager.TriggerGameOver();
+            if (CurrentEnergy <= 0f) _runManager.TriggerGameOver();
         }
 
         public void AddEnergy(float amount)
@@ -56,7 +50,6 @@ namespace TypingDefense
         public void StartRun()
         {
             CurrentEnergy = _playerStats.MaxEnergy;
-            _drainTimer = CalculateDrainInterval();
             OnEnergyChanged?.Invoke(CurrentEnergy);
         }
 

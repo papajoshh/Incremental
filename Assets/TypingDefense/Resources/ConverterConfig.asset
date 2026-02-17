@@ -12,24 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e708b71a40a98ec49ad13c0dfb680c2a, type: 3}
   m_Name: ConverterConfig
   m_EditorClassIdentifier: 
-  speedLevels:
-  - 3
-  - 4.5
-  - 6.5
-  - 9
-  - 12
-  sizeLevels:
-  - 0.8
-  - 1.2
-  - 1.6
-  - 2.2
-  - 3
-  autoMoveSpeedRatios:
-  - 0.7
-  - 0.85
-  - 1
-  extraHolesLevels: 010000000200000003000000
-  suctionRadius: 1.2
-  suctionForce: 15
+  suctionRadius: 0.8
+  suctionForce: 5
   collectRadius: 0.3
-  letterSpawnSpread: 8

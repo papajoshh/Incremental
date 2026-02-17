@@ -116,7 +116,7 @@ namespace TypingDefense
 
         int CalculateWordHp(int level)
         {
-            return Mathf.Max(1, (level + 1) / 2);
+            return _spawnConfig.baseWordHp + (level - 1) * _spawnConfig.wordHpGrowthPerLevel;
         }
 
         void ProcessInput()
@@ -295,21 +295,11 @@ namespace TypingDefense
             }
         }
 
-        static void GetWordLengthRange(int level, out int min, out int max)
+        void GetWordLengthRange(int level, out int min, out int max)
         {
-            switch (level)
-            {
-                case 1: min = 3; max = 5; break;
-                case 2: min = 3; max = 6; break;
-                case 3: min = 4; max = 6; break;
-                case 4: min = 4; max = 7; break;
-                case 5: min = 5; max = 7; break;
-                case 6: min = 5; max = 8; break;
-                case 7: min = 6; max = 8; break;
-                case 8: min = 6; max = 9; break;
-                case 9: min = 7; max = 9; break;
-                default: min = 7; max = 10; break;
-            }
+            var growth = (level - 1) * _spawnConfig.wordLengthGrowthPerLevel;
+            min = _spawnConfig.baseMinWordLength + growth / 2;
+            max = _spawnConfig.baseMaxWordLength + growth;
         }
     }
 }

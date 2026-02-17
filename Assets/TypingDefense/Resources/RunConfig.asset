@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39901ee496914504eb9ef87904d6b6d0, type: 3}
   m_Name: RunConfig
   m_EditorClassIdentifier: 
-  baseDrainInterval: 5
+  baseDrainInterval: 3
   drainScalePerLevel: 0.15
   killsToWarp: 20
   baseMaxHp: 1
