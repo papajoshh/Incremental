@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   collectionDuration: 8
   slowMotionScale: 0.3
-  blackHoleSpeed: 0.2
+  blackHoleSpeed: 0.6
   collectRadius: 0.8
-  wordHomingSpeed: 2.5
+  wordHomingSpeed: 0.5
   transitionOutDuration: 0.6
   chargeDuration: 3
   zoomAmount: 0.7

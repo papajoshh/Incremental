@@ -7,9 +7,9 @@ namespace TypingDefense
     {
         public float collectionDuration = 8f;
         public float slowMotionScale = 0.3f;
-        public float blackHoleSpeed = 6f;
         public float collectRadius = 0.8f;
         public float wordHomingSpeed = 1.0f;
+        public float letterDriftSpeed = 0.15f;
         public float transitionOutDuration = 0.6f;
 
         [Header("Charge Sequence")]

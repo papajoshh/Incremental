@@ -21,5 +21,7 @@ namespace TypingDefense
         BaseDamage,
         BossBonusDamage,
         EnergyPerBossHit,
+        CollectionSpeed,
+        LetterAttraction,
     }
 }

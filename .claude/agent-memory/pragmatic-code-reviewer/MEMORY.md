@@ -109,16 +109,12 @@
 - Refresh diferencial: nodes persist, Refresh(data) updates visual. No destroy/recreate.
 - DOComplete() before every new tween (established pattern in HudView)
 
-### TypingDefense Review Decisions (Feb 2026 - Collection Phase Redesign)
-- CollectionPhaseController REJECTED: merge timer+slowmo into GameFlowController (implement ITickable, ~15 lines)
-- PhysicalLetterSpawner REJECTED: spawn letters in WordViewBridge.OnWordCompleted (already subscribed to same events)
-- DefenseWordView 5 deps REJECTED: view gets SetTarget(Vector3) method, bridge tells it where to go. Zero new deps.
-- BlackHoleController.OnTriggerEnter2D REJECTED: use distance check like ConverterManager.CollectAndSuckLetters()
-- PhysicalLetter data class REJECTED: reuse ConverterLetter (same fields: type + position)
-- CollectionPhaseConfig SO REJECTED: add 6 fields to RunConfig (total ~11 fields, still manageable)
-- GameState.Collecting: YES, add to enum. Collecting is a real game state (unlike Converting which was a menu activity)
-- Views should not know about game phases. DefenseWordView.SetTarget() is phase-agnostic.
-- Principle: extend existing files before creating new ones in prototypes. 50 lines across 6 files > 5 new classes.
+### TypingDefense Review Decisions (Feb 2026 - Collection Phase)
+- GameState.Collecting added to enum (real game state, unlike Converting)
+- CollectionPhaseController: ITickable, timer + slowmo + charge sequence orchestration
+- PhysicalLetterSpawner: IInitializable+IDisposable, subs to WordManager kill events, spawns via Factory
+- BlackHoleController: distance-check collection (no triggers), 9 deps (flag: consider splitting)
+- PhysicalLetter: static Active list OK (pool/tracker pattern), but static config state NOT OK
 
 ### TypingDefense Review Decisions (Feb 2026 - Juice Effects Review)
 - PostProcessJuiceController: null checks on PP settings violate zero-defensive-programming rule. Decide if effects are optional or mandatory.
@@ -140,3 +136,13 @@
 - CameraShaker needs Camera ref + _baseOrthographicSize for ZoomCharge (missing in current impl)
 - CollectionPhaseConfig Headers for inspector UX grouping
 - CameraShaker.Shake uiContainer null check flagged: decide if optional or mandatory, don't silently skip
+
+### TypingDefense Review Decisions (Feb 2026 - BH Features)
+- Static AttractionTarget/AttractionSpeed REJECTED: pass via Setup params from PhysicalLetterSpawner
+- BlackHoleController injected into CollectionPhaseController REJECTED: pass BH position as StartCollection param via GameFlowController
+- BH movable during Playing APPROVED: separate CheckLetterCollection (Collecting-only) from MoveWithArrowKeys (both states)
+- CollectionSpeed + LetterAttraction: add to PlayerStats + UpgradeId + BaseStatsData (standard upgrade pattern)
+- letterDriftDelay: if in config, USE it from config. Don't hardcode a value that exists in SO.
+- CameraShaker.ZoomCharge targetPosition param: APPROVED, pan+zoom is valid juice
+- InverseTransformPoint for camera target: APPROVED (CameraShaker uses localPosition, needs conversion)
+- PhysicalLetter.Setup null checks on SerializeFields: remove (zero defensive programming rule)

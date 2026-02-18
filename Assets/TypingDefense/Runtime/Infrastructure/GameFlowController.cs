@@ -11,6 +11,7 @@ namespace TypingDefense
         readonly LazyInject<UpgradeTracker> _upgradeTracker;
         readonly LazyInject<DefenseSaveManager> _saveManager;
         readonly LazyInject<CollectionPhaseController> _collectionPhase;
+        readonly LazyInject<BlackHoleController> _blackHole;
         readonly PlayerStats _playerStats;
 
         public GameState State { get; private set; }
@@ -25,6 +26,7 @@ namespace TypingDefense
             LazyInject<UpgradeTracker> upgradeTracker,
             LazyInject<DefenseSaveManager> saveManager,
             LazyInject<CollectionPhaseController> collectionPhase,
+            LazyInject<BlackHoleController> blackHole,
             PlayerStats playerStats)
         {
             _runManager = runManager;
@@ -33,6 +35,7 @@ namespace TypingDefense
             _upgradeTracker = upgradeTracker;
             _saveManager = saveManager;
             _collectionPhase = collectionPhase;
+            _blackHole = blackHole;
             _playerStats = playerStats;
         }
 
@@ -63,7 +66,7 @@ namespace TypingDefense
         {
             if (State != GameState.Playing) return;
 
-            _collectionPhase.Value.StartCollection();
+            _collectionPhase.Value.StartCollection(_blackHole.Value.Position);
             SetState(GameState.Collecting);
         }
 

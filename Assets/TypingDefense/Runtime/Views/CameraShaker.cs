@@ -9,12 +9,16 @@ namespace TypingDefense
         [SerializeField] RectTransform uiContainer;
 
         Vector3 _cameraOriginalPos;
+        Vector3 _rigOriginalPos;
+        Transform _rigTransform;
         Camera _camera;
         float _baseOrthographicSize;
 
         void Awake()
         {
             _cameraOriginalPos = cameraTransform.localPosition;
+            _rigTransform = cameraTransform.parent;
+            _rigOriginalPos = _rigTransform.position;
             _camera = cameraTransform.GetComponent<Camera>();
             _baseOrthographicSize = _camera.orthographicSize;
         }
@@ -23,8 +27,7 @@ namespace TypingDefense
         {
             cameraTransform.DOComplete();
             cameraTransform.DOShakePosition(duration, intensity, vibrato, 90f, false, true, ShakeRandomnessMode.Harmonic)
-                .SetUpdate(true)
-                .OnComplete(() => cameraTransform.localPosition = _cameraOriginalPos);
+                .SetUpdate(true);
 
             if (uiContainer == null) return;
 
@@ -34,22 +37,29 @@ namespace TypingDefense
         }
 
         public Sequence ZoomCharge(float chargeDuration, float zoomFraction, float chargeShakeIntensity,
-            float releaseShakeIntensity, float releaseShakeDuration)
+            float releaseShakeIntensity, float releaseShakeDuration, Vector3 targetWorldPosition)
         {
             DOTween.Kill(this);
 
             var targetSize = _baseOrthographicSize * (1f - zoomFraction);
             var buildupDuration = chargeDuration * 0.85f;
             var holdDuration = chargeDuration * 0.15f;
+            var panTarget = new Vector3(targetWorldPosition.x, targetWorldPosition.y, _rigOriginalPos.z);
 
             var seq = DOTween.Sequence().SetUpdate(true).SetTarget(this);
 
-            // Phase 1: zoom in with escalating shake
+            // Phase 1: zoom in + pan rig towards BH with escalating shake
+            // Pan moves the PARENT (transform) so Shake on cameraTransform doesn't interfere
             seq.Append(
                 DOTween.To(() => _camera.orthographicSize, v => _camera.orthographicSize = v,
                     targetSize, buildupDuration)
                 .SetEase(Ease.InQuad)
                 .SetUpdate(true)
+            );
+            seq.Join(
+                _rigTransform.DOMove(panTarget, buildupDuration)
+                    .SetEase(Ease.InOutQuad)
+                    .SetUpdate(true)
             );
 
             var shakeSteps = 6;
@@ -75,6 +85,11 @@ namespace TypingDefense
                 .SetEase(Ease.OutBack)
                 .SetUpdate(true)
             );
+            seq.Join(
+                _rigTransform.DOMove(_rigOriginalPos, 0.35f)
+                    .SetEase(Ease.OutBack)
+                    .SetUpdate(true)
+            );
 
             return seq;
         }
@@ -84,6 +99,7 @@ namespace TypingDefense
             DOTween.Kill(this);
             _camera.orthographicSize = _baseOrthographicSize;
             cameraTransform.localPosition = _cameraOriginalPos;
+            _rigTransform.position = _rigOriginalPos;
         }
     }
 }

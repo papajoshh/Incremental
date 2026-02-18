@@ -23,6 +23,8 @@ namespace TypingDefense
         static readonly List<PhysicalLetter> _active = new();
         public static IReadOnlyList<PhysicalLetter> Active => _active;
 
+        float _driftDelay;
+
         public LetterType Type { get; private set; }
         public bool IsCollected { get; private set; }
 
@@ -48,6 +50,8 @@ namespace TypingDefense
             var scatter = (Vector3)Random.insideUnitCircle * 0.8f;
             transform.DOMove(position + scatter, 0.3f).SetEase(Ease.OutQuad).SetUpdate(true);
             transform.DOScale(1f, 0.2f).SetEase(Ease.OutBack).SetUpdate(true);
+
+            _driftDelay = 0.3f;
         }
 
         public void Collect(Vector3 blackHolePos)
@@ -61,6 +65,39 @@ namespace TypingDefense
             seq.Join(transform.DOScale(0f, 0.2f).SetEase(Ease.InBack));
             seq.Join(transform.DORotate(new Vector3(0, 0, 360), 0.2f, RotateMode.FastBeyond360));
             seq.OnComplete(() => Destroy(gameObject));
+        }
+
+        public void Expire()
+        {
+            if (IsCollected) return;
+            IsCollected = true;
+
+            transform.DOComplete();
+            transform.DOScale(0f, 0.15f).SetEase(Ease.InBack).SetUpdate(true)
+                .OnComplete(() => Destroy(gameObject));
+        }
+
+        public static void ExpireAll()
+        {
+            for (var i = _active.Count - 1; i >= 0; i--)
+                _active[i].Expire();
+        }
+
+        void Update()
+        {
+            if (IsCollected) return;
+
+            var speed = BlackHoleController.AttractionSpeed;
+            if (speed <= 0f) return;
+
+            if (_driftDelay > 0f)
+            {
+                _driftDelay -= Time.unscaledDeltaTime;
+                return;
+            }
+
+            var direction = (BlackHoleController.AttractionTarget - transform.position).normalized;
+            transform.position += direction * speed * Time.unscaledDeltaTime;
         }
 
         void OnDestroy()

@@ -22,6 +22,9 @@ namespace TypingDefense
         public int BossBonusDamage;
         public float EnergyPerBossHit;
 
+        public float CollectionSpeed;
+        public float LetterAttraction;
+
         public PlayerStats(UpgradeGraphConfig config)
         {
             _config = config;
@@ -47,6 +50,8 @@ namespace TypingDefense
             EnergyPerBossHit = b.EnergyPerBossHit;
             PowerUpKillInterval = b.PowerUpKillInterval;
             PowerUpDurationBonus = b.PowerUpDurationBonus;
+            CollectionSpeed = b.CollectionSpeed;
+            LetterAttraction = b.LetterAttraction;
         }
 
         public void ApplyUpgrade(UpgradeId id, float value)
@@ -75,6 +80,8 @@ namespace TypingDefense
                 case UpgradeId.BaseDamage: BaseDamage = (int)value; break;
                 case UpgradeId.BossBonusDamage: BossBonusDamage = (int)value; break;
                 case UpgradeId.EnergyPerBossHit: EnergyPerBossHit = value; break;
+                case UpgradeId.CollectionSpeed: CollectionSpeed = value; break;
+                case UpgradeId.LetterAttraction: LetterAttraction = value; break;
             }
         }
     }

@@ -88,12 +88,13 @@ namespace TypingDefense
 
             if (_speed > 0f)
             {
+                var target = _blackHole.Position;
                 transform.position = Vector3.MoveTowards(
-                    transform.position, _targetPosition, _speed * Time.deltaTime);
+                    transform.position, target, _speed * Time.deltaTime);
 
-                if (Vector3.Distance(transform.position, _targetPosition) <= arrivalThreshold)
+                if (Vector3.Distance(transform.position, target) <= arrivalThreshold)
                 {
-                    WordReachedCenter();
+                    WordReachedBlackHole();
                     return;
                 }
             }
@@ -177,19 +178,20 @@ namespace TypingDefense
             hpBarFill.transform.DOPunchScale(Vector3.one * 0.15f, 0.2f, 8, 0f);
         }
 
-        void WordReachedCenter()
+        void WordReachedBlackHole()
         {
             _isDead = true;
             _wordManager.HandleWordReachedCenter(_word);
 
-            var dirToCenter = (_targetPosition - transform.position).normalized;
-            var angle = Mathf.Atan2(dirToCenter.y, dirToCenter.x) * Mathf.Rad2Deg;
+            var bhPos = _blackHole.Position;
+            var dirToBH = (bhPos - transform.position).normalized;
+            var angle = Mathf.Atan2(dirToBH.y, dirToBH.x) * Mathf.Rad2Deg;
 
             var seq = DOTween.Sequence();
             seq.Append(transform.DORotate(new Vector3(0, 0, angle), 0.1f));
             seq.Join(transform.DOScaleX(2.5f, 0.35f).SetEase(Ease.InQuad));
             seq.Join(transform.DOScaleY(0.15f, 0.35f).SetEase(Ease.InQuad));
-            seq.Join(transform.DOMove(_targetPosition, 0.35f).SetEase(Ease.InQuad));
+            seq.Join(transform.DOMove(bhPos, 0.35f).SetEase(Ease.InQuad));
             seq.Join(label.DOFade(0f, 0.25f));
             seq.OnComplete(() => Destroy(gameObject));
         }

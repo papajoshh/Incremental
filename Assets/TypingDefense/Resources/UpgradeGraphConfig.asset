@@ -27,6 +27,8 @@ MonoBehaviour:
     EnergyPerBossHit: 0
     PowerUpKillInterval: 10
     PowerUpDurationBonus: 0
+    CollectionSpeed: 0.6
+    LetterAttraction: 0
   nodes:
   - nodeId: ROOT
     upgradeId: 1

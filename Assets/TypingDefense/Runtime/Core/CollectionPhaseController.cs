@@ -51,7 +51,7 @@ namespace TypingDefense
             EndCollection();
         }
 
-        public void StartCollection()
+        public void StartCollection(Vector3 bhPosition)
         {
             _timer = _config.collectionDuration;
             _frozen = true;
@@ -66,7 +66,8 @@ namespace TypingDefense
                 _config.zoomAmount,
                 _config.chargeShakeIntensity,
                 _config.releaseShakeIntensity,
-                _config.releaseShakeDuration);
+                _config.releaseShakeDuration,
+                bhPosition);
 
             _chargeTween.OnComplete(() =>
             {

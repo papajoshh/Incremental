@@ -18,10 +18,14 @@ namespace TypingDefense
         RunManager _runManager;
         CameraShaker _cameraShaker;
         CollectionPhaseController _collectionPhase;
+        PlayerStats _playerStats;
 
         int _collectStreak;
         bool _imploding;
         bool _charging;
+
+        public static Vector3 AttractionTarget { get; private set; }
+        public static float AttractionSpeed { get; private set; }
 
         public Vector3 Position => transform.position;
 
@@ -36,7 +40,8 @@ namespace TypingDefense
             LetterConfig letterConfig,
             RunManager runManager,
             CameraShaker cameraShaker,
-            CollectionPhaseController collectionPhase)
+            CollectionPhaseController collectionPhase,
+            PlayerStats playerStats)
         {
             _config = config;
             _gameFlow = gameFlow;
@@ -46,6 +51,7 @@ namespace TypingDefense
             _runManager = runManager;
             _cameraShaker = cameraShaker;
             _collectionPhase = collectionPhase;
+            _playerStats = playerStats;
 
             gameFlow.OnStateChanged += OnStateChanged;
             runManager.OnRunEnded += OnGameOver;
@@ -79,6 +85,7 @@ namespace TypingDefense
                     _collectStreak = 0;
                     _imploding = false;
                     _charging = false;
+                    UpdateAttractionStatics();
                     break;
 
                 case GameState.Collecting:
@@ -87,10 +94,12 @@ namespace TypingDefense
                     break;
 
                 case GameState.Menu:
+                    PhysicalLetter.ExpireAll();
                     trail.enabled = false;
                     ambientParticles.Stop();
                     transform.DOKill();
                     _imploding = false;
+                    AttractionSpeed = 0f;
                     gameObject.SetActive(false);
                     break;
             }
@@ -156,8 +165,11 @@ namespace TypingDefense
 
         void Update()
         {
-            if (_gameFlow.State != GameState.Collecting) return;
+            var state = _gameFlow.State;
+            if (state != GameState.Playing && state != GameState.Collecting) return;
             if (_charging) return;
+
+            AttractionTarget = transform.position;
 
             MoveWithArrowKeys();
             CheckLetterCollection();
@@ -175,7 +187,7 @@ namespace TypingDefense
             if (input.sqrMagnitude < 0.01f) return;
 
             input.Normalize();
-            var newPos = transform.position + input * _config.blackHoleSpeed * Time.unscaledDeltaTime;
+            var newPos = transform.position + input * _playerStats.CollectionSpeed * Time.unscaledDeltaTime;
             transform.position = _arenaView.ClampToInterior(newPos);
         }
 
@@ -210,6 +222,12 @@ namespace TypingDefense
 
             if (_collectStreak % 5 == 0)
                 _cameraShaker.Shake(0.05f, 0.08f);
+        }
+
+        void UpdateAttractionStatics()
+        {
+            AttractionTarget = transform.position;
+            AttractionSpeed = _config.letterDriftSpeed + _playerStats.LetterAttraction;
         }
     }
 }
