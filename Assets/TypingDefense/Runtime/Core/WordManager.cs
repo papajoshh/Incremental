@@ -12,7 +12,6 @@ namespace TypingDefense
         readonly WordSpawnConfig _spawnConfig;
         readonly BossConfig _bossConfig;
         readonly PlayerStats _playerStats;
-        readonly LetterTracker _letterTracker;
         readonly EnergyTracker _energyTracker;
         readonly RunManager _runManager;
         readonly GameFlowController _gameFlow;
@@ -46,7 +45,6 @@ namespace TypingDefense
             WordSpawnConfig spawnConfig,
             BossConfig bossConfig,
             PlayerStats playerStats,
-            LetterTracker letterTracker,
             EnergyTracker energyTracker,
             RunManager runManager,
             GameFlowController gameFlow)
@@ -56,7 +54,6 @@ namespace TypingDefense
             _spawnConfig = spawnConfig;
             _bossConfig = bossConfig;
             _playerStats = playerStats;
-            _letterTracker = letterTracker;
             _energyTracker = energyTracker;
             _runManager = runManager;
             _gameFlow = gameFlow;
@@ -78,6 +75,17 @@ namespace TypingDefense
             _activeWords.Remove(word);
             _runManager.TakeDamage(1);
             OnWordReachedCenter?.Invoke(word);
+        }
+
+        public void HandleWordReachedBlackHole(DefenseWord word)
+        {
+            _activeWords.Remove(word);
+            OnWordReachedCenter?.Invoke(word);
+        }
+
+        public void RemoveWord(DefenseWord word)
+        {
+            _activeWords.Remove(word);
         }
 
         public void StartRun()
@@ -147,7 +155,6 @@ namespace TypingDefense
 
                 matched = true;
 
-                // Crit kills instantly regardless of HP (not boss)
                 if (!word.IsCompleted && !word.IsBoss
                     && _playerStats.CritChance > 0f
                     && UnityEngine.Random.value < _playerStats.CritChance)
@@ -198,7 +205,7 @@ namespace TypingDefense
 
         void CompleteWord(DefenseWord word, bool wasCrit = false)
         {
-            _letterTracker.EarnLetters(_playerStats.LettersPerKill);
+            // Letters are now spawned physically by PhysicalLetterSpawner
             _energyTracker.AddEnergy(_playerStats.EnergyPerKill);
             _killCount++;
 

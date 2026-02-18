@@ -1,47 +1,15 @@
 using UnityEngine;
-using Zenject;
 
 namespace TypingDefense
 {
     public class ArenaView : MonoBehaviour
     {
         [SerializeField] Transform centerPoint;
-        [SerializeField] Transform blackHolePrefab;
         [SerializeField] float arenaWidth = 16f;
         [SerializeField] float arenaHeight = 9f;
         [SerializeField] float edgeMargin = 1f;
 
-        GameFlowController gameFlow;
-        GameObject blackHoleInstance;
-
         public Vector3 CenterPosition => centerPoint.position;
-
-        [Inject]
-        public void Construct(GameFlowController gameFlow)
-        {
-            this.gameFlow = gameFlow;
-            gameFlow.OnStateChanged += OnStateChanged;
-        }
-
-        void Awake()
-        {
-            if (blackHolePrefab != null)
-            {
-                blackHoleInstance = Instantiate(blackHolePrefab, centerPoint.position, Quaternion.identity, transform).gameObject;
-                blackHoleInstance.SetActive(false);
-            }
-        }
-
-        void OnDestroy()
-        {
-            gameFlow.OnStateChanged -= OnStateChanged;
-        }
-
-        void OnStateChanged(GameState state)
-        {
-            if (blackHoleInstance != null)
-                blackHoleInstance.SetActive(state == GameState.Playing);
-        }
 
         public Vector3 GetRandomInteriorPosition()
         {
@@ -75,10 +43,10 @@ namespace TypingDefense
 
             return side switch
             {
-                0 => new Vector3(Random.Range(center.x - halfW, center.x + halfW), center.y + halfH, center.z), // arriba
-                1 => new Vector3(Random.Range(center.x - halfW, center.x + halfW), center.y - halfH, center.z), // abajo
-                2 => new Vector3(center.x - halfW, Random.Range(center.y - halfH, center.y + halfH), center.z), // izquierda
-                _ => new Vector3(center.x + halfW, Random.Range(center.y - halfH, center.y + halfH), center.z), // derecha
+                0 => new Vector3(Random.Range(center.x - halfW, center.x + halfW), center.y + halfH, center.z),
+                1 => new Vector3(Random.Range(center.x - halfW, center.x + halfW), center.y - halfH, center.z),
+                2 => new Vector3(center.x - halfW, Random.Range(center.y - halfH, center.y + halfH), center.z),
+                _ => new Vector3(center.x + halfW, Random.Range(center.y - halfH, center.y + halfH), center.z),
             };
         }
     }

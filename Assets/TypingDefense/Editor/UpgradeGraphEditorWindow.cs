@@ -421,7 +421,7 @@ namespace TypingDefense.Editor
 
         Rect GetBaseStatsRect()
         {
-            return new Rect(10, 30, 220, 560);
+            return new Rect(10, 30, 220, 440);
         }
 
         void DrawBaseStatsPanel()
@@ -461,13 +461,6 @@ namespace TypingDefense.Editor
             b.AutoTypeCount = EditorGUILayout.IntField("AutoType Count", b.AutoTypeCount);
             b.PowerUpKillInterval = EditorGUILayout.IntField("PowerUp Interval", b.PowerUpKillInterval);
             b.PowerUpDurationBonus = EditorGUILayout.FloatField("PowerUp Bonus", b.PowerUpDurationBonus);
-
-            EditorGUILayout.Space(4);
-            EditorGUILayout.LabelField("Converter", EditorStyles.miniLabel);
-            b.ConverterSpeed = EditorGUILayout.FloatField("Speed", b.ConverterSpeed);
-            b.ConverterSize = EditorGUILayout.FloatField("Size", b.ConverterSize);
-            b.ConverterAutoMoveRatio = EditorGUILayout.FloatField("AutoMove Ratio", b.ConverterAutoMoveRatio);
-            b.ConverterExtraHoles = EditorGUILayout.IntField("Extra Holes", b.ConverterExtraHoles);
 
             GUILayout.EndArea();
         }

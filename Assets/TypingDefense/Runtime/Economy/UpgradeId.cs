@@ -21,9 +21,5 @@ namespace TypingDefense
         BaseDamage,
         BossBonusDamage,
         EnergyPerBossHit,
-        ConverterSpeed,
-        ConverterSize,
-        ConverterAutoMove,
-        ConverterExtraHoles,
     }
 }

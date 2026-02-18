@@ -12,12 +12,12 @@ namespace TypingDefense
         ArenaView arenaView;
         WordSpawnConfig spawnConfig;
         RunManager runManager;
+        GameFlowController gameFlow;
 
         readonly Dictionary<DefenseWord, DefenseWordView> activeViews = new();
+        readonly Dictionary<DefenseWord, Vector3> lastKnownPositions = new();
         DefenseWordView warpView;
         BossWordView activeBossView;
-
-        GameFlowController gameFlow;
 
         [Inject]
         public void Construct(
@@ -65,10 +65,30 @@ namespace TypingDefense
             wordManager.OnWordTextChanged -= OnWordTextChanged;
         }
 
+        public Vector3 GetWordPosition(DefenseWord word)
+        {
+            if (activeViews.TryGetValue(word, out var view))
+                return view.LastPosition;
+
+            if (lastKnownPositions.TryGetValue(word, out var cached))
+            {
+                lastKnownPositions.Remove(word);
+                return cached;
+            }
+
+            return arenaView.CenterPosition;
+        }
+
         void OnStateChanged(GameState state)
         {
-            if (state == GameState.Playing) return;
+            // Keep views alive during Playing and Collecting
+            if (state == GameState.Playing || state == GameState.Collecting) return;
 
+            DestroyAllViews();
+        }
+
+        void DestroyAllViews()
+        {
             foreach (var kvp in activeViews)
                 Destroy(kvp.Value.gameObject);
             activeViews.Clear();
@@ -101,6 +121,7 @@ namespace TypingDefense
         void OnWordCompleted(DefenseWord word)
         {
             if (!activeViews.TryGetValue(word, out var view)) return;
+            lastKnownPositions[word] = view.LastPosition;
             view.OnCompleted();
             activeViews.Remove(word);
         }
@@ -108,6 +129,7 @@ namespace TypingDefense
         void OnWordCriticalKill(DefenseWord word)
         {
             if (!activeViews.TryGetValue(word, out var view)) return;
+            lastKnownPositions[word] = view.LastPosition;
             view.OnCriticalKill();
             activeViews.Remove(word);
         }

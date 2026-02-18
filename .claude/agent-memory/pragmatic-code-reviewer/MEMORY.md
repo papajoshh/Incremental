@@ -108,3 +108,35 @@
 - UpgradeNode needs Sprite icon field added to UpgradeGraphConfig.cs
 - Refresh diferencial: nodes persist, Refresh(data) updates visual. No destroy/recreate.
 - DOComplete() before every new tween (established pattern in HudView)
+
+### TypingDefense Review Decisions (Feb 2026 - Collection Phase Redesign)
+- CollectionPhaseController REJECTED: merge timer+slowmo into GameFlowController (implement ITickable, ~15 lines)
+- PhysicalLetterSpawner REJECTED: spawn letters in WordViewBridge.OnWordCompleted (already subscribed to same events)
+- DefenseWordView 5 deps REJECTED: view gets SetTarget(Vector3) method, bridge tells it where to go. Zero new deps.
+- BlackHoleController.OnTriggerEnter2D REJECTED: use distance check like ConverterManager.CollectAndSuckLetters()
+- PhysicalLetter data class REJECTED: reuse ConverterLetter (same fields: type + position)
+- CollectionPhaseConfig SO REJECTED: add 6 fields to RunConfig (total ~11 fields, still manageable)
+- GameState.Collecting: YES, add to enum. Collecting is a real game state (unlike Converting which was a menu activity)
+- Views should not know about game phases. DefenseWordView.SetTarget() is phase-agnostic.
+- Principle: extend existing files before creating new ones in prototypes. 50 lines across 6 files > 5 new classes.
+
+### TypingDefense Review Decisions (Feb 2026 - Juice Effects Review)
+- PostProcessJuiceController: null checks on PP settings violate zero-defensive-programming rule. Decide if effects are optional or mandatory.
+- PostProcessJuiceController: DOTween.To on PP values must be killed before starting new ones (use SetTarget+DOKill pattern)
+- BlackHoleController: CollectionPhaseController injected but never used -- dead dependency, remove
+- BlackHoleController: null checks on SerializeFields (trail, ambientParticles) and on Zenject deps in OnDestroy -- remove
+- DOTween SetUpdate(true) needed everywhere during collection phase (Time.timeScale manipulated) -- correct pattern
+- Scale punch with collection streak (Lerp 0.08-0.25 over 20 hits) is good game feel escalation
+- Micro-shake every 5 collections reinforces momentum without annoyance
+- Game over implosion sequence (expand 1.6x -> crush to 0 + 720deg spin) is solid juice
+- CollectionPhaseController.OnFreezeReleased event justified: PP ramp needs to start AFTER freeze delay, not on state change
+
+### TypingDefense Review Decisions (Feb 2026 - ZoomCharge/PP Buildup)
+- ZoomCharge 5 float params -> ZoomChargeParams readonly struct (CameraShaker stays decoupled from CollectionPhaseConfig)
+- InsertCallback loop of 6 discrete shakes REJECTED: shakes DOComplete each other (bug), single continuous DOShakePosition instead
+- OnChargeStarted(float) event REJECTED: PP subscribes to existing OnCollectionStarted, controls its own ramp duration locally
+- PostProcessJuiceController single class for all PP effects CORRECT: splitting would cause 3 classes fighting over same 4 PP params
+- TweenPP private helper to deduplicate 4x DOTween.To per method in PostProcessJuiceController
+- CameraShaker needs Camera ref + _baseOrthographicSize for ZoomCharge (missing in current impl)
+- CollectionPhaseConfig Headers for inspector UX grouping
+- CameraShaker.Shake uiContainer null check flagged: decide if optional or mandatory, don't silently skip

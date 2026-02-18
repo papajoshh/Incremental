@@ -108,10 +108,6 @@ namespace TypingDefense
         public float EnergyPerBossHit = 0f;
         public int PowerUpKillInterval = 10;
         public float PowerUpDurationBonus = 0f;
-        public float ConverterSpeed = 3f;
-        public float ConverterSize = 0.8f;
-        public float ConverterAutoMoveRatio = 0f;
-        public int ConverterExtraHoles = 1;
     }
 
     [Serializable]

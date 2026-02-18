@@ -14,6 +14,11 @@ namespace TypingDefense
         [SerializeField] TextMeshProUGUI levelLabel;
         [SerializeField] TextMeshProUGUI killsLabel;
 
+        [Header("Collection")]
+        [SerializeField] GameObject collectionGroup;
+        [SerializeField] TextMeshProUGUI collectionTimerLabel;
+        [SerializeField] Image collectionFill;
+
         [Header("Bars")]
         [SerializeField] Image hpFill;
         [SerializeField] Image hpDamageFill;
@@ -33,6 +38,7 @@ namespace TypingDefense
         GameFlowController gameFlow;
         CameraShaker cameraShaker;
         RunConfig runConfig;
+        CollectionPhaseController collectionPhase;
 
         int killCount;
         bool isEnergyFlashing;
@@ -45,7 +51,8 @@ namespace TypingDefense
             PlayerStats playerStats,
             GameFlowController gameFlow,
             CameraShaker cameraShaker,
-            RunConfig runConfig)
+            RunConfig runConfig,
+            CollectionPhaseController collectionPhase)
         {
             this.runManager = runManager;
             this.energyTracker = energyTracker;
@@ -54,6 +61,7 @@ namespace TypingDefense
             this.gameFlow = gameFlow;
             this.cameraShaker = cameraShaker;
             this.runConfig = runConfig;
+            this.collectionPhase = collectionPhase;
 
             runManager.OnHpChanged += OnHpChanged;
             energyTracker.OnEnergyChanged += OnEnergyChanged;
@@ -64,6 +72,8 @@ namespace TypingDefense
             wordManager.OnBossDefeated += OnBossDefeated;
             wordManager.OnWarpAvailable += OnWarpAvailable;
             gameFlow.OnStateChanged += OnStateChanged;
+            collectionPhase.OnTimerChanged += OnCollectionTimerChanged;
+            collectionPhase.OnFreezeReleased += OnChargeReleaseFlash;
             retreatButton.OnHoldCompleted += OnRetreatCompleted;
 
             InitFlashOverlays();
@@ -85,6 +95,8 @@ namespace TypingDefense
             wordManager.OnBossDefeated -= OnBossDefeated;
             wordManager.OnWarpAvailable -= OnWarpAvailable;
             gameFlow.OnStateChanged -= OnStateChanged;
+            collectionPhase.OnTimerChanged -= OnCollectionTimerChanged;
+            collectionPhase.OnFreezeReleased -= OnChargeReleaseFlash;
             retreatButton.OnHoldCompleted -= OnRetreatCompleted;
         }
 
@@ -95,9 +107,36 @@ namespace TypingDefense
 
         void OnStateChanged(GameState state)
         {
-            gameObject.SetActive(state == GameState.Playing);
+            var visible = state == GameState.Playing || state == GameState.Collecting;
+            gameObject.SetActive(visible);
 
-            if (state != GameState.Playing) return;
+            if (!visible) return;
+
+            var isCollecting = state == GameState.Collecting;
+
+            // Swap energy bar for collection timer bar
+            energyLabel.gameObject.SetActive(!isCollecting);
+            energyFill.transform.parent.gameObject.SetActive(!isCollecting);
+            collectionGroup.SetActive(isCollecting);
+            retreatButton.gameObject.SetActive(!isCollecting);
+
+            // Hide kills bar during collection
+            killsLabel.gameObject.SetActive(!isCollecting);
+            killsFill.transform.parent.gameObject.SetActive(!isCollecting);
+
+            if (isCollecting)
+            {
+                // Init collection bar full
+                collectionFill.fillAmount = 1f;
+                collectionFill.color = new Color(0.3f, 0.8f, 1f);
+                collectionTimerLabel.color = Color.white;
+
+                // Entrance animation
+                collectionGroup.transform.DOComplete();
+                collectionGroup.transform.localScale = Vector3.one * 1.3f;
+                collectionGroup.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack).SetUpdate(true);
+                return;
+            }
 
             killCount = 0;
             killsFill.fillAmount = 0f;
@@ -106,6 +145,38 @@ namespace TypingDefense
             hpFill.fillAmount = 1f;
             hpDamageFill.fillAmount = 1f;
             energyFill.fillAmount = 1f;
+        }
+
+        void OnCollectionTimerChanged(float time)
+        {
+            var ratio = collectionPhase.TimerRatio;
+            collectionTimerLabel.text = $"COLLECT  {time:F1}s";
+
+            collectionFill.DOComplete();
+            collectionFill.DOFillAmount(ratio, 0.15f).SetEase(Ease.OutQuad).SetUpdate(true);
+
+            // Color shift: cyan → orange → red as time runs out
+            var barColor = ratio > 0.35f
+                ? Color.Lerp(new Color(1f, 0.6f, 0f), new Color(0.3f, 0.8f, 1f), (ratio - 0.35f) / 0.65f)
+                : Color.Lerp(Color.red, new Color(1f, 0.6f, 0f), ratio / 0.35f);
+            collectionFill.color = barColor;
+
+            if (time > 3f) return;
+
+            // Urgency: pulse the whole bar
+            collectionGroup.transform.DOComplete();
+            collectionGroup.transform.DOPunchScale(Vector3.one * 0.08f, 0.3f, 8, 0f).SetUpdate(true);
+
+            collectionTimerLabel.DOComplete();
+            collectionTimerLabel.color = Color.red;
+            collectionTimerLabel.DOColor(Color.white, 0.3f).SetUpdate(true);
+        }
+
+        void OnChargeReleaseFlash()
+        {
+            damageFlash.DOComplete();
+            damageFlash.color = new Color(1f, 1f, 1f, 0.5f);
+            damageFlash.DOFade(0f, 0.4f).SetEase(Ease.OutQuad).SetUpdate(true);
         }
 
         void OnRetreatCompleted()
@@ -136,7 +207,7 @@ namespace TypingDefense
         {
             damageFlash.DOComplete();
             damageFlash.color = new Color(1f, 0f, 0f, 0.25f);
-            damageFlash.DOFade(0f, 0.3f).SetEase(Ease.OutQuad);
+            damageFlash.DOFade(0f, 0.3f).SetEase(Ease.OutQuad).SetUpdate(true);
 
             cameraShaker.Shake(0.35f, 0.25f);
         }

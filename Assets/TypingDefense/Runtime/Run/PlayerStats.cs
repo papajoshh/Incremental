@@ -22,11 +22,6 @@ namespace TypingDefense
         public int BossBonusDamage;
         public float EnergyPerBossHit;
 
-        public float ConverterSpeed;
-        public float ConverterSize;
-        public float ConverterAutoMoveRatio;
-        public int ConverterExtraHoles;
-
         public PlayerStats(UpgradeGraphConfig config)
         {
             _config = config;
@@ -52,10 +47,6 @@ namespace TypingDefense
             EnergyPerBossHit = b.EnergyPerBossHit;
             PowerUpKillInterval = b.PowerUpKillInterval;
             PowerUpDurationBonus = b.PowerUpDurationBonus;
-            ConverterSpeed = b.ConverterSpeed;
-            ConverterSize = b.ConverterSize;
-            ConverterAutoMoveRatio = b.ConverterAutoMoveRatio;
-            ConverterExtraHoles = b.ConverterExtraHoles;
         }
 
         public void ApplyUpgrade(UpgradeId id, float value)
@@ -84,10 +75,6 @@ namespace TypingDefense
                 case UpgradeId.BaseDamage: BaseDamage = (int)value; break;
                 case UpgradeId.BossBonusDamage: BossBonusDamage = (int)value; break;
                 case UpgradeId.EnergyPerBossHit: EnergyPerBossHit = value; break;
-                case UpgradeId.ConverterSpeed: ConverterSpeed = value; break;
-                case UpgradeId.ConverterSize: ConverterSize = value; break;
-                case UpgradeId.ConverterAutoMove: ConverterAutoMoveRatio = value; break;
-                case UpgradeId.ConverterExtraHoles: ConverterExtraHoles = (int)value; break;
             }
         }
     }

@@ -3,13 +3,14 @@ using Zenject;
 
 namespace TypingDefense
 {
-    public class GameFlowController
+    public class GameFlowController : IInitializable
     {
         readonly LazyInject<RunManager> _runManager;
         readonly LazyInject<WordManager> _wordManager;
         readonly LazyInject<EnergyTracker> _energyTracker;
         readonly LazyInject<UpgradeTracker> _upgradeTracker;
         readonly LazyInject<DefenseSaveManager> _saveManager;
+        readonly LazyInject<CollectionPhaseController> _collectionPhase;
         readonly PlayerStats _playerStats;
 
         public GameState State { get; private set; }
@@ -23,6 +24,7 @@ namespace TypingDefense
             LazyInject<EnergyTracker> energyTracker,
             LazyInject<UpgradeTracker> upgradeTracker,
             LazyInject<DefenseSaveManager> saveManager,
+            LazyInject<CollectionPhaseController> collectionPhase,
             PlayerStats playerStats)
         {
             _runManager = runManager;
@@ -30,7 +32,15 @@ namespace TypingDefense
             _energyTracker = energyTracker;
             _upgradeTracker = upgradeTracker;
             _saveManager = saveManager;
+            _collectionPhase = collectionPhase;
             _playerStats = playerStats;
+        }
+
+        public void Initialize()
+        {
+            if (_saveManager.Value.HasCompletedFirstRun) return;
+
+            StartRun();
         }
 
         public void SetState(GameState newState)
@@ -49,10 +59,32 @@ namespace TypingDefense
             SetState(GameState.Playing);
         }
 
-        public void HandleRunEnded()
+        public void StartCollectionPhase()
         {
             if (State != GameState.Playing) return;
 
+            _collectionPhase.Value.StartCollection();
+            SetState(GameState.Collecting);
+        }
+
+        public void HandleCollectionEnded()
+        {
+            if (State != GameState.Collecting) return;
+
+            _saveManager.Value.MarkFirstRunCompleted();
+
+            if (_runManager.Value.CurrentLevel >= 10)
+                _saveManager.Value.MarkLevel10Reached();
+
+            SetState(GameState.Menu);
+            OnReturnedFromRun?.Invoke();
+        }
+
+        public void HandleRunEnded()
+        {
+            if (State != GameState.Playing && State != GameState.Collecting) return;
+
+            _collectionPhase.Value.ForceEnd();
             _saveManager.Value.MarkFirstRunCompleted();
 
             if (_runManager.Value.CurrentLevel >= 10)
@@ -64,6 +96,7 @@ namespace TypingDefense
 
         public void ReturnToMenu()
         {
+            _collectionPhase.Value.ForceEnd();
             SetState(GameState.Menu);
         }
     }

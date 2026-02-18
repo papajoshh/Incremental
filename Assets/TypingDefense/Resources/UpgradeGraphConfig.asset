@@ -27,10 +27,6 @@ MonoBehaviour:
     EnergyPerBossHit: 0
     PowerUpKillInterval: 10
     PowerUpDurationBonus: 0
-    ConverterSpeed: 3
-    ConverterSize: 0.8
-    ConverterAutoMoveRatio: 0
-    ConverterExtraHoles: 1
   nodes:
   - nodeId: ROOT
     upgradeId: 1

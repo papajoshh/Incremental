@@ -6,7 +6,9 @@ Shader "TypingDefense/BlackHoleDistortion"
         _Strength ("Distortion Strength", Range(0, 1)) = 0.4
         _InnerRadius ("Black Core Radius", Range(0.01, 0.5)) = 0.25
         _OuterRadius ("Distortion Radius", Range(0.1, 1.0)) = 0.5
-        _RotSpeed ("Rotation Speed", Range(0, 10)) = 2.0
+        _RotSpeed ("Spiral Speed", Range(0, 5)) = 0.5
+        _SpiralTightness ("Spiral Tightness", Range(0, 8)) = 2.0
+        _PullStrength ("Radial Pull", Range(0, 1.5)) = 0.6
         _EdgeGlow ("Edge Glow Intensity", Range(0, 3)) = 1.0
         _GlowColor ("Glow Color", Color) = (0.5, 0.2, 1.0, 1.0)
     }
@@ -34,6 +36,8 @@ Shader "TypingDefense/BlackHoleDistortion"
             float _InnerRadius;
             float _OuterRadius;
             float _RotSpeed;
+            float _SpiralTightness;
+            float _PullStrength;
             float _EdgeGlow;
             fixed4 _GlowColor;
 
@@ -77,20 +81,16 @@ Shader "TypingDefense/BlackHoleDistortion"
                 float distortionFalloff = saturate(1.0 - (dist - _InnerRadius) / (_OuterRadius - _InnerRadius));
                 distortionFalloff *= distortionFalloff;
 
-                // Spiral rotation
-                float angle = _RotSpeed * _Time.y + distortionFalloff * 6.2831;
-                float s = sin(angle);
-                float c = cos(angle);
+                float2 dir = normalize(i.uv + 0.0001);
 
-                float2 rotated;
-                rotated.x = i.uv.x * c - i.uv.y * s;
-                rotated.y = i.uv.x * s + i.uv.y * c;
+                // PRIMARY: radial pull — stretches background toward center
+                float radialStrength = _PullStrength * distortionFalloff * _Strength;
+                float2 distortion = -dir * radialStrength;
 
-                float2 distortion = (rotated - i.uv) * _Strength * distortionFalloff;
-
-                // Pull toward center
-                float2 pullDir = -normalize(i.uv + 0.0001);
-                distortion += pullDir * _Strength * distortionFalloff * 0.15;
+                // SECONDARY: subtle spiral — slow tangential wave
+                float2 tangent = float2(-dir.y, dir.x);
+                float spiralWave = sin(_RotSpeed * _Time.y + dist * _SpiralTightness * 6.2831);
+                distortion += tangent * spiralWave * _Strength * distortionFalloff * 0.15;
 
                 // Sample distorted background
                 float2 grabUV = i.grabPos.xy / i.grabPos.w;

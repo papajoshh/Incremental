@@ -6,23 +6,14 @@ using Zenject;
 
 namespace TypingDefense
 {
-    public enum MenuTab { Upgrades, Converter }
-
     public class MenuView : MonoBehaviour
     {
         [Header("Always Visible")]
         [SerializeField] Button playBtn;
         [SerializeField] TextMeshProUGUI coinsLabel;
 
-        [Header("Tabs")]
-        [SerializeField] Button upgradesTabBtn;
-        [SerializeField] Button converterTabBtn;
-        [SerializeField] GameObject upgradesTabHighlight;
-        [SerializeField] GameObject converterTabHighlight;
-
-        [Header("Tab Content")]
+        [Header("Content")]
         [SerializeField] GameObject upgradeGraphPanel;
-        [SerializeField] ConverterView converterView;
 
         GameFlowController gameFlow;
         LetterTracker letterTracker;
@@ -39,11 +30,8 @@ namespace TypingDefense
             this.saveManager = saveManager;
 
             gameFlow.OnStateChanged += OnStateChanged;
-            gameFlow.OnReturnedFromRun += OnReturnedFromRun;
             letterTracker.OnCoinsChanged += RefreshLabels;
             playBtn.onClick.AddListener(OnPlayClicked);
-            upgradesTabBtn.onClick.AddListener(() => ShowTab(MenuTab.Upgrades));
-            converterTabBtn.onClick.AddListener(() => ShowTab(MenuTab.Converter));
         }
 
         void Start()
@@ -54,7 +42,6 @@ namespace TypingDefense
         void OnDestroy()
         {
             gameFlow.OnStateChanged -= OnStateChanged;
-            gameFlow.OnReturnedFromRun -= OnReturnedFromRun;
             letterTracker.OnCoinsChanged -= RefreshLabels;
             playBtn.onClick.RemoveListener(OnPlayClicked);
         }
@@ -68,47 +55,16 @@ namespace TypingDefense
                 return;
             }
 
-            converterView.Hide();
             gameObject.SetActive(false);
-        }
-
-        void OnReturnedFromRun()
-        {
-            ShowTab(MenuTab.Converter);
         }
 
         void ShowMenu()
         {
-            var hasCompleted = saveManager.HasCompletedFirstRun;
-            upgradesTabBtn.gameObject.SetActive(hasCompleted);
-            converterTabBtn.gameObject.SetActive(hasCompleted);
-
-            if (hasCompleted)
-            {
-                ShowTab(MenuTab.Upgrades);
-            }
-            else
-            {
-                upgradeGraphPanel.SetActive(false);
-                converterView.Hide();
-            }
-
+            upgradeGraphPanel.SetActive(saveManager.HasCompletedFirstRun);
             RefreshLabels();
 
             transform.localScale = Vector3.one * 0.9f;
-            transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
-        }
-
-        void ShowTab(MenuTab tab)
-        {
-            upgradeGraphPanel.SetActive(tab == MenuTab.Upgrades);
-            upgradesTabHighlight.SetActive(tab == MenuTab.Upgrades);
-            converterTabHighlight.SetActive(tab == MenuTab.Converter);
-
-            if (tab == MenuTab.Converter)
-                converterView.Show();
-            else
-                converterView.Hide();
+            transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack).SetUpdate(true);
         }
 
         void OnPlayClicked()

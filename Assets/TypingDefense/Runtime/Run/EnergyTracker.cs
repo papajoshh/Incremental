@@ -6,14 +6,15 @@ namespace TypingDefense
 {
     public class EnergyTracker : ITickable
     {
-        private readonly RunConfig _runConfig;
-        private readonly PlayerStats _playerStats;
-        private readonly RunManager _runManager;
-        private readonly GameFlowController _gameFlow;
+        readonly RunConfig _runConfig;
+        readonly PlayerStats _playerStats;
+        readonly RunManager _runManager;
+        readonly GameFlowController _gameFlow;
 
         public float CurrentEnergy { get; private set; }
 
         public event Action<float> OnEnergyChanged;
+        public event Action OnEnergyDepleted;
 
         public EnergyTracker(
             RunConfig runConfig,
@@ -36,7 +37,11 @@ namespace TypingDefense
             CurrentEnergy = Mathf.Max(CurrentEnergy, 0f);
             OnEnergyChanged?.Invoke(CurrentEnergy);
 
-            if (CurrentEnergy <= 0f) _runManager.TriggerGameOver();
+            if (CurrentEnergy <= 0f)
+            {
+                OnEnergyDepleted?.Invoke();
+                _gameFlow.StartCollectionPhase();
+            }
         }
 
         public void AddEnergy(float amount)
@@ -53,7 +58,7 @@ namespace TypingDefense
             OnEnergyChanged?.Invoke(CurrentEnergy);
         }
 
-        private float CalculateDrainInterval()
+        float CalculateDrainInterval()
         {
             var baseInterval = _runConfig.baseDrainInterval;
             var levelReduction = (_runManager.CurrentLevel - 1) * _runConfig.drainScalePerLevel;
