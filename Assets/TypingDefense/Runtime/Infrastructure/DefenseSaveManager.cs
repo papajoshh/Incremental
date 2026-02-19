@@ -27,6 +27,7 @@ namespace TypingDefense
 
         public bool HasCompletedFirstRun => _cachedData != null && _cachedData.HasCompletedFirstRun;
         public bool HasReachedLevel10 => _cachedData != null && _cachedData.HasReachedLevel10;
+        public bool HasSeenCollectionTutorial => _cachedData != null && _cachedData.HasSeenCollectionTutorial;
 
         public void Initialize()
         {
@@ -68,6 +69,13 @@ namespace TypingDefense
         {
             if (_cachedData == null) _cachedData = new DefenseSaveData();
             _cachedData.HasReachedLevel10 = true;
+            Save();
+        }
+
+        public void MarkCollectionTutorialSeen()
+        {
+            if (_cachedData == null) _cachedData = new DefenseSaveData();
+            _cachedData.HasSeenCollectionTutorial = true;
             Save();
         }
 

@@ -29,6 +29,7 @@ MonoBehaviour:
     PowerUpDurationBonus: 0
     CollectionSpeed: 0.6
     LetterAttraction: 0
+    CollectionDuration: 5
   nodes:
   - nodeId: ROOT
     upgradeId: 1

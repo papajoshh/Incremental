@@ -26,7 +26,6 @@ namespace TypingDefense
 
             var root = _graphConfig.GetRootNode();
             _revealedNodes.Add(root.nodeId);
-            RevealConnections(root.nodeId);
         }
 
         public bool TryPurchase(string nodeId)

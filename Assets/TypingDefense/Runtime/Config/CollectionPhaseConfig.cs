@@ -5,7 +5,6 @@ namespace TypingDefense
     [CreateAssetMenu(fileName = "CollectionPhaseConfig", menuName = "TypingDefense/Collection Phase Config")]
     public class CollectionPhaseConfig : ScriptableObject
     {
-        public float collectionDuration = 8f;
         public float slowMotionScale = 0.3f;
         public float collectRadius = 0.8f;
         public float wordHomingSpeed = 1.0f;

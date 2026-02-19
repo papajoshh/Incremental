@@ -11,13 +11,14 @@ namespace TypingDefense
         readonly GameFlowController _gameFlow;
         readonly RunManager _runManager;
         readonly CameraShaker _cameraShaker;
+        readonly PlayerStats _playerStats;
 
         float _timer;
         bool _frozen;
         Tween _chargeTween;
 
         public float TimeRemaining => _timer;
-        public float TimerRatio => _config.collectionDuration > 0f ? _timer / _config.collectionDuration : 0f;
+        public float TimerRatio => _playerStats.CollectionDuration > 0f ? _timer / _playerStats.CollectionDuration : 0f;
         public bool IsActive => _gameFlow.State == GameState.Collecting;
 
         public event Action<float> OnTimerChanged;
@@ -25,17 +26,20 @@ namespace TypingDefense
         public event Action OnCollectionEnded;
         public event Action OnFreezeReleased;
         public event Action<float> OnChargeStarted;
+        public event Func<bool> ShouldHoldFreeze;
 
         public CollectionPhaseController(
             CollectionPhaseConfig config,
             GameFlowController gameFlow,
             RunManager runManager,
-            CameraShaker cameraShaker)
+            CameraShaker cameraShaker,
+            PlayerStats playerStats)
         {
             _config = config;
             _gameFlow = gameFlow;
             _runManager = runManager;
             _cameraShaker = cameraShaker;
+            _playerStats = playerStats;
         }
 
         public void Tick()
@@ -53,7 +57,7 @@ namespace TypingDefense
 
         public void StartCollection(Vector3 bhPosition)
         {
-            _timer = _config.collectionDuration;
+            _timer = _playerStats.CollectionDuration;
             _frozen = true;
 
             Time.timeScale = 0f;
@@ -71,9 +75,8 @@ namespace TypingDefense
 
             _chargeTween.OnComplete(() =>
             {
-                _frozen = false;
-                Time.timeScale = _config.slowMotionScale;
-                OnFreezeReleased?.Invoke();
+                if (ShouldHoldFreeze?.Invoke() == true) return;
+                ReleaseFreezeInternal();
             });
         }
 
@@ -81,6 +84,11 @@ namespace TypingDefense
         {
             _runManager.TakeDamage(1);
             _cameraShaker.Shake(0.2f, 0.15f);
+        }
+
+        public void ReleaseFreeze()
+        {
+            ReleaseFreezeInternal();
         }
 
         public void ForceEnd()
@@ -96,6 +104,13 @@ namespace TypingDefense
             RestoreTimeScale();
             OnCollectionEnded?.Invoke();
             _gameFlow.HandleCollectionEnded();
+        }
+
+        void ReleaseFreezeInternal()
+        {
+            _frozen = false;
+            Time.timeScale = _config.slowMotionScale;
+            OnFreezeReleased?.Invoke();
         }
 
         void RestoreTimeScale()

@@ -110,6 +110,7 @@ namespace TypingDefense
         public float PowerUpDurationBonus = 0f;
         public float CollectionSpeed = 2f;
         public float LetterAttraction = 0f;
+        public float CollectionDuration = 8f;
     }
 
     [Serializable]

@@ -177,6 +177,15 @@ MonoBehaviour:
       - Retirarse
       Flags: 0000
       Languages_Touch: []
+    - Term: Tutorial/MoveToCollect
+      TermType: 0
+      Description: 
+      Languages:
+      - Move the black hole with the arrow keys to collect all the letters!
+      - Mueve el agujero negro con las flechas de movimiento para recoger todas las
+        letras!
+      Flags: 0000
+      Languages_Touch: []
     CaseInsensitiveTerms: 0
     OnMissingTranslation: 1
     mTerm_AppName: 

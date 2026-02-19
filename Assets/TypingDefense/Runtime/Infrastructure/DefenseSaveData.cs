@@ -8,6 +8,7 @@ namespace TypingDefense
         public UpgradeSaveEntry[] Upgrades = System.Array.Empty<UpgradeSaveEntry>();
         public bool HasCompletedFirstRun;
         public bool HasReachedLevel10;
+        public bool HasSeenCollectionTutorial;
         public int PrestigeCurrency;
     }
 

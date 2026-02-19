@@ -50,6 +50,7 @@ namespace TypingDefense
             Container.Bind<CameraShaker>().FromComponentInHierarchy().AsSingle();
             Container.Bind<BlackHoleController>().FromComponentInNewPrefab(blackHolePrefab).AsSingle().NonLazy();
             Container.Bind<PostProcessJuiceController>().FromComponentInHierarchy().AsSingle();
+            Container.Bind<CollectionTutorialView>().FromComponentInHierarchy().AsSingle();
 
             Container.BindFactory<DefenseWordView, DefenseWordView.Factory>()
                 .FromComponentInNewPrefab(wordViewPrefab);

@@ -21,6 +21,7 @@ namespace TypingDefense
         static readonly int ColorId = Shader.PropertyToID("_Color");
         static readonly int EdgeColorId = Shader.PropertyToID("_EdgeColor");
         static readonly int EdgeWidthId = Shader.PropertyToID("_EdgeWidth");
+        static readonly int NoiseOffsetId = Shader.PropertyToID("_NoiseOffset");
 
         DefenseWord _word;
         Vector3 _targetPosition;
@@ -64,6 +65,7 @@ namespace TypingDefense
             {
                 _dissolveMaterial = dissolveRenderer.material;
                 _dissolveMaterial.SetFloat(CutoffId, 0f);
+                _dissolveMaterial.SetVector(NoiseOffsetId, new Vector4(Random.Range(0f, 100f), Random.Range(0f, 100f), 0f, 0f));
                 dissolveRenderer.enabled = true;
             }
 

@@ -23,5 +23,6 @@ namespace TypingDefense
         EnergyPerBossHit,
         CollectionSpeed,
         LetterAttraction,
+        CollectionDuration,
     }
 }

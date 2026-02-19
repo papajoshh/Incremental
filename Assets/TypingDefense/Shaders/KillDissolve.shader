@@ -7,6 +7,7 @@ Shader "TypingDefense/KillDissolve"
         _Cutoff ("Dissolve Cutoff", Range(0, 1)) = 0.0
         _EdgeWidth ("Edge Width", Range(0.01, 0.2)) = 0.05
         _NoiseScale ("Noise Scale", Float) = 8.0
+        _NoiseOffset ("Noise Offset", Vector) = (0, 0, 0, 0)
     }
 
     SubShader
@@ -29,6 +30,7 @@ Shader "TypingDefense/KillDissolve"
             float _Cutoff;
             float _EdgeWidth;
             float _NoiseScale;
+            float4 _NoiseOffset;
 
             struct appdata
             {
@@ -74,22 +76,23 @@ Shader "TypingDefense/KillDissolve"
 
             fixed4 frag(v2f i) : SV_Target
             {
-                float noise = valueNoise(i.uv * _NoiseScale);
+                float noise = valueNoise(i.uv * _NoiseScale + _NoiseOffset.xy);
 
                 // Discard pixels below cutoff
                 float dissolve = noise - _Cutoff;
                 clip(dissolve);
 
-                // Edge glow: bright band at the dissolve frontier
-                float edge = 1.0 - smoothstep(0.0, _EdgeWidth, dissolve);
+                // Edge glow: bright band at the dissolve frontier (suppress when cutoff ~0)
+                float edge = (1.0 - smoothstep(0.0, _EdgeWidth, dissolve)) * step(0.001, _Cutoff);
 
                 fixed4 col = lerp(_Color, _EdgeColor, edge);
 
                 // Intensify edge brightness
                 col.rgb *= 1.0 + edge * 2.0;
 
-                // Fade out fully dissolved areas
-                col.a = smoothstep(0.0, _EdgeWidth * 0.5, dissolve);
+                // Fade out fully dissolved areas (only when dissolving)
+                float fadeout = smoothstep(0.0, _EdgeWidth * 0.5, dissolve);
+                col.a = lerp(1.0, fadeout, step(0.001, _Cutoff));
 
                 // Modulate by edge for additive punch
                 col.rgb *= col.a + edge;

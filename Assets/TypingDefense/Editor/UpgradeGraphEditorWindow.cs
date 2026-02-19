@@ -17,6 +17,7 @@ namespace TypingDefense.Editor
         bool showBaseStats;
         bool showIcons;
         float zoom = 1f;
+        bool needsCenter;
 
         const float NodeWidth = 160f;
         const float NodeHeight = 60f;
@@ -37,6 +38,8 @@ namespace TypingDefense.Editor
             if (string.IsNullOrEmpty(guid)) return;
             var path = AssetDatabase.GUIDToAssetPath(guid);
             config = AssetDatabase.LoadAssetAtPath<UpgradeGraphConfig>(path);
+            if (config != null)
+                needsCenter = true;
         }
 
         void OnGUI()
@@ -47,6 +50,12 @@ namespace TypingDefense.Editor
             {
                 EditorGUILayout.HelpBox("Assign an UpgradeGraphConfig to edit.", MessageType.Info);
                 return;
+            }
+
+            if (needsCenter)
+            {
+                needsCenter = false;
+                CenterOnRoot();
             }
 
             var graphRect = new Rect(0, EditorGUIUtility.singleLineHeight + 6,
@@ -84,6 +93,8 @@ namespace TypingDefense.Editor
                 selectedNodeIndex = -1;
                 var guid = config != null ? AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(config)) : "";
                 EditorPrefs.SetString(ConfigGuidPref, guid);
+                if (config != null)
+                    CenterOnRoot();
             }
 
             if (GUILayout.Button("Add Node", EditorStyles.toolbarButton, GUILayout.Width(80)))
@@ -132,11 +143,26 @@ namespace TypingDefense.Editor
 
             if (GUILayout.Button("Center", EditorStyles.toolbarButton, GUILayout.Width(60)))
             {
-                graphOffset = Vector2.zero;
                 zoom = 1f;
+                CenterOnRoot();
             }
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        void CenterOnRoot()
+        {
+            var root = config.nodes.FirstOrDefault(n => n.nodeId == config.rootNodeId);
+            if (root == null && config.nodes.Length > 0)
+                root = config.nodes[0];
+            if (root == null)
+            {
+                graphOffset = Vector2.zero;
+                return;
+            }
+
+            var windowCenter = new Vector2(position.width / 2f, position.height / 2f);
+            graphOffset = windowCenter - root.position * GridSize * zoom;
         }
 
         Rect GetInspectorRect()
@@ -464,6 +490,7 @@ namespace TypingDefense.Editor
 
             EditorGUILayout.Space(4);
             EditorGUILayout.LabelField("Collection", EditorStyles.miniLabel);
+            b.CollectionDuration = EditorGUILayout.FloatField("Collection Duration", b.CollectionDuration);
             b.CollectionSpeed = EditorGUILayout.FloatField("Collection Speed", b.CollectionSpeed);
             b.LetterAttraction = EditorGUILayout.FloatField("Letter Attraction", b.LetterAttraction);
 

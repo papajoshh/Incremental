@@ -24,6 +24,7 @@ namespace TypingDefense
 
         public float CollectionSpeed;
         public float LetterAttraction;
+        public float CollectionDuration;
 
         public PlayerStats(UpgradeGraphConfig config)
         {
@@ -52,6 +53,7 @@ namespace TypingDefense
             PowerUpDurationBonus = b.PowerUpDurationBonus;
             CollectionSpeed = b.CollectionSpeed;
             LetterAttraction = b.LetterAttraction;
+            CollectionDuration = b.CollectionDuration;
         }
 
         public void ApplyUpgrade(UpgradeId id, float value)
@@ -82,6 +84,7 @@ namespace TypingDefense
                 case UpgradeId.EnergyPerBossHit: EnergyPerBossHit = value; break;
                 case UpgradeId.CollectionSpeed: CollectionSpeed = value; break;
                 case UpgradeId.LetterAttraction: LetterAttraction = value; break;
+                case UpgradeId.CollectionDuration: CollectionDuration = value; break;
             }
         }
     }
