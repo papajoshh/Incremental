@@ -13,6 +13,7 @@ namespace TypingDefense
         readonly LazyInject<CollectionPhaseController> _collectionPhase;
         readonly LazyInject<BlackHoleController> _blackHole;
         readonly PlayerStats _playerStats;
+        readonly LevelProgressionConfig _levelConfig;
 
         public GameState State { get; private set; }
 
@@ -27,7 +28,8 @@ namespace TypingDefense
             LazyInject<DefenseSaveManager> saveManager,
             LazyInject<CollectionPhaseController> collectionPhase,
             LazyInject<BlackHoleController> blackHole,
-            PlayerStats playerStats)
+            PlayerStats playerStats,
+            LevelProgressionConfig levelConfig)
         {
             _runManager = runManager;
             _wordManager = wordManager;
@@ -37,13 +39,14 @@ namespace TypingDefense
             _collectionPhase = collectionPhase;
             _blackHole = blackHole;
             _playerStats = playerStats;
+            _levelConfig = levelConfig;
         }
 
         public void Initialize()
         {
             if (_saveManager.Value.HasCompletedFirstRun) return;
 
-            StartRun();
+            StartRun(1);
         }
 
         public void SetState(GameState newState)
@@ -52,14 +55,22 @@ namespace TypingDefense
             OnStateChanged?.Invoke(State);
         }
 
-        public void StartRun()
+        public void StartRun(int level)
         {
             _playerStats.ResetToBase();
             _upgradeTracker.Value.ApplyAllUpgrades();
-            _runManager.Value.StartRun();
+            _runManager.Value.StartRun(level);
             _energyTracker.Value.StartRun();
             _wordManager.Value.StartRun();
             SetState(GameState.Playing);
+        }
+
+        public void SaveBossProgression()
+        {
+            _saveManager.Value.MarkBossDefeated(
+                _runManager.Value.CurrentLevel,
+                _levelConfig.TotalLevels);
+            _saveManager.Value.MarkFirstRunCompleted();
         }
 
         public void StartCollectionPhase()
@@ -75,10 +86,6 @@ namespace TypingDefense
             if (State != GameState.Collecting) return;
 
             _saveManager.Value.MarkFirstRunCompleted();
-
-            if (_runManager.Value.CurrentLevel >= 10)
-                _saveManager.Value.MarkLevel10Reached();
-
             SetState(GameState.Menu);
             OnReturnedFromRun?.Invoke();
         }
@@ -90,9 +97,6 @@ namespace TypingDefense
             _collectionPhase.Value.ForceEnd();
             _saveManager.Value.MarkFirstRunCompleted();
 
-            if (_runManager.Value.CurrentLevel >= 10)
-                _saveManager.Value.MarkLevel10Reached();
-
             SetState(GameState.Menu);
             OnReturnedFromRun?.Invoke();
         }
@@ -101,6 +105,7 @@ namespace TypingDefense
         {
             _collectionPhase.Value.ForceEnd();
             SetState(GameState.Menu);
+            OnReturnedFromRun?.Invoke();
         }
     }
 }

@@ -6,7 +6,7 @@ namespace TypingDefense
 {
     public class EnergyTracker : ITickable
     {
-        readonly RunConfig _runConfig;
+        readonly LevelProgressionConfig _levelConfig;
         readonly PlayerStats _playerStats;
         readonly RunManager _runManager;
         readonly GameFlowController _gameFlow;
@@ -17,12 +17,12 @@ namespace TypingDefense
         public event Action OnEnergyDepleted;
 
         public EnergyTracker(
-            RunConfig runConfig,
+            LevelProgressionConfig levelConfig,
             PlayerStats playerStats,
             RunManager runManager,
             GameFlowController gameFlow)
         {
-            _runConfig = runConfig;
+            _levelConfig = levelConfig;
             _playerStats = playerStats;
             _runManager = runManager;
             _gameFlow = gameFlow;
@@ -30,7 +30,8 @@ namespace TypingDefense
 
         public void Tick()
         {
-            if (_gameFlow.State != GameState.Playing) return;
+            var state = _gameFlow.State;
+            if (state != GameState.Playing) return;
 
             var drainPerSecond = 1f / CalculateDrainInterval();
             CurrentEnergy -= drainPerSecond * Time.deltaTime;
@@ -60,9 +61,8 @@ namespace TypingDefense
 
         float CalculateDrainInterval()
         {
-            var baseInterval = _runConfig.baseDrainInterval;
-            var levelReduction = (_runManager.CurrentLevel - 1) * _runConfig.drainScalePerLevel;
-            var interval = baseInterval * (1f - levelReduction) * _playerStats.DrainMultiplier;
+            var config = _levelConfig.GetLevel(_runManager.CurrentLevel);
+            var interval = config.drainInterval * _playerStats.DrainMultiplier;
             return Mathf.Max(interval, 0.5f);
         }
     }

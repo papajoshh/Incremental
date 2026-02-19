@@ -8,32 +8,31 @@ namespace TypingDefense
     {
         WordManager wordManager;
         DefenseWordView.Factory wordFactory;
-        BossWordView.Factory bossFactory;
+        DiContainer container;
         ArenaView arenaView;
-        WordSpawnConfig spawnConfig;
+        LevelProgressionConfig levelConfig;
         RunManager runManager;
         GameFlowController gameFlow;
 
         readonly Dictionary<DefenseWord, DefenseWordView> activeViews = new();
         readonly Dictionary<DefenseWord, Vector3> lastKnownPositions = new();
-        DefenseWordView warpView;
         BossWordView activeBossView;
 
         [Inject]
         public void Construct(
             WordManager wordManager,
             DefenseWordView.Factory wordFactory,
-            BossWordView.Factory bossFactory,
+            DiContainer container,
             ArenaView arenaView,
-            WordSpawnConfig spawnConfig,
+            LevelProgressionConfig levelConfig,
             RunManager runManager,
             GameFlowController gameFlow)
         {
             this.wordManager = wordManager;
             this.wordFactory = wordFactory;
-            this.bossFactory = bossFactory;
+            this.container = container;
             this.arenaView = arenaView;
-            this.spawnConfig = spawnConfig;
+            this.levelConfig = levelConfig;
             this.runManager = runManager;
             this.gameFlow = gameFlow;
 
@@ -42,12 +41,11 @@ namespace TypingDefense
             wordManager.OnWordCompleted += OnWordCompleted;
             wordManager.OnWordCriticalKill += OnWordCriticalKill;
             wordManager.OnWordReachedCenter += OnWordReachedCenter;
-            wordManager.OnWarpAvailable += OnWarpAvailable;
-            wordManager.OnWarpCompleted += OnWarpCompleted;
             wordManager.OnBossSpawned += OnBossSpawned;
             wordManager.OnBossHit += OnBossHit;
             wordManager.OnBossDefeated += OnBossDefeated;
             wordManager.OnWordTextChanged += OnWordTextChanged;
+            wordManager.OnAllWordsDissipated += OnAllWordsDissipated;
         }
 
         void OnDestroy()
@@ -57,12 +55,11 @@ namespace TypingDefense
             wordManager.OnWordCompleted -= OnWordCompleted;
             wordManager.OnWordCriticalKill -= OnWordCriticalKill;
             wordManager.OnWordReachedCenter -= OnWordReachedCenter;
-            wordManager.OnWarpAvailable -= OnWarpAvailable;
-            wordManager.OnWarpCompleted -= OnWarpCompleted;
             wordManager.OnBossSpawned -= OnBossSpawned;
             wordManager.OnBossHit -= OnBossHit;
             wordManager.OnBossDefeated -= OnBossDefeated;
             wordManager.OnWordTextChanged -= OnWordTextChanged;
+            wordManager.OnAllWordsDissipated -= OnAllWordsDissipated;
         }
 
         public Vector3 GetWordPosition(DefenseWord word)
@@ -81,7 +78,6 @@ namespace TypingDefense
 
         void OnStateChanged(GameState state)
         {
-            // Keep views alive during Playing and Collecting
             if (state == GameState.Playing || state == GameState.Collecting) return;
 
             DestroyAllViews();
@@ -92,12 +88,6 @@ namespace TypingDefense
             foreach (var kvp in activeViews)
                 Destroy(kvp.Value.gameObject);
             activeViews.Clear();
-
-            if (warpView != null)
-            {
-                Destroy(warpView.gameObject);
-                warpView = null;
-            }
 
             if (activeBossView != null)
             {
@@ -110,9 +100,9 @@ namespace TypingDefense
         {
             var view = wordFactory.Create();
             var startPos = arenaView.GetRandomEdgePosition();
-            var speed = spawnConfig.baseWordSpeed
-                        + (runManager.CurrentLevel - 1) * spawnConfig.wordSpeedScalePerLevel;
-            var variance = Random.Range(-spawnConfig.speedVariance, spawnConfig.speedVariance);
+            var config = levelConfig.GetLevel(runManager.CurrentLevel);
+            var speed = config.wordSpeed;
+            var variance = Random.Range(-0.3f, 0.3f);
             speed *= (1f + variance);
             view.Setup(word, startPos, arenaView.CenterPosition, speed);
             activeViews[word] = view;
@@ -139,24 +129,10 @@ namespace TypingDefense
             activeViews.Remove(word);
         }
 
-        void OnWarpAvailable(DefenseWord word)
-        {
-            var view = wordFactory.Create();
-            var warpPos = arenaView.CenterPosition + Vector3.up * 3f;
-            view.Setup(word, warpPos, warpPos, 0f);
-            warpView = view;
-        }
-
-        void OnWarpCompleted()
-        {
-            if (warpView == null) return;
-            warpView.OnCompleted();
-            warpView = null;
-        }
-
         void OnBossSpawned(DefenseWord word)
         {
-            activeBossView = bossFactory.Create();
+            var config = levelConfig.GetLevel(runManager.CurrentLevel);
+            activeBossView = container.InstantiatePrefabForComponent<BossWordView>(config.bossPrefab);
             activeBossView.Setup(word, arenaView.CenterPosition);
         }
 
@@ -181,6 +157,16 @@ namespace TypingDefense
 
             if (activeBossView != null)
                 activeBossView.OnTextChanged();
+        }
+
+        void OnAllWordsDissipated(IReadOnlyList<DefenseWord> words)
+        {
+            foreach (var word in words)
+            {
+                if (!activeViews.TryGetValue(word, out var view)) continue;
+                view.OnDissipated();
+                activeViews.Remove(word);
+            }
         }
     }
 }

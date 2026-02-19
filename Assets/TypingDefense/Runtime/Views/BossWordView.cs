@@ -155,30 +155,20 @@ namespace TypingDefense
         {
             isDead = true;
 
-            var seq = DOTween.Sequence();
+            label.color = Color.white;
+            label.DOColor(new Color(1f, 0.5f, 0f, 0f), 0.6f).SetUpdate(true);
+            transform.DOScale(3f, 0.6f).SetEase(Ease.OutExpo).SetUpdate(true);
+            transform.DOShakePosition(0.6f, 1f, 20).SetUpdate(true);
 
-            seq.AppendCallback(() => Time.timeScale = 0.1f);
-            seq.AppendInterval(0.08f).SetUpdate(true);
-            seq.AppendCallback(() => Time.timeScale = 1f);
-
-            seq.AppendCallback(() =>
+            if (glowMaterial != null)
             {
-                label.color = Color.white;
-                label.DOColor(new Color(1f, 0.5f, 0f, 0f), 0.6f);
-                transform.DOScale(3f, 0.6f).SetEase(Ease.OutExpo);
-                transform.DOShakePosition(0.6f, 1f, 20);
+                glowMaterial.SetFloat(PulseSpeedId, 20f);
+                glowMaterial.SetFloat(PulseMaxId, 3f);
+                glowMaterial.SetColor(ColorId, Color.white);
+                glowRenderer.transform.DOScale(5f, 0.6f).SetEase(Ease.OutQuad).SetUpdate(true);
+            }
 
-                if (glowMaterial != null)
-                {
-                    glowMaterial.SetFloat(PulseSpeedId, 20f);
-                    glowMaterial.SetFloat(PulseMaxId, 3f);
-                    glowMaterial.SetColor(ColorId, Color.white);
-                    glowRenderer.transform.DOScale(5f, 0.6f).SetEase(Ease.OutQuad);
-                }
-            });
-
-            seq.AppendInterval(0.7f);
-            seq.AppendCallback(() => Destroy(gameObject));
+            DOVirtual.DelayedCall(0.7f, () => Destroy(gameObject)).SetUpdate(true);
         }
 
         void OnDestroy()
@@ -186,7 +176,5 @@ namespace TypingDefense
             if (glowMaterial != null)
                 Destroy(glowMaterial);
         }
-
-        public class Factory : PlaceholderFactory<BossWordView> { }
     }
 }

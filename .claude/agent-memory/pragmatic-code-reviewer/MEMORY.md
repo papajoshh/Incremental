@@ -146,3 +146,14 @@
 - CameraShaker.ZoomCharge targetPosition param: APPROVED, pan+zoom is valid juice
 - InverseTransformPoint for camera target: APPROVED (CameraShaker uses localPosition, needs conversion)
 - PhysicalLetter.Setup null checks on SerializeFields: remove (zero defensive programming rule)
+
+### TypingDefense Review Decisions (Feb 2026 - Boss Level System)
+- LevelProgressionConfig: single SO with LevelConfig[] APPROVED. Absorb WordSpawnConfig + BossConfig + RunConfig into it (no half-empty configs)
+- BossDefeatSequencer as plain class REJECTED: extend BossWordView.OnDefeated() + orchestrate from GameFlowController. View juice stays in views.
+- GameState.Farming APPROVED as enum value (real game state, not a bool). Words spawn, no kill bar, no energy drain.
+- TypeToRetreatView via OnInputError REJECTED: fragile (most chars match active words). Put retreat matcher inline in WordManager.ProcessInput (~15 lines)
+- TypeToSelectView APPROVED: MonoBehaviour reading Input.inputString in Menu state. Level names must be short+unique.
+- RunConfig ELIMINATED: baseMaxHp/baseMaxEnergy go to BaseStatsConfig or PlayerStats base
+- DefeatedBossLevels bool[] REJECTED: HighestUnlockedLevel int is sufficient (sequential unlock = YAGNI)
+- WordManager at 8 deps + growing responsibilities: monitor, split spawn/input if >400 lines post-changes
+- AutoCollect post-boss: define mechanism (PhysicalLetter AutoCollect mode vs full CollectionPhase reuse) before implementing

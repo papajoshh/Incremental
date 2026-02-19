@@ -28,6 +28,7 @@ namespace TypingDefense
         public bool HasCompletedFirstRun => _cachedData != null && _cachedData.HasCompletedFirstRun;
         public bool HasReachedLevel10 => _cachedData != null && _cachedData.HasReachedLevel10;
         public bool HasSeenCollectionTutorial => _cachedData != null && _cachedData.HasSeenCollectionTutorial;
+        public int HighestUnlockedLevel => _cachedData?.HighestUnlockedLevel ?? 1;
 
         public void Initialize()
         {
@@ -76,6 +77,40 @@ namespace TypingDefense
         {
             if (_cachedData == null) _cachedData = new DefenseSaveData();
             _cachedData.HasSeenCollectionTutorial = true;
+            Save();
+        }
+
+        public bool IsBossDefeated(int level)
+        {
+            var index = level - 1;
+            if (_cachedData == null) return false;
+            if (_cachedData.DefeatedBossLevels.Length <= index) return false;
+            return _cachedData.DefeatedBossLevels[index];
+        }
+
+        public void MarkBossDefeated(int level, int totalLevels)
+        {
+            if (_cachedData == null) _cachedData = new DefenseSaveData();
+
+            if (_cachedData.DefeatedBossLevels.Length < totalLevels)
+            {
+                var newArray = new bool[totalLevels];
+                System.Array.Copy(_cachedData.DefeatedBossLevels, newArray, _cachedData.DefeatedBossLevels.Length);
+                _cachedData.DefeatedBossLevels = newArray;
+            }
+
+            _cachedData.DefeatedBossLevels[level - 1] = true;
+
+            if (level >= _cachedData.HighestUnlockedLevel && level < totalLevels)
+                _cachedData.HighestUnlockedLevel = level + 1;
+
+            Save();
+        }
+
+        public void ResetBossProgression()
+        {
+            if (_cachedData == null) return;
+            _cachedData.DefeatedBossLevels = System.Array.Empty<bool>();
             Save();
         }
 

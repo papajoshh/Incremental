@@ -8,8 +8,7 @@ namespace TypingDefense
     public class WordManager : ITickable
     {
         readonly WordPool _wordPool;
-        readonly RunConfig _runConfig;
-        readonly WordSpawnConfig _spawnConfig;
+        readonly LevelProgressionConfig _levelConfig;
         readonly BossConfig _bossConfig;
         readonly PlayerStats _playerStats;
         readonly EnergyTracker _energyTracker;
@@ -22,27 +21,28 @@ namespace TypingDefense
         float _spawnTimer;
         float _autoTypeTimer;
         int _killCount;
-        bool _warpAvailable;
-        const string WarpText = "warp";
-        DefenseWord _warpWord;
         DefenseWord _bossWord;
+        bool _spawnPaused;
 
         public event Action<DefenseWord> OnWordSpawned;
         public event Action<DefenseWord> OnWordCompleted;
         public event Action<DefenseWord> OnWordCriticalKill;
         public event Action<DefenseWord> OnWordReachedCenter;
-        public event Action<DefenseWord> OnWarpAvailable;
-        public event Action OnWarpCompleted;
         public event Action OnInputError;
         public event Action<DefenseWord> OnBossSpawned;
         public event Action<DefenseWord> OnBossHit;
         public event Action<DefenseWord> OnBossDefeated;
         public event Action<DefenseWord, string> OnWordTextChanged;
+        public event Action OnKillCountChanged;
+        public event Action<IReadOnlyList<DefenseWord>> OnAllWordsDissipated;
+
+        LevelConfig CurrentLevelConfig => _levelConfig.GetLevel(_runManager.CurrentLevel);
+
+        public int KillCount => _killCount;
 
         public WordManager(
             WordPool wordPool,
-            RunConfig runConfig,
-            WordSpawnConfig spawnConfig,
+            LevelProgressionConfig levelConfig,
             BossConfig bossConfig,
             PlayerStats playerStats,
             EnergyTracker energyTracker,
@@ -50,8 +50,7 @@ namespace TypingDefense
             GameFlowController gameFlow)
         {
             _wordPool = wordPool;
-            _runConfig = runConfig;
-            _spawnConfig = spawnConfig;
+            _levelConfig = levelConfig;
             _bossConfig = bossConfig;
             _playerStats = playerStats;
             _energyTracker = energyTracker;
@@ -63,7 +62,9 @@ namespace TypingDefense
         {
             if (_gameFlow.State != GameState.Playing) return;
 
-            UpdateSpawnTimer(Time.deltaTime);
+            if (!_spawnPaused)
+                UpdateSpawnTimer(Time.deltaTime);
+
             UpdateAutoType(Time.deltaTime);
             ProcessInput();
         }
@@ -92,14 +93,26 @@ namespace TypingDefense
         {
             _activeWords.Clear();
             _killCount = 0;
-            _warpAvailable = false;
-            _warpWord = null;
             _bossWord = null;
-            _spawnTimer = _spawnConfig.baseSpawnInterval;
+            _spawnPaused = false;
+            _spawnTimer = CurrentLevelConfig.spawnInterval;
             _autoTypeTimer = _playerStats.AutoTypeInterval;
         }
 
         public IReadOnlyList<DefenseWord> GetActiveWords() => _activeWords;
+
+        public void PauseSpawning()
+        {
+            _spawnPaused = true;
+        }
+
+        public void DissipateAllWords()
+        {
+            var snapshot = new List<DefenseWord>(_activeWords);
+            _activeWords.Clear();
+            _bossWord = null;
+            OnAllWordsDissipated?.Invoke(snapshot);
+        }
 
         void UpdateSpawnTimer(float dt)
         {
@@ -107,24 +120,17 @@ namespace TypingDefense
             if (_spawnTimer > 0f) return;
 
             SpawnWord();
-            var interval = _spawnConfig.baseSpawnInterval
-                           - (_runManager.CurrentLevel * _spawnConfig.spawnIntervalScalePerLevel);
-            _spawnTimer = Mathf.Max(interval, 0.5f);
+            _spawnTimer = Mathf.Max(CurrentLevelConfig.spawnInterval, 0.5f);
         }
 
         void SpawnWord()
         {
-            GetWordLengthRange(_runManager.CurrentLevel, out var minLen, out var maxLen);
-            var text = _wordPool.GetRandomWord(minLen, maxLen);
-            var hp = CalculateWordHp(_runManager.CurrentLevel);
+            var config = CurrentLevelConfig;
+            var text = _wordPool.GetRandomWord(config.minWordLength, config.maxWordLength);
+            var hp = UnityEngine.Random.Range(config.minWordHp, config.maxWordHp + 1);
             var word = new DefenseWord(text, hp);
             _activeWords.Add(word);
             OnWordSpawned?.Invoke(word);
-        }
-
-        int CalculateWordHp(int level)
-        {
-            return _spawnConfig.baseWordHp + (level - 1) * _spawnConfig.wordHpGrowthPerLevel;
         }
 
         void ProcessInput()
@@ -136,15 +142,6 @@ namespace TypingDefense
 
         void ProcessChar(char c)
         {
-            if (_warpWord != null)
-            {
-                if (_warpWord.TryMatchChar(c) && _warpWord.IsCompleted)
-                {
-                    DoWarp();
-                    return;
-                }
-            }
-
             var matched = false;
             _pendingRemoval.Clear();
 
@@ -194,8 +191,8 @@ namespace TypingDefense
 
             if (!killed)
             {
-                GetWordLengthRange(_runManager.CurrentLevel, out var minLen, out var maxLen);
-                var newText = _wordPool.GetRandomWord(minLen, maxLen);
+                var config = CurrentLevelConfig;
+                var newText = _wordPool.GetRandomWord(config.minWordLength, config.maxWordLength);
                 word.ChangeText(newText);
                 OnWordTextChanged?.Invoke(word, newText);
             }
@@ -205,51 +202,35 @@ namespace TypingDefense
 
         void CompleteWord(DefenseWord word, bool wasCrit = false)
         {
-            // Letters are now spawned physically by PhysicalLetterSpawner
             _energyTracker.AddEnergy(_playerStats.EnergyPerKill);
-            _killCount++;
 
             if (word.IsBoss)
             {
                 _bossWord = null;
-                _runManager.AddPrestigeCurrency(_bossConfig.prestigeReward);
+                var config = CurrentLevelConfig;
+                _runManager.AddPrestigeCurrency(config.bossPrestigeReward);
+                _runManager.MarkBossDefeated();
                 OnBossDefeated?.Invoke(word);
                 return;
             }
+
+            _killCount++;
+            OnKillCountChanged?.Invoke();
 
             if (wasCrit)
                 OnWordCriticalKill?.Invoke(word);
             else
                 OnWordCompleted?.Invoke(word);
 
-            if (_killCount >= _runConfig.killsToWarp && !_warpAvailable && _bossWord == null)
-                MakeWarpAvailable();
-        }
-
-        void MakeWarpAvailable()
-        {
-            _warpAvailable = true;
-            _warpWord = new DefenseWord(WarpText);
-            OnWarpAvailable?.Invoke(_warpWord);
-        }
-
-        void DoWarp()
-        {
-            _warpWord = null;
-            _warpAvailable = false;
-            _killCount = 0;
-            OnWarpCompleted?.Invoke();
-            _runManager.AdvanceLevel();
-
-            if (_runManager.CurrentLevel == _bossConfig.bossLevel && _bossWord == null)
+            if (_killCount >= CurrentLevelConfig.killsForBoss && _bossWord == null)
                 SpawnBoss();
         }
 
         void SpawnBoss()
         {
-            GetWordLengthRange(_runManager.CurrentLevel, out var minLen, out var maxLen);
-            var text = _wordPool.GetRandomWord(minLen, maxLen);
-            _bossWord = new DefenseWord(text, _bossConfig.bossHp, isBoss: true);
+            var config = CurrentLevelConfig;
+            var text = _wordPool.GetRandomWord(config.minWordLength, config.maxWordLength);
+            _bossWord = new DefenseWord(text, config.bossHp, isBoss: true);
             _activeWords.Add(_bossWord);
             OnBossSpawned?.Invoke(_bossWord);
         }
@@ -300,13 +281,6 @@ namespace TypingDefense
                 _activeWords.Remove(word);
                 CompleteWord(word);
             }
-        }
-
-        void GetWordLengthRange(int level, out int min, out int max)
-        {
-            var growth = (level - 1) * _spawnConfig.wordLengthGrowthPerLevel;
-            min = _spawnConfig.baseMinWordLength + growth / 2;
-            max = _spawnConfig.baseMaxWordLength + growth;
         }
     }
 }

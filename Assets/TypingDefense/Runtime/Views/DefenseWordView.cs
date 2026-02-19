@@ -82,7 +82,8 @@ namespace TypingDefense
         {
             if (_isDead) return;
 
-            if (_gameFlow.State == GameState.Collecting)
+            var state = _gameFlow.State;
+            if (state == GameState.Collecting)
             {
                 HomeTowardsBlackHole();
                 return;
@@ -206,8 +207,8 @@ namespace TypingDefense
             label.DOColor(new Color(0.3f, 1f, 0.3f, 0f), 0.3f);
 
             transform.DOComplete();
-            transform.DOPunchScale(Vector3.one * 0.15f, 0.1f, 10, 0f);
-            DOVirtual.DelayedCall(0.1f, () =>
+            transform.DOPunchScale(Vector3.one * 0.25f, 0.2f, 10, 0.5f);
+            DOVirtual.DelayedCall(0.15f, () =>
             {
                 transform.DOScale(1.5f, 0.2f).SetEase(Ease.OutQuad)
                     .OnComplete(() => Destroy(gameObject));
@@ -220,20 +221,34 @@ namespace TypingDefense
         {
             _isDead = true;
 
+            Time.timeScale = 0.05f;
+            DOVirtual.DelayedCall(0.03f, () => Time.timeScale = 1f).SetUpdate(true);
+
             label.color = Color.white;
             var seq = DOTween.Sequence();
-            seq.AppendInterval(0.05f);
+            seq.AppendInterval(0.06f);
             seq.AppendCallback(() => label.DOColor(new Color(1f, 0.84f, 0f, 0f), 0.35f));
 
             transform.DOComplete();
-            transform.DOPunchScale(Vector3.one * 0.3f, 0.12f, 12, 0f);
-            DOVirtual.DelayedCall(0.12f, () =>
+            transform.DOPunchScale(Vector3.one * 0.4f, 0.25f, 12, 0.7f);
+            DOVirtual.DelayedCall(0.18f, () =>
             {
                 transform.DOScale(2f, 0.3f).SetEase(Ease.OutExpo)
                     .OnComplete(() => Destroy(gameObject));
-            });
+            }).SetUpdate(true);
 
             PlayDissolve(new Color(1f, 0.84f, 0f), new Color(1f, 1f, 0.5f), 0.12f, 0.4f);
+        }
+
+        public void OnDissipated()
+        {
+            _isDead = true;
+
+            label.DOFade(0f, 0.4f).SetEase(Ease.InQuad);
+            transform.DOScale(0.5f, 0.4f).SetEase(Ease.InBack)
+                .OnComplete(() => Destroy(gameObject));
+
+            PlayDissolve(new Color(0.5f, 0.5f, 0.5f), new Color(0.3f, 0.3f, 0.3f), 0.08f, 0.4f);
         }
 
         void PlayDissolve(Color mainColor, Color edgeColor, float edgeWidth, float duration)

@@ -10,6 +10,8 @@ namespace TypingDefense
         public bool HasReachedLevel10;
         public bool HasSeenCollectionTutorial;
         public int PrestigeCurrency;
+        public int HighestUnlockedLevel = 1;
+        public bool[] DefeatedBossLevels = System.Array.Empty<bool>();
     }
 
     [System.Serializable]

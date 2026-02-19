@@ -13,32 +13,41 @@ namespace TypingDefense
         Vignette _vignette;
         ColorGrading _colorGrading;
         LensDistortion _lens;
+        Bloom _bloom;
 
         float _baseVignetteIntensity;
         float _baseSaturation;
         float _baseLensIntensity;
         float _baseTemperature;
         float _baseTint;
+        float _baseBloomIntensity;
         bool _gameOverFlashing;
 
         GameFlowController _gameFlow;
         CollectionPhaseController _collectionPhase;
         RunManager _runManager;
+        WordManager _wordManager;
 
         [Inject]
         public void Construct(
             GameFlowController gameFlow,
             CollectionPhaseController collectionPhase,
-            RunManager runManager)
+            RunManager runManager,
+            WordManager wordManager)
         {
             _gameFlow = gameFlow;
             _collectionPhase = collectionPhase;
             _runManager = runManager;
+            _wordManager = wordManager;
 
             gameFlow.OnStateChanged += OnStateChanged;
             collectionPhase.OnChargeStarted += OnChargeStarted;
             collectionPhase.OnFreezeReleased += OnFreezeReleased;
             runManager.OnRunEnded += OnGameOver;
+            wordManager.OnBossSpawned += OnBossSpawned;
+            wordManager.OnBossHit += OnBossHit;
+            wordManager.OnWordCompleted += OnWordKilled;
+            wordManager.OnWordCriticalKill += OnCriticalKill;
         }
 
         void Start()
@@ -57,11 +66,19 @@ namespace TypingDefense
             profile.TryGetSettings(out _colorGrading);
             profile.TryGetSettings(out _lens);
 
+            if (!profile.TryGetSettings(out _bloom))
+            {
+                _bloom = profile.AddSettings<Bloom>();
+                _bloom.enabled.value = true;
+                _bloom.intensity.overrideState = true;
+            }
+
             _baseVignetteIntensity = _vignette.intensity.value;
             _baseSaturation = _colorGrading.saturation.value;
             _baseLensIntensity = _lens.intensity.value;
             _baseTemperature = _colorGrading.temperature.value;
             _baseTint = _colorGrading.tint.value;
+            _baseBloomIntensity = _bloom.intensity.value;
         }
 
         void OnDestroy()
@@ -70,6 +87,10 @@ namespace TypingDefense
             _collectionPhase.OnChargeStarted -= OnChargeStarted;
             _collectionPhase.OnFreezeReleased -= OnFreezeReleased;
             _runManager.OnRunEnded -= OnGameOver;
+            _wordManager.OnBossSpawned -= OnBossSpawned;
+            _wordManager.OnBossHit -= OnBossHit;
+            _wordManager.OnWordCompleted -= OnWordKilled;
+            _wordManager.OnWordCriticalKill -= OnCriticalKill;
 
             DOTween.Kill(this);
             RestoreImmediate();
@@ -179,6 +200,106 @@ namespace TypingDefense
                 });
         }
 
+        void OnBossSpawned(DefenseWord word)
+        {
+            DOTween.Kill(this);
+
+            _chromatic.intensity.value = 0.8f;
+            DOTween.To(
+                () => _chromatic.intensity.value,
+                v => _chromatic.intensity.value = v,
+                0f, 0.5f).SetUpdate(true).SetEase(Ease.OutQuad).SetTarget(this);
+
+            _bloom.intensity.value = _baseBloomIntensity + 4f;
+            DOTween.To(
+                () => _bloom.intensity.value,
+                v => _bloom.intensity.value = v,
+                _baseBloomIntensity, 0.6f).SetUpdate(true).SetEase(Ease.OutQuad).SetTarget(this);
+        }
+
+        void OnWordKilled(DefenseWord word)
+        {
+            _bloom.intensity.value = _baseBloomIntensity + 1f;
+            DOTween.To(
+                () => _bloom.intensity.value,
+                v => _bloom.intensity.value = v,
+                _baseBloomIntensity, 0.2f).SetEase(Ease.OutQuad).SetTarget(this);
+        }
+
+        void OnCriticalKill(DefenseWord word)
+        {
+            _bloom.intensity.value = _baseBloomIntensity + 2.5f;
+            DOTween.To(
+                () => _bloom.intensity.value,
+                v => _bloom.intensity.value = v,
+                _baseBloomIntensity, 0.3f).SetEase(Ease.OutQuad).SetTarget(this);
+
+            _chromatic.intensity.value = 0.35f;
+            DOTween.To(
+                () => _chromatic.intensity.value,
+                v => _chromatic.intensity.value = v,
+                0f, 0.2f).SetEase(Ease.OutQuad).SetTarget(this);
+        }
+
+        void OnBossHit(DefenseWord word)
+        {
+            _vignette.intensity.value = 0.55f;
+            DOTween.To(
+                () => _vignette.intensity.value,
+                v => _vignette.intensity.value = v,
+                _baseVignetteIntensity, 0.3f).SetUpdate(true).SetEase(Ease.OutQuad).SetTarget(this);
+        }
+
+        public void PlayBossDeathBurst()
+        {
+            DOTween.Kill(this);
+
+            _bloom.intensity.value = 8f;
+            DOTween.To(
+                () => _bloom.intensity.value,
+                v => _bloom.intensity.value = v,
+                _baseBloomIntensity + 2f, 1.2f).SetUpdate(true).SetEase(Ease.OutQuad).SetTarget(this);
+
+            _chromatic.intensity.value = 1f;
+            DOTween.To(
+                () => _chromatic.intensity.value,
+                v => _chromatic.intensity.value = v,
+                0.2f, 1.5f).SetUpdate(true).SetEase(Ease.OutQuad).SetTarget(this);
+
+            _vignette.intensity.value = 0.7f;
+            DOTween.To(
+                () => _vignette.intensity.value,
+                v => _vignette.intensity.value = v,
+                _baseVignetteIntensity, 1.5f).SetUpdate(true).SetEase(Ease.OutQuad).SetTarget(this);
+
+            _colorGrading.saturation.value = 40f;
+            DOTween.To(
+                () => _colorGrading.saturation.value,
+                v => _colorGrading.saturation.value = v,
+                _baseSaturation, 1.5f).SetUpdate(true).SetEase(Ease.OutQuad).SetTarget(this);
+        }
+
+        public void PlayAbsorptionPulse()
+        {
+            _bloom.intensity.value = 5f;
+            DOTween.To(
+                () => _bloom.intensity.value,
+                v => _bloom.intensity.value = v,
+                _baseBloomIntensity, 0.8f).SetUpdate(true).SetEase(Ease.OutQuad).SetTarget(this);
+
+            _chromatic.intensity.value = 0.8f;
+            DOTween.To(
+                () => _chromatic.intensity.value,
+                v => _chromatic.intensity.value = v,
+                0f, 0.6f).SetUpdate(true).SetEase(Ease.OutQuad).SetTarget(this);
+
+            _lens.intensity.value = 40f;
+            DOTween.To(
+                () => _lens.intensity.value,
+                v => _lens.intensity.value = v,
+                _baseLensIntensity, 0.5f).SetUpdate(true).SetEase(Ease.OutBack).SetTarget(this);
+        }
+
         void RestoreDefaults()
         {
             DOTween.Kill(this);
@@ -212,6 +333,11 @@ namespace TypingDefense
                 () => _colorGrading.tint.value,
                 v => _colorGrading.tint.value = v,
                 _baseTint, 0.4f).SetUpdate(true).SetTarget(this);
+
+            DOTween.To(
+                () => _bloom.intensity.value,
+                v => _bloom.intensity.value = v,
+                _baseBloomIntensity, 0.4f).SetUpdate(true).SetTarget(this);
         }
 
         void RestoreImmediate()
@@ -222,6 +348,7 @@ namespace TypingDefense
             _lens.intensity.value = _baseLensIntensity;
             _colorGrading.temperature.value = _baseTemperature;
             _colorGrading.tint.value = _baseTint;
+            _bloom.intensity.value = _baseBloomIntensity;
         }
     }
 }

@@ -11,6 +11,7 @@ namespace TypingDefense
         public int CurrentLevel { get; private set; } = 1;
         public bool ShieldActive { get; private set; }
         public int PrestigeCurrency { get; private set; }
+        public bool BossDefeatedThisRun { get; private set; }
 
         public event Action<int> OnHpChanged;
         public event Action<int> OnLevelChanged;
@@ -23,13 +24,19 @@ namespace TypingDefense
             _gameFlow = gameFlow;
         }
 
-        public void StartRun()
+        public void StartRun(int level)
         {
             CurrentHp = _playerStats.MaxHp;
-            CurrentLevel = 1;
+            CurrentLevel = level;
             ShieldActive = _playerStats.ShieldProtocol;
+            BossDefeatedThisRun = false;
             OnHpChanged?.Invoke(CurrentHp);
             OnLevelChanged?.Invoke(CurrentLevel);
+        }
+
+        public void MarkBossDefeated()
+        {
+            BossDefeatedThisRun = true;
         }
 
         public void TakeDamage(int amount)
@@ -56,13 +63,6 @@ namespace TypingDefense
         {
             OnRunEnded?.Invoke();
             _gameFlow.HandleRunEnded();
-        }
-
-        public void AdvanceLevel()
-        {
-            CurrentLevel++;
-            if (_playerStats.ShieldProtocol) ShieldActive = true;
-            OnLevelChanged?.Invoke(CurrentLevel);
         }
 
         public void AddPrestigeCurrency(int amount)

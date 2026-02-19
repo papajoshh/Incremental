@@ -24,12 +24,10 @@ namespace TypingDefense
         [SerializeField] Image hpDamageFill;
         [SerializeField] Image energyFill;
         [SerializeField] Image killsFill;
+        [SerializeField] GameObject killBarGroup;
 
         [Header("Flash Overlays")]
         [SerializeField] Image damageFlash;
-
-        [Header("Retreat")]
-        [SerializeField] HoldButton retreatButton;
 
         RunManager runManager;
         EnergyTracker energyTracker;
@@ -37,7 +35,7 @@ namespace TypingDefense
         PlayerStats playerStats;
         GameFlowController gameFlow;
         CameraShaker cameraShaker;
-        RunConfig runConfig;
+        LevelProgressionConfig levelConfig;
         CollectionPhaseController collectionPhase;
 
         int killCount;
@@ -51,7 +49,7 @@ namespace TypingDefense
             PlayerStats playerStats,
             GameFlowController gameFlow,
             CameraShaker cameraShaker,
-            RunConfig runConfig,
+            LevelProgressionConfig levelConfig,
             CollectionPhaseController collectionPhase)
         {
             this.runManager = runManager;
@@ -60,7 +58,7 @@ namespace TypingDefense
             this.playerStats = playerStats;
             this.gameFlow = gameFlow;
             this.cameraShaker = cameraShaker;
-            this.runConfig = runConfig;
+            this.levelConfig = levelConfig;
             this.collectionPhase = collectionPhase;
 
             runManager.OnHpChanged += OnHpChanged;
@@ -69,12 +67,12 @@ namespace TypingDefense
             wordManager.OnWordCompleted += OnWordCompleted;
             wordManager.OnWordCriticalKill += OnWordCriticalKill;
             wordManager.OnWordReachedCenter += OnWordReachedCenter;
+            wordManager.OnBossSpawned += OnBossSpawned;
             wordManager.OnBossDefeated += OnBossDefeated;
-            wordManager.OnWarpAvailable += OnWarpAvailable;
+            wordManager.OnKillCountChanged += OnKillCountChanged;
             gameFlow.OnStateChanged += OnStateChanged;
             collectionPhase.OnTimerChanged += OnCollectionTimerChanged;
             collectionPhase.OnFreezeReleased += OnChargeReleaseFlash;
-            retreatButton.OnHoldCompleted += OnRetreatCompleted;
 
             InitFlashOverlays();
         }
@@ -92,12 +90,12 @@ namespace TypingDefense
             wordManager.OnWordCompleted -= OnWordCompleted;
             wordManager.OnWordCriticalKill -= OnWordCriticalKill;
             wordManager.OnWordReachedCenter -= OnWordReachedCenter;
+            wordManager.OnBossSpawned -= OnBossSpawned;
             wordManager.OnBossDefeated -= OnBossDefeated;
-            wordManager.OnWarpAvailable -= OnWarpAvailable;
+            wordManager.OnKillCountChanged -= OnKillCountChanged;
             gameFlow.OnStateChanged -= OnStateChanged;
             collectionPhase.OnTimerChanged -= OnCollectionTimerChanged;
             collectionPhase.OnFreezeReleased -= OnChargeReleaseFlash;
-            retreatButton.OnHoldCompleted -= OnRetreatCompleted;
         }
 
         void InitFlashOverlays()
@@ -114,24 +112,21 @@ namespace TypingDefense
 
             var isCollecting = state == GameState.Collecting;
 
-            // Swap energy bar for collection timer bar
             energyLabel.gameObject.SetActive(!isCollecting);
             energyFill.transform.parent.gameObject.SetActive(!isCollecting);
             collectionGroup.SetActive(isCollecting);
-            retreatButton.gameObject.SetActive(!isCollecting);
 
             // Hide kills bar during collection
             killsLabel.gameObject.SetActive(!isCollecting);
+            if (killBarGroup != null) killBarGroup.SetActive(!isCollecting);
             killsFill.transform.parent.gameObject.SetActive(!isCollecting);
 
             if (isCollecting)
             {
-                // Init collection bar full
                 collectionFill.fillAmount = 1f;
                 collectionFill.color = new Color(0.3f, 0.8f, 1f);
                 collectionTimerLabel.color = Color.white;
 
-                // Entrance animation
                 collectionGroup.transform.DOComplete();
                 collectionGroup.transform.localScale = Vector3.one * 1.3f;
                 collectionGroup.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack).SetUpdate(true);
@@ -155,7 +150,6 @@ namespace TypingDefense
             collectionFill.DOComplete();
             collectionFill.DOFillAmount(ratio, 0.15f).SetEase(Ease.OutQuad).SetUpdate(true);
 
-            // Color shift: cyan → orange → red as time runs out
             var barColor = ratio > 0.35f
                 ? Color.Lerp(new Color(1f, 0.6f, 0f), new Color(0.3f, 0.8f, 1f), (ratio - 0.35f) / 0.65f)
                 : Color.Lerp(Color.red, new Color(1f, 0.6f, 0f), ratio / 0.35f);
@@ -163,7 +157,6 @@ namespace TypingDefense
 
             if (time > 3f) return;
 
-            // Urgency: pulse the whole bar
             collectionGroup.transform.DOComplete();
             collectionGroup.transform.DOPunchScale(Vector3.one * 0.08f, 0.3f, 8, 0f).SetUpdate(true);
 
@@ -177,11 +170,6 @@ namespace TypingDefense
             damageFlash.DOComplete();
             damageFlash.color = new Color(1f, 1f, 1f, 0.5f);
             damageFlash.DOFade(0f, 0.4f).SetEase(Ease.OutQuad).SetUpdate(true);
-        }
-
-        void OnRetreatCompleted()
-        {
-            runManager.Retreat();
         }
 
         void OnHpChanged(int hp)
@@ -246,7 +234,7 @@ namespace TypingDefense
             cameraShaker.Shake(0.25f, 0.3f);
         }
 
-        void OnWordCompleted(DefenseWord word)
+        void OnKillCountChanged()
         {
             killCount++;
             UpdateKillsDisplay();
@@ -259,45 +247,45 @@ namespace TypingDefense
             killsLabel.DOColor(Color.white, 0.2f);
         }
 
-        void OnWordCriticalKill(DefenseWord word)
+        void OnWordCompleted(DefenseWord word)
         {
-            killCount++;
-            UpdateKillsDisplay();
-
-            killsLabel.transform.DOComplete();
-            killsLabel.transform.DOPunchScale(Vector3.one * 0.5f, 0.3f, 12, 0);
-
-            killsLabel.DOComplete();
-            killsLabel.color = new Color(1f, 0.84f, 0f);
-            killsLabel.DOColor(Color.white, 0.3f);
-
-            cameraShaker.Shake(0.15f, 0.12f);
+            cameraShaker.Shake(0.2f, 0.15f, 12);
         }
 
-        void OnWarpAvailable(DefenseWord warpWord)
+        void OnWordCriticalKill(DefenseWord word)
+        {
+            cameraShaker.Shake(0.45f, 0.3f, 18);
+
+            damageFlash.DOComplete();
+            damageFlash.color = new Color(1f, 0.84f, 0f, 0.15f);
+            damageFlash.DOFade(0f, 0.25f).SetEase(Ease.OutQuad);
+        }
+
+        void OnBossSpawned(DefenseWord word)
         {
             killsFill.DOComplete();
             killsFill.color = Color.white;
-            killsFill.DOColor(new Color(1f, 0.84f, 0f), 0.4f);
+            killsFill.DOColor(new Color(1f, 0.3f, 0f), 0.4f);
 
             killsFill.transform.parent.DOComplete();
             killsFill.transform.parent.DOPunchScale(Vector3.one * 0.3f, 0.35f, 10, 0.5f);
 
-            killsLabel.text = "WARP READY";
+            killsLabel.text = "BOSS!";
             killsLabel.transform.DOComplete();
-            killsLabel.transform.localScale = Vector3.one * 1.4f;
-            killsLabel.transform.DOScale(1f, 0.35f).SetEase(Ease.OutElastic);
+            killsLabel.transform.localScale = Vector3.one * 1.6f;
+            killsLabel.transform.DOScale(1f, 0.4f).SetEase(Ease.OutElastic);
 
             killsLabel.DOComplete();
-            killsLabel.color = new Color(1f, 0.84f, 0f);
-            killsLabel.DOColor(Color.white, 0.4f);
+            killsLabel.color = new Color(1f, 0.3f, 0f);
+            killsLabel.DOColor(Color.white, 0.5f);
 
-            cameraShaker.Shake(0.15f, 0.2f);
+            cameraShaker.Shake(0.3f, 0.3f);
         }
 
         void UpdateKillsDisplay()
         {
-            var target = runConfig.killsToWarp;
+            var config = levelConfig.GetLevel(runManager.CurrentLevel);
+            var target = config.killsForBoss;
             var ratio = (float)killCount / target;
 
             killsLabel.text = $"{killCount} / {target}";

@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55a2d6aa73ebc4b419f4d82b27abc437, type: 3}
+  m_Name: LevelProgressionConfig
+  m_EditorClassIdentifier: 
+  levels:
+  - displayName: Level 1
+    spawnInterval: 1.5
+    wordSpeed: 0.5
+    minWordLength: 4
+    maxWordLength: 7
+    minWordHp: 1
+    maxWordHp: 1
+    killsForBoss: 20
+    bossPrefab: {fileID: 4465446201335701578, guid: d75c0ee7878c3e94aab01169f9d42d4f, type: 3}
+    bossHp: 10
+    bossPrestigeReward: 1
+    drainInterval: 3
+  - displayName: Level 2
+    spawnInterval: 1.5
+    wordSpeed: 0.5
+    minWordLength: 4
+    maxWordLength: 7
+    minWordHp: 1
+    maxWordHp: 2
+    killsForBoss: 40
+    bossPrefab: {fileID: 4465446201335701578, guid: d75c0ee7878c3e94aab01169f9d42d4f, type: 3}
+    bossHp: 30
+    bossPrestigeReward: 2
+    drainInterval: 6

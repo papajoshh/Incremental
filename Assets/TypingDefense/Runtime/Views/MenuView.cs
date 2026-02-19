@@ -1,7 +1,7 @@
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+
 using Zenject;
 
 namespace TypingDefense
@@ -9,7 +9,6 @@ namespace TypingDefense
     public class MenuView : MonoBehaviour
     {
         [Header("Always Visible")]
-        [SerializeField] Button playBtn;
         [SerializeField] TextMeshProUGUI coinsLabel;
 
         [Header("Content")]
@@ -31,7 +30,6 @@ namespace TypingDefense
 
             gameFlow.OnStateChanged += OnStateChanged;
             letterTracker.OnCoinsChanged += RefreshLabels;
-            playBtn.onClick.AddListener(OnPlayClicked);
         }
 
         void Start()
@@ -43,7 +41,6 @@ namespace TypingDefense
         {
             gameFlow.OnStateChanged -= OnStateChanged;
             letterTracker.OnCoinsChanged -= RefreshLabels;
-            playBtn.onClick.RemoveListener(OnPlayClicked);
         }
 
         void OnStateChanged(GameState state)
@@ -65,11 +62,6 @@ namespace TypingDefense
 
             transform.localScale = Vector3.one * 0.9f;
             transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack).SetUpdate(true);
-        }
-
-        void OnPlayClicked()
-        {
-            gameFlow.StartRun();
         }
 
         void RefreshLabels()
