@@ -100,6 +100,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trail: {fileID: 2354682296612782020}
+  coinPopupPrefab: {fileID: 6207723043542366184, guid: f8c38826609e08147b23bf53561611a6, type: 3}
   ambientParticles: {fileID: 7029099664572874137}
 --- !u!1 &6381423615062320159
 GameObject:

@@ -8,6 +8,7 @@ namespace TypingDefense
     public class BlackHoleController : MonoBehaviour
     {
         [SerializeField] TrailRenderer trail;
+        [SerializeField] CoinPopup coinPopupPrefab;
         [SerializeField] ParticleSystem ambientParticles;
 
         CollectionPhaseConfig _config;
@@ -220,6 +221,11 @@ namespace TypingDefense
             _letterTracker.DirectAddCoins(coins);
             OnLetterCollected?.Invoke(letter);
             letter.Collect(transform.position);
+
+            var popupPos = transform.position + new Vector3(UnityEngine.Random.Range(-0.3f, 0.3f), 0.3f, 0f);
+            var streakBonus = Mathf.Lerp(0f, 0.3f, Mathf.Clamp01(_collectStreak / 20f));
+            var popup = CoinPopup.Get(coinPopupPrefab, popupPos);
+            popup.Play(coins, letter.Type, streakBonus);
 
             _collectStreak++;
             var punchIntensity = Mathf.Lerp(0.08f, 0.25f, Mathf.Clamp01(_collectStreak / 20f));

@@ -11,7 +11,7 @@ namespace TypingDefense
         [SerializeField] TextMeshPro label;
         [SerializeField] SpriteRenderer background;
 
-        static readonly Color[] LetterColors =
+        public static readonly Color[] LetterColors =
         {
             new(0.6f, 0.6f, 0.6f),   // A - grey
             new(0.3f, 0.7f, 1f),      // B - blue
