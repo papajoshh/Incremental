@@ -91,6 +91,7 @@ MonoBehaviour:
     connectedTo:
     - NODE_5
     - NODE_6
+    - NODE_7
     maxLevel: 1
     costsPerLevel: 01000000
     valuesPerLevel:
@@ -119,6 +120,16 @@ MonoBehaviour:
     - 0.5
     - 0.25
     - 0.05
+  - nodeId: NODE_7
+    upgradeId: 24
+    displayName: New Node
+    description: 
+    position: {x: -36.492855, y: 0.046429783}
+    connectedTo: []
+    maxLevel: 1
+    costsPerLevel: 64000000
+    valuesPerLevel:
+    - 1
   upgradeIcons:
   - upgradeId: 16
     icon: {fileID: 21300000, guid: a4d221b84e8a4954d9b8fc588ebce071, type: 3}

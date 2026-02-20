@@ -7,7 +7,10 @@ using Zenject;
 
 namespace TypingDefense
 {
-    public class UpgradeGraphView : MonoBehaviour, IPointerDownHandler, IDragHandler, IScrollHandler
+    public class UpgradeGraphView : MonoBehaviour,
+        IPointerDownHandler, IPointerUpHandler,
+        IDragHandler, IEndDragHandler,
+        IScrollHandler
     {
         [Header("Graph")]
         [SerializeField] RectTransform graphContainer;
@@ -22,6 +25,17 @@ namespace TypingDefense
         [SerializeField] float zoomMin = 0.5f;
         [SerializeField] float zoomMax = 2.5f;
         [SerializeField] float zoomSpeed = 0.1f;
+        [SerializeField] float panMargin = 100f;
+        [SerializeField] float dragThreshold = 5f;
+
+        const float PanDecay = 0.92f;
+        const float PanMinSpeed = 0.5f;
+        const float ElasticOvershoot = 0.3f;
+        const float ElasticSnapDuration = 0.25f;
+        const float ZoomLerpDuration = 0.12f;
+        const float SettleDuration = 0.3f;
+        const float TooltipSuppressDuration = 0.1f;
+        const float ZoomBounceAmount = 0.02f;
 
         UpgradeGraphConfig _graphConfig;
         UpgradeTracker _upgradeTracker;
@@ -33,7 +47,18 @@ namespace TypingDefense
 
         UpgradeNodeView _hoveredNode;
         float _currentZoom = 1f;
+        float _targetZoom = 1f;
         Vector2 _dragStart;
+        Vector2 _dragOrigin;
+        bool _isDragging;
+        bool _dragExceededThreshold;
+        Vector2 _panVelocity;
+        Vector2 _boundsMin;
+        Vector2 _boundsMax;
+        float _suppressTooltipUntil;
+        Tween _zoomTween;
+        Tween _elasticTween;
+        Tween _settleTween;
 
         [Inject]
         public void Construct(
@@ -59,6 +84,10 @@ namespace TypingDefense
             _upgradeTracker.OnNodePurchased -= OnNodePurchased;
             _letterTracker.OnCoinsChanged -= RefreshAllNodeVisuals;
             _gameFlow.OnStateChanged -= OnStateChanged;
+
+            _zoomTween?.Kill();
+            _elasticTween?.Kill();
+            _settleTween?.Kill();
         }
 
         void OnStateChanged(GameState state)
@@ -101,6 +130,8 @@ namespace TypingDefense
             }
 
             BuildAllConnections();
+            RecalculateNodeBounds();
+            ResetView();
         }
 
         void RevealNewNodes(string purchasedNodeId)
@@ -119,6 +150,8 @@ namespace TypingDefense
 
                 CreateConnection(parentNode.nodeId, childId);
             }
+
+            RecalculateNodeBounds();
         }
 
         void CreateNodeView(UpgradeNode node, float entranceDelay)
@@ -194,6 +227,7 @@ namespace TypingDefense
             lineRect.localRotation = Quaternion.Euler(0, 0, angle);
 
             var lineImage = lineGo.GetComponent<Image>();
+            lineImage.raycastTarget = false;
             var conn = new ConnectionLine(lineGo, lineImage, fromId, toId);
             UpdateConnectionColor(conn);
 
@@ -249,6 +283,9 @@ namespace TypingDefense
 
         void OnNodeHoverEnter(UpgradeNodeView nodeView)
         {
+            if (_isDragging) return;
+            if (Time.unscaledTime < _suppressTooltipUntil) return;
+
             _hoveredNode = nodeView;
 
             var node = _graphConfig.GetNode(nodeView.NodeId);
@@ -263,50 +300,231 @@ namespace TypingDefense
 
         void OnNodeHoverExit(UpgradeNodeView nodeView)
         {
+            if (_isDragging) return;
+
             _hoveredNode = null;
             tooltipView.Hide();
         }
 
         void OnNodeClicked(string nodeId)
         {
+            if (_dragExceededThreshold) return;
             _upgradeTracker.TryPurchase(nodeId);
         }
 
         // --- Pan & Zoom ---
 
+        void Update()
+        {
+            if (_isDragging) return;
+            if (_panVelocity.sqrMagnitude < PanMinSpeed * PanMinSpeed) return;
+
+            _panVelocity *= PanDecay;
+            graphContainer.anchoredPosition += _panVelocity * Time.unscaledDeltaTime;
+
+            if (_panVelocity.sqrMagnitude < PanMinSpeed * PanMinSpeed)
+            {
+                _panVelocity = Vector2.zero;
+                SnapBackIfOutOfBounds();
+            }
+        }
+
         public void OnPointerDown(PointerEventData eventData)
         {
+            _elasticTween?.Kill();
+            _settleTween?.Kill();
+            _panVelocity = Vector2.zero;
+
+            var parentRect = (RectTransform)transform;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                (RectTransform)transform, eventData.position, eventData.pressEventCamera, out _dragStart);
+                parentRect, eventData.position, eventData.pressEventCamera, out _dragStart);
+            _dragOrigin = _dragStart;
+            _isDragging = true;
+            _dragExceededThreshold = false;
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            if (!_isDragging) return;
+            _isDragging = false;
+            _suppressTooltipUntil = Time.unscaledTime + TooltipSuppressDuration;
+            SnapBackIfOutOfBounds();
         }
 
         public void OnDrag(PointerEventData eventData)
         {
+            var parentRect = (RectTransform)transform;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                (RectTransform)transform, eventData.position, eventData.pressEventCamera, out var current);
+                parentRect, eventData.position, eventData.pressEventCamera, out var current);
+
+            if (!_dragExceededThreshold)
+            {
+                if ((current - _dragOrigin).sqrMagnitude >= dragThreshold * dragThreshold)
+                {
+                    _dragExceededThreshold = true;
+                    tooltipView.Hide();
+                }
+                else
+                {
+                    _dragStart = current;
+                    return;
+                }
+            }
 
             var delta = current - _dragStart;
+            _panVelocity = delta / Time.unscaledDeltaTime;
             graphContainer.anchoredPosition += delta;
+            ClampPositionWithElasticOvershoot();
             _dragStart = current;
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            if (!_isDragging) return;
+            _isDragging = false;
+            _suppressTooltipUntil = Time.unscaledTime + TooltipSuppressDuration;
+            SnapBackIfOutOfBounds();
         }
 
         public void OnScroll(PointerEventData eventData)
         {
-            var previousZoom = _currentZoom;
-            _currentZoom += eventData.scrollDelta.y * zoomSpeed;
-            _currentZoom = Mathf.Clamp(_currentZoom, zoomMin, zoomMax);
+            var previousTarget = _targetZoom;
+            _targetZoom += eventData.scrollDelta.y * zoomSpeed;
+            _targetZoom = Mathf.Clamp(_targetZoom, zoomMin, zoomMax);
 
-            if (Mathf.Approximately(previousZoom, _currentZoom)) return;
+            if (Mathf.Approximately(previousTarget, _targetZoom)) return;
 
+            var hitLimit = Mathf.Approximately(_targetZoom, zoomMin) || Mathf.Approximately(_targetZoom, zoomMax);
+            if (hitLimit)
+                graphContainer.DOPunchScale(Vector3.one * ZoomBounceAmount, 0.2f, 6);
+
+            var parentRect = (RectTransform)transform;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                graphContainer, eventData.position, eventData.pressEventCamera, out var localMouse);
+                parentRect, eventData.position, eventData.pressEventCamera, out var pivotInParent);
 
-            var scaleFactor = _currentZoom / previousZoom;
+            var zoomFrom = _currentZoom;
+            var zoomTo = _targetZoom;
+
+            _zoomTween?.Kill();
+            _zoomTween = DOTween.To(() => _currentZoom, z =>
+            {
+                var prevZoom = _currentZoom;
+                _currentZoom = z;
+                graphContainer.localScale = Vector3.one * _currentZoom;
+
+                var ratio = _currentZoom / prevZoom;
+                var posRelativeToPivot = graphContainer.anchoredPosition - pivotInParent;
+                graphContainer.anchoredPosition = pivotInParent + posRelativeToPivot * ratio;
+            }, zoomTo, ZoomLerpDuration).SetEase(Ease.OutQuad).SetUpdate(true);
+        }
+
+        // --- Bounds & Elastic ---
+
+        void RecalculateNodeBounds()
+        {
+            if (_nodeViews.Count == 0)
+            {
+                _boundsMin = Vector2.zero;
+                _boundsMax = Vector2.zero;
+                return;
+            }
+
+            _boundsMin = new Vector2(float.MaxValue, float.MaxValue);
+            _boundsMax = new Vector2(float.MinValue, float.MinValue);
+
+            foreach (var kvp in _nodeViews)
+            {
+                var pos = ((RectTransform)kvp.Value.transform).anchoredPosition;
+                _boundsMin = Vector2.Min(_boundsMin, pos);
+                _boundsMax = Vector2.Max(_boundsMax, pos);
+            }
+
+            _boundsMin -= Vector2.one * panMargin;
+            _boundsMax += Vector2.one * panMargin;
+        }
+
+        Vector2 CalculateCentroid()
+        {
+            if (_nodeViews.Count == 0) return Vector2.zero;
+
+            var sum = Vector2.zero;
+            foreach (var kvp in _nodeViews)
+                sum += ((RectTransform)kvp.Value.transform).anchoredPosition;
+
+            return sum / _nodeViews.Count;
+        }
+
+        Vector2 ClampedPosition(Vector2 pos)
+        {
+            var parentRect = (RectTransform)transform;
+            var parentSize = parentRect.rect.size;
+            var halfParent = parentSize * 0.5f;
+
+            var scaledMin = _boundsMin * _currentZoom;
+            var scaledMax = _boundsMax * _currentZoom;
+
+            var clampMinX = halfParent.x - scaledMax.x;
+            var clampMaxX = -halfParent.x - scaledMin.x;
+            var clampMinY = halfParent.y - scaledMax.y;
+            var clampMaxY = -halfParent.y - scaledMin.y;
+
+            if (clampMinX > clampMaxX) clampMinX = clampMaxX = (clampMinX + clampMaxX) * 0.5f;
+            if (clampMinY > clampMaxY) clampMinY = clampMaxY = (clampMinY + clampMaxY) * 0.5f;
+
+            return new Vector2(
+                Mathf.Clamp(pos.x, clampMinX, clampMaxX),
+                Mathf.Clamp(pos.y, clampMinY, clampMaxY));
+        }
+
+        void ClampPositionWithElasticOvershoot()
+        {
+            var clamped = ClampedPosition(graphContainer.anchoredPosition);
+            var diff = graphContainer.anchoredPosition - clamped;
+
+            if (diff == Vector2.zero) return;
+
+            var parentSize = ((RectTransform)transform).rect.size;
+            var maxOvershoot = parentSize * ElasticOvershoot;
+            diff.x = Mathf.Clamp(diff.x, -maxOvershoot.x, maxOvershoot.x);
+            diff.y = Mathf.Clamp(diff.y, -maxOvershoot.y, maxOvershoot.y);
+            graphContainer.anchoredPosition = clamped + diff;
+        }
+
+        void SnapBackIfOutOfBounds()
+        {
+            var clamped = ClampedPosition(graphContainer.anchoredPosition);
+            if (graphContainer.anchoredPosition == clamped) return;
+
+            _panVelocity = Vector2.zero;
+            _elasticTween?.Kill();
+            _elasticTween = graphContainer
+                .DOAnchorPos(clamped, ElasticSnapDuration)
+                .SetEase(Ease.OutBack)
+                .SetUpdate(true);
+        }
+
+        // --- Reset View ---
+
+        void ResetView()
+        {
+            var centroid = CalculateCentroid();
+
+            _currentZoom = 0.9f;
+            _targetZoom = 1f;
             graphContainer.localScale = Vector3.one * _currentZoom;
+            graphContainer.anchoredPosition = -centroid * _currentZoom + new Vector2(0f, -15f);
+            _panVelocity = Vector2.zero;
 
-            var newLocalMouse = localMouse * scaleFactor;
-            var correction = (localMouse - newLocalMouse) * _currentZoom;
-            graphContainer.anchoredPosition += correction;
+            _settleTween?.Kill();
+            _settleTween = DOTween.Sequence()
+                .Append(DOTween.To(() => _currentZoom, z =>
+                {
+                    _currentZoom = z;
+                    graphContainer.localScale = Vector3.one * _currentZoom;
+                    graphContainer.anchoredPosition = -centroid * _currentZoom;
+                }, 1f, SettleDuration).SetEase(Ease.OutBack))
+                .SetUpdate(true)
+                .OnComplete(() => _targetZoom = _currentZoom);
         }
 
         // --- Helpers ---
