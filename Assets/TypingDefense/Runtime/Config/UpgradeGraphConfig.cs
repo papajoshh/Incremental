@@ -106,8 +106,6 @@ namespace TypingDefense
         public int BaseDamage = 1;
         public int BossBonusDamage = 0;
         public float EnergyPerBossHit = 0f;
-        public int PowerUpKillInterval = 10;
-        public float PowerUpDurationBonus = 0f;
         public float CollectionSpeed = 2f;
         public float LetterAttraction = 0f;
         public float CollectionDuration = 8f;

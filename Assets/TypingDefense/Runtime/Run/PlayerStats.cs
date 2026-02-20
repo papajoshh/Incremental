@@ -14,9 +14,6 @@ namespace TypingDefense
         public float EnergyPerKill;
         public float[] LetterDropChances = new float[5];
         public bool ShieldProtocol;
-        public int PowerUpKillInterval;
-        public float PowerUpDurationBonus;
-        public bool ComboBreaker;
 
         public int BaseDamage;
         public int BossBonusDamage;
@@ -46,12 +43,9 @@ namespace TypingDefense
             EnergyPerKill = b.EnergyPerKill;
             LetterDropChances = new float[5];
             ShieldProtocol = false;
-            ComboBreaker = false;
             BaseDamage = b.BaseDamage;
             BossBonusDamage = b.BossBonusDamage;
             EnergyPerBossHit = b.EnergyPerBossHit;
-            PowerUpKillInterval = b.PowerUpKillInterval;
-            PowerUpDurationBonus = b.PowerUpDurationBonus;
             CollectionSpeed = b.CollectionSpeed;
             LetterAttraction = b.LetterAttraction;
             CollectionDuration = b.CollectionDuration;
@@ -73,14 +67,7 @@ namespace TypingDefense
                     break;
                 case UpgradeId.AutoTypeCount: AutoTypeCount = (int)value; break;
                 case UpgradeId.EnergyPerKill: EnergyPerKill = value; break;
-                case UpgradeId.DropChanceB: LetterDropChances[(int)LetterType.B] = value; break;
-                case UpgradeId.DropChanceC: LetterDropChances[(int)LetterType.C] = value; break;
-                case UpgradeId.DropChanceD: LetterDropChances[(int)LetterType.D] = value; break;
-                case UpgradeId.DropChanceE: LetterDropChances[(int)LetterType.E] = value; break;
                 case UpgradeId.ShieldProtocol: ShieldProtocol = value >= 1f; break;
-                case UpgradeId.PowerUpKillInterval: PowerUpKillInterval = (int)value; break;
-                case UpgradeId.PowerUpDurationBonus: PowerUpDurationBonus = value; break;
-                case UpgradeId.ComboBreaker: ComboBreaker = value >= 1f; break;
                 case UpgradeId.BaseDamage: BaseDamage = (int)value; break;
                 case UpgradeId.BossBonusDamage: BossBonusDamage = (int)value; break;
                 case UpgradeId.EnergyPerBossHit: EnergyPerBossHit = value; break;
