@@ -48,6 +48,8 @@ namespace TypingDefense
             wordManager.OnWordTextChanged += OnWordTextChanged;
             wordManager.OnAllWordsDissipated += OnAllWordsDissipated;
             wordManager.OnExternalWordSpawned += OnExternalWordSpawned;
+            wordManager.OnAutoTargetAcquired += OnAutoTargetAcquired;
+            wordManager.OnAutoTargetLost += OnAutoTargetLost;
         }
 
         void OnDestroy()
@@ -63,6 +65,8 @@ namespace TypingDefense
             wordManager.OnWordTextChanged -= OnWordTextChanged;
             wordManager.OnAllWordsDissipated -= OnAllWordsDissipated;
             wordManager.OnExternalWordSpawned -= OnExternalWordSpawned;
+            wordManager.OnAutoTargetAcquired -= OnAutoTargetAcquired;
+            wordManager.OnAutoTargetLost -= OnAutoTargetLost;
         }
 
         public Vector3 GetWordPosition(DefenseWord word)
@@ -183,6 +187,30 @@ namespace TypingDefense
                 view.OnDissipated();
                 activeViews.Remove(word);
             }
+        }
+
+        void OnAutoTargetAcquired(DefenseWord word)
+        {
+            if (activeViews.TryGetValue(word, out var view))
+            {
+                view.SetTargeted(true);
+                return;
+            }
+
+            if (activeBossView != null && word.IsBoss)
+                activeBossView.SetTargeted(true);
+        }
+
+        void OnAutoTargetLost(DefenseWord word)
+        {
+            if (activeViews.TryGetValue(word, out var view))
+            {
+                view.SetTargeted(false);
+                return;
+            }
+
+            if (activeBossView != null && word.IsBoss)
+                activeBossView.SetTargeted(false);
         }
     }
 }

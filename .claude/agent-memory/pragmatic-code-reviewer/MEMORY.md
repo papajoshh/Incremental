@@ -172,3 +172,26 @@
 - WallViewBridge SIMPLIFIED: static segment views spawned once at init, no Factory. Refresh state, no destroy/recreate
 - WallRevealLevel in PlayerStats + UpgradeId APPROVED: standard upgrade pattern
 - Final class count: 4 new files (WallConfig, WallTracker, WallManager, WallSegmentView) + WallViewBridge, not 9
+
+### TypingDefense Review Decisions (Feb 2026 - BH Size/AutoTarget/CoinMult)
+- PlayerStats in DefenseWordView REJECTED: pass computed arrivalThreshold via Setup() param instead (zero new deps in Factory-spawned views)
+- WordViewBridge injected into WordManager REJECTED: breaks logic/view separation, creates circular dep
+- [Inject(Optional = true)] REJECTED: violates zero-defensive-programming rule. All Zenject deps are mandatory.
+- AutoTarget by position REJECTED: use domain criteria (lowest HP or highest match progress) instead. Avoids view dependency entirely.
+- AutoTarget selection in WordViewBridge ALTERNATIVE: if position truly needed, move selection logic to WordViewBridge (already has positions + WordManager ref)
+- _autoRemoval as field (like _pendingRemoval) instead of allocating new List each tick
+- CoinMultiplier in PlayerStats + apply in BlackHoleController.CollectLetter: APPROVED, trivial and clean
+- BlackHoleSizeBonus in PlayerStats: APPROVED for collectRadius and visual scale in BlackHoleController
+- 0 new files for 3 gameplay features: CORRECT, all extend existing classes
+
+### TypingDefense Review Decisions (Feb 2026 - AutoTarget Walls/Bosses)
+- WallManager/WallViewBridge injected into WordManager REJECTED: walls are WallManager's responsibility, not WordManager's
+- Wall auto-targeting lives in WallManager (already ITickable, has segments + CanTypeRing + PlayerStats)
+- Each manager handles its own auto-target pool independently (no unified distance comparison across types)
+- Boss in auto-target: trivially remove `|| word.IsBoss` from RefreshAutoTargets filter. Boss is already a DefenseWord in _activeWords
+- WordViewBridge fallback to activeBossView for boss targeting visual: ~4 lines, clean
+- BossWordView.SetTargeted: copy DefenseWordView pattern exactly, NO null check on targetIndicator
+- WallSegmentView.SetTargeted: same pattern, NO null check
+- "Temporary null check until prefab configured" REJECTED: configure the prefab, don't add defensive code
+- WordManager stays at current dep count (9 + 2 LazyInject), no growth
+- WordManager at ~330 lines post-boss-autotarget: still under 400 line threshold

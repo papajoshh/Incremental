@@ -50,7 +50,7 @@ namespace TypingDefense
             var targetPos = _blackHole.Position;
             targetPos.z = _rigOriginalPos.z;
 
-            var cameraBounds = _arenaView.GetCameraBounds();
+            var cameraBounds = _arenaView.GetCameraBounds(_camera.orthographicSize * _camera.aspect, _camera.orthographicSize);
             targetPos.x = Mathf.Clamp(targetPos.x, cameraBounds.xMin, cameraBounds.xMax);
             targetPos.y = Mathf.Clamp(targetPos.y, cameraBounds.yMin, cameraBounds.yMax);
 
@@ -141,6 +141,7 @@ namespace TypingDefense
             _isCharging = false;
             _camera.orthographicSize = _baseOrthographicSize;
             cameraTransform.localPosition = _cameraOriginalPos;
+            _rigTransform.position = _rigOriginalPos;
             _followVelocity = Vector3.zero;
         }
     }

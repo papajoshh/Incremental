@@ -9,8 +9,11 @@ namespace TypingDefense
         public float DrainMultiplier;
         public int LettersPerKill;
         public float CritChance;
-        public float AutoTypeInterval;
-        public int AutoTypeCount;
+        public bool AutoTargetUnlocked;
+        public float AutoTargetInterval;
+        public int AutoTargetCount;
+        public float BlackHoleSizeBonus;
+        public float CoinMultiplier;
         public float EnergyPerKill;
         public float[] LetterDropChances = new float[5];
         public bool ShieldProtocol;
@@ -38,8 +41,11 @@ namespace TypingDefense
             DrainMultiplier = b.DrainMultiplier;
             LettersPerKill = b.LettersPerKill;
             CritChance = b.CritChance;
-            AutoTypeInterval = b.AutoTypeInterval;
-            AutoTypeCount = b.AutoTypeCount;
+            AutoTargetUnlocked = false;
+            AutoTargetInterval = b.AutoTargetInterval;
+            AutoTargetCount = b.AutoTargetCount;
+            BlackHoleSizeBonus = b.BlackHoleSizeBonus;
+            CoinMultiplier = b.CoinMultiplier;
             EnergyPerKill = b.EnergyPerKill;
             LetterDropChances = new float[5];
             ShieldProtocol = false;
@@ -61,11 +67,15 @@ namespace TypingDefense
                 case UpgradeId.DrainMultiplier: DrainMultiplier = value; break;
                 case UpgradeId.LettersPerKill: LettersPerKill = (int)value; break;
                 case UpgradeId.CritChance: CritChance = value; break;
-                case UpgradeId.AutoTypeInterval:
-                    AutoTypeInterval = value;
-                    if (AutoTypeCount < 1) AutoTypeCount = 1;
+                case UpgradeId.AutoTargetUnlock:
+                    AutoTargetUnlocked = value >= 1f;
+                    if (AutoTargetUnlocked && AutoTargetCount < 1) AutoTargetCount = 1;
+                    if (AutoTargetUnlocked && AutoTargetInterval <= 0f) AutoTargetInterval = 1f;
                     break;
-                case UpgradeId.AutoTypeCount: AutoTypeCount = (int)value; break;
+                case UpgradeId.AutoTargetSpeed: AutoTargetInterval = value; break;
+                case UpgradeId.AutoTargetMulti: AutoTargetCount = (int)value; break;
+                case UpgradeId.BlackHoleSize: BlackHoleSizeBonus = value; break;
+                case UpgradeId.CoinMultiplier: CoinMultiplier = value; break;
                 case UpgradeId.EnergyPerKill: EnergyPerKill = value; break;
                 case UpgradeId.ShieldProtocol: ShieldProtocol = value >= 1f; break;
                 case UpgradeId.BaseDamage: BaseDamage = (int)value; break;

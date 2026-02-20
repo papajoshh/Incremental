@@ -101,6 +101,7 @@ namespace TypingDefense
 
         void EndCollection()
         {
+            _cameraShaker.ResetZoom();
             RestoreTimeScale();
             OnCollectionEnded?.Invoke();
             _gameFlow.HandleCollectionEnded();

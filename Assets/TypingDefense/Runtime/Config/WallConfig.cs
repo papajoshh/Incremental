@@ -27,7 +27,10 @@ namespace TypingDefense
     {
         public float width = 16f;
         public float height = 9f;
-        public int segmentsPerSide = 4;
+        public int segmentsPerWidth = 4;
+        public int segmentsPerHeight = 3;
+
+        public int GetSegmentsForSide(int side) => side < 2 ? segmentsPerWidth : segmentsPerHeight;
         public int wallWordMinLength = 3;
         public int wallWordMaxLength = 6;
     }

@@ -12,13 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68358a5765c5f5c429915c84a67187ec, type: 3}
   m_Name: WallConfig
   m_EditorClassIdentifier: 
-  rings: []
+  rings:
+  - width: 17.6
+    height: 9.9
+    segmentsPerWidth: 4
+    segmentsPerHeight: 2
+    wallWordMinLength: 4
+    wallWordMaxLength: 7
+  - width: 24
+    height: 13.5
+    segmentsPerWidth: 6
+    segmentsPerHeight: 3
+    wallWordMinLength: 7
+    wallWordMaxLength: 10
   blueWordSpawnInterval: 8
   blueWordSpeed: 1.2
   blueWordMinLength: 3
   blueWordMaxLength: 5
   blueWordCoinReward: 25
   segmentLineWidth: 0.08
-  wallLineColor: {r: 0.2, g: 0.6, b: 1, a: 1}
+  wallLineColor: {r: 1, g: 1, b: 1, a: 1}
   wallLineBreakColor: {r: 0.4, g: 0.9, b: 1, a: 1}
   wordRevealAlpha: 0.9

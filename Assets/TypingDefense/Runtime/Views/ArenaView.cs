@@ -7,7 +7,7 @@ namespace TypingDefense
     {
         [SerializeField] Transform centerPoint;
         [SerializeField] float edgeMargin = 1f;
-        [SerializeField] float cameraBoundsMargin = 2f;
+        [SerializeField] float cameraBoundsMargin;
 
         WallTracker _wallTracker;
         WallConfig _wallConfig;
@@ -34,14 +34,17 @@ namespace TypingDefense
             );
         }
 
-        public Rect GetCameraBounds()
+        public Rect GetCameraBounds(float viewHalfW, float viewHalfH)
         {
-            var bh = GetBHBounds();
+            var halfSize = _wallTracker.GetSpawnBoundsHalfSize();
+            var center = centerPoint.position;
+            var halfW = Mathf.Max(halfSize.x - viewHalfW + cameraBoundsMargin, 0f);
+            var halfH = Mathf.Max(halfSize.y - viewHalfH + cameraBoundsMargin, 0f);
             return new Rect(
-                bh.xMin + cameraBoundsMargin,
-                bh.yMin + cameraBoundsMargin,
-                Mathf.Max(bh.width - cameraBoundsMargin * 2f, 0.1f),
-                Mathf.Max(bh.height - cameraBoundsMargin * 2f, 0.1f)
+                center.x - halfW,
+                center.y - halfH,
+                halfW * 2f,
+                halfH * 2f
             );
         }
 

@@ -11,6 +11,7 @@ namespace TypingDefense
         [SerializeField] TextMeshPro wordLabel;
         [SerializeField] ParticleSystem breakParticles;
         [SerializeField] SpriteRenderer flashRenderer;
+        [SerializeField] SpriteRenderer targetIndicator;
 
         WallConfig _wallConfig;
         WallSegmentId _id;
@@ -20,6 +21,7 @@ namespace TypingDefense
 
         public WallSegmentId Id => _id;
         public bool IsRevealed => _revealed;
+        public Vector3 MidpointPosition { get; private set; }
 
         [Inject]
         public void Construct(WallConfig wallConfig)
@@ -44,6 +46,7 @@ namespace TypingDefense
 
             var midpoint = (startPoint + endPoint) / 2f;
             wordLabel.transform.position = midpoint;
+            MidpointPosition = midpoint;
             wordLabel.text = wordText;
             wordLabel.alpha = 0f;
 
@@ -89,6 +92,17 @@ namespace TypingDefense
             seq.Join(wordLabel.transform.DOPunchScale(Vector3.one * 0.2f, 0.3f, 8, 0.5f));
         }
 
+        public void SetTargeted(bool targeted)
+        {
+            targetIndicator.enabled = targeted;
+            targetIndicator.transform.DOKill();
+            if (!targeted) return;
+            targetIndicator.transform.rotation = Quaternion.identity;
+            targetIndicator.transform.DORotate(new Vector3(0, 0, -360), 3f, RotateMode.FastBeyond360)
+                .SetEase(Ease.Linear)
+                .SetLoops(-1);
+        }
+
         public void UpdateMatchProgress(int matchedCount, string fullText)
         {
             if (!_revealed || _broken) return;
@@ -118,6 +132,7 @@ namespace TypingDefense
         public void PlayBreakAnimation()
         {
             _broken = true;
+            SetTargeted(false);
 
             Time.timeScale = 0.1f;
             DOVirtual.DelayedCall(0.05f, () => Time.timeScale = 1f).SetUpdate(true);
@@ -184,6 +199,7 @@ namespace TypingDefense
             transform.DOKill();
             wordLabel.DOKill();
             if (flashRenderer != null) flashRenderer.DOKill();
+            targetIndicator.transform.DOKill();
         }
 
         public class Factory : PlaceholderFactory<WallSegmentView> { }

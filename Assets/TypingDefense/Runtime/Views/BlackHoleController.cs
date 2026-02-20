@@ -28,6 +28,7 @@ namespace TypingDefense
         public static float AttractionSpeed { get; private set; }
 
         public Vector3 Position => transform.position;
+        public float SizeBonus => _playerStats.BlackHoleSizeBonus;
 
         public event Action<PhysicalLetter> OnLetterCollected;
 
@@ -79,7 +80,8 @@ namespace TypingDefense
                     transform.position = _arenaView.CenterPosition;
                     gameObject.SetActive(true);
                     transform.localScale = Vector3.zero;
-                    transform.DOScale(1f, 2f).SetEase(Ease.OutBack);
+                    var visualScale = 1f + _playerStats.BlackHoleSizeBonus;
+                    transform.DOScale(visualScale, 2f).SetEase(Ease.OutBack);
                     trail.enabled = false;
                     ambientParticles.Play();
                     _collectStreak = 0;
@@ -112,14 +114,15 @@ namespace TypingDefense
             // Pulsing scale during charge — intensity builds over time
             transform.DOKill();
             var seq = DOTween.Sequence().SetUpdate(true);
+            var baseScale = 1f + _playerStats.BlackHoleSizeBonus;
             var steps = 8;
             var stepDur = chargeDuration / steps;
             for (var i = 0; i < steps; i++)
             {
                 var t = (float)(i + 1) / steps;
-                var pulseSize = Mathf.Lerp(1.05f, 1.25f, t * t);
+                var pulseSize = Mathf.Lerp(baseScale * 1.05f, baseScale * 1.25f, t * t);
                 seq.Append(transform.DOScale(pulseSize, stepDur * 0.4f).SetEase(Ease.OutQuad).SetUpdate(true));
-                seq.Append(transform.DOScale(1f, stepDur * 0.6f).SetEase(Ease.InQuad).SetUpdate(true));
+                seq.Append(transform.DOScale(baseScale, stepDur * 0.6f).SetEase(Ease.InQuad).SetUpdate(true));
             }
         }
 
@@ -129,8 +132,9 @@ namespace TypingDefense
 
             // Snap to normal scale after charge
             transform.DOKill();
-            transform.localScale = Vector3.one * 1.3f;
-            transform.DOScale(1f, 0.25f).SetEase(Ease.OutBack).SetUpdate(true);
+            var baseScale = 1f + _playerStats.BlackHoleSizeBonus;
+            transform.localScale = Vector3.one * (baseScale + 0.3f);
+            transform.DOScale(baseScale, 0.25f).SetEase(Ease.OutBack).SetUpdate(true);
         }
 
         void TransitionOut()
@@ -194,7 +198,8 @@ namespace TypingDefense
         void CheckLetterCollection()
         {
             var pos = transform.position;
-            var radiusSq = _config.collectRadius * _config.collectRadius;
+            var effectiveRadius = _config.collectRadius + _playerStats.BlackHoleSizeBonus;
+            var radiusSq = effectiveRadius * effectiveRadius;
 
             for (var i = PhysicalLetter.Active.Count - 1; i >= 0; i--)
             {
@@ -210,7 +215,8 @@ namespace TypingDefense
 
         void CollectLetter(PhysicalLetter letter)
         {
-            var coins = _letterConfig.GetConversionValue(letter.Type);
+            var baseCoins = _letterConfig.GetConversionValue(letter.Type);
+            var coins = Mathf.RoundToInt(baseCoins * _playerStats.CoinMultiplier);
             _letterTracker.DirectAddCoins(coins);
             OnLetterCollected?.Invoke(letter);
             letter.Collect(transform.position);

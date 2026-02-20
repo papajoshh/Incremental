@@ -68,6 +68,12 @@ namespace TypingDefense
             return _lookup[nodeId];
         }
 
+        public bool TryGetNode(string nodeId, out UpgradeNode node)
+        {
+            EnsureLookup();
+            return _lookup.TryGetValue(nodeId, out node);
+        }
+
         public UpgradeNode GetRootNode()
         {
             EnsureLookup();
@@ -100,8 +106,6 @@ namespace TypingDefense
         public float DrainMultiplier = 1f;
         public int LettersPerKill = 1;
         public float CritChance = 0f;
-        public float AutoTypeInterval = 0f;
-        public int AutoTypeCount = 0;
         public float EnergyPerKill = 0f;
         public int BaseDamage = 1;
         public int BossBonusDamage = 0;
@@ -109,6 +113,10 @@ namespace TypingDefense
         public float CollectionSpeed = 2f;
         public float LetterAttraction = 0f;
         public float CollectionDuration = 8f;
+        public float AutoTargetInterval = 0f;
+        public int AutoTargetCount = 0;
+        public float BlackHoleSizeBonus = 0f;
+        public float CoinMultiplier = 1f;
     }
 
     [Serializable]

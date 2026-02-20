@@ -23,7 +23,8 @@ namespace TypingDefense
             for (var i = 0; i < config.rings.Length; i++)
             {
                 _ringOffsets[i] = total;
-                total += config.rings[i].segmentsPerSide * 4;
+                var rc = config.rings[i];
+                total += rc.segmentsPerWidth * 2 + rc.segmentsPerHeight * 2;
             }
 
             _totalSegments = total;
@@ -34,7 +35,8 @@ namespace TypingDefense
 
         public int ToFlatIndex(WallSegmentId id)
         {
-            return _ringOffsets[id.Ring] + id.Side * _config.rings[id.Ring].segmentsPerSide + id.Index;
+            var rc = _config.rings[id.Ring];
+            return _ringOffsets[id.Ring] + GetSideOffset(rc, id.Side) + id.Index;
         }
 
         public WallSegmentId FromFlatIndex(int flatIndex)
@@ -44,10 +46,15 @@ namespace TypingDefense
                 if (flatIndex < _ringOffsets[ring]) continue;
 
                 var local = flatIndex - _ringOffsets[ring];
-                var segsPerSide = _config.rings[ring].segmentsPerSide;
-                var side = local / segsPerSide;
-                var index = local % segsPerSide;
-                return new WallSegmentId(ring, side, index);
+                var rc = _config.rings[ring];
+                var side = 0;
+                for (; side < 4; side++)
+                {
+                    var segs = rc.GetSegmentsForSide(side);
+                    if (local < segs) break;
+                    local -= segs;
+                }
+                return new WallSegmentId(ring, side, local);
             }
 
             return new WallSegmentId(0, 0, 0);
@@ -69,10 +76,11 @@ namespace TypingDefense
 
         public bool IsSideBroken(int ring, int side)
         {
-            var segsPerSide = _config.rings[ring].segmentsPerSide;
-            var offset = _ringOffsets[ring] + side * segsPerSide;
+            var rc = _config.rings[ring];
+            var segs = rc.GetSegmentsForSide(side);
+            var offset = _ringOffsets[ring] + GetSideOffset(rc, side);
 
-            for (var i = 0; i < segsPerSide; i++)
+            for (var i = 0; i < segs; i++)
             {
                 if (!_broken[offset + i]) return false;
             }
@@ -82,10 +90,11 @@ namespace TypingDefense
 
         public bool IsSidePartiallyBroken(int ring, int side)
         {
-            var segsPerSide = _config.rings[ring].segmentsPerSide;
-            var offset = _ringOffsets[ring] + side * segsPerSide;
+            var rc = _config.rings[ring];
+            var segs = rc.GetSegmentsForSide(side);
+            var offset = _ringOffsets[ring] + GetSideOffset(rc, side);
 
-            for (var i = 0; i < segsPerSide; i++)
+            for (var i = 0; i < segs; i++)
             {
                 if (_broken[offset + i]) return true;
             }
@@ -175,10 +184,10 @@ namespace TypingDefense
         {
             for (var ring = 0; ring < _config.rings.Length; ring++)
             {
-                var segsPerSide = _config.rings[ring].segmentsPerSide;
                 for (var side = 0; side < 4; side++)
                 {
-                    for (var index = 0; index < segsPerSide; index++)
+                    var segs = _config.rings[ring].GetSegmentsForSide(side);
+                    for (var index = 0; index < segs; index++)
                         yield return new WallSegmentId(ring, side, index);
                 }
             }
@@ -207,6 +216,17 @@ namespace TypingDefense
             if (next >= _config.rings.Length)
                 return _config.rings[currentRing].height / 2f + 4f;
             return _config.rings[next].height / 2f;
+        }
+
+        int GetSideOffset(WallRingConfig rc, int side)
+        {
+            return side switch
+            {
+                0 => 0,
+                1 => rc.segmentsPerWidth,
+                2 => rc.segmentsPerWidth * 2,
+                _ => rc.segmentsPerWidth * 2 + rc.segmentsPerHeight,
+            };
         }
     }
 }

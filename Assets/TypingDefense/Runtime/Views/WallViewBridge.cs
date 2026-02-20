@@ -43,7 +43,7 @@ namespace TypingDefense
             _wallManager.OnSegmentCharMatched += OnSegmentCharMatched;
             _upgradeTracker.OnNodePurchased += OnNodePurchased;
         }
-
+        
         void Start()
         {
             SpawnAllSegments();
@@ -69,7 +69,7 @@ namespace TypingDefense
                 var halfW = ring.width / 2f;
                 var halfH = ring.height / 2f;
 
-                GetSegmentEndpoints(center, halfW, halfH, id.Side, id.Index, ring.segmentsPerSide,
+                GetSegmentEndpoints(center, halfW, halfH, id.Side, id.Index, ring.GetSegmentsForSide(id.Side),
                     out var startPoint, out var endPoint);
 
                 var word = _wallManager.GetWallWord(id);
@@ -130,6 +130,19 @@ namespace TypingDefense
                     return;
                 }
             }
+        }
+
+        public Vector3 GetSegmentPosition(WallSegmentId id)
+        {
+            return _activeViews[id].MidpointPosition;
+        }
+
+        public bool HasView(WallSegmentId id) => _activeViews.ContainsKey(id);
+
+        public void SetSegmentTargeted(WallSegmentId id, bool targeted)
+        {
+            if (!_activeViews.TryGetValue(id, out var view)) return;
+            view.SetTargeted(targeted);
         }
 
         void OnSegmentBroken(WallSegmentId id)

@@ -447,7 +447,7 @@ namespace TypingDefense.Editor
 
         Rect GetBaseStatsRect()
         {
-            return new Rect(10, 30, 220, 540);
+            return new Rect(10, 30, 220, 660);
         }
 
         void DrawBaseStatsPanel()
@@ -480,19 +480,22 @@ namespace TypingDefense.Editor
             EditorGUILayout.Space(4);
             EditorGUILayout.LabelField("Economy", EditorStyles.miniLabel);
             b.LettersPerKill = EditorGUILayout.IntField("Letters/Kill", b.LettersPerKill);
-
-            EditorGUILayout.Space(4);
-            EditorGUILayout.LabelField("Utility", EditorStyles.miniLabel);
-            b.AutoTypeInterval = EditorGUILayout.FloatField("AutoType Interval", b.AutoTypeInterval);
-            b.AutoTypeCount = EditorGUILayout.IntField("AutoType Count", b.AutoTypeCount);
-            b.PowerUpKillInterval = EditorGUILayout.IntField("PowerUp Interval", b.PowerUpKillInterval);
-            b.PowerUpDurationBonus = EditorGUILayout.FloatField("PowerUp Bonus", b.PowerUpDurationBonus);
+            b.CoinMultiplier = EditorGUILayout.FloatField("Coin Multiplier", b.CoinMultiplier);
 
             EditorGUILayout.Space(4);
             EditorGUILayout.LabelField("Collection", EditorStyles.miniLabel);
             b.CollectionDuration = EditorGUILayout.FloatField("Collection Duration", b.CollectionDuration);
             b.CollectionSpeed = EditorGUILayout.FloatField("Collection Speed", b.CollectionSpeed);
             b.LetterAttraction = EditorGUILayout.FloatField("Letter Attraction", b.LetterAttraction);
+
+            EditorGUILayout.Space(4);
+            EditorGUILayout.LabelField("Black Hole", EditorStyles.miniLabel);
+            b.BlackHoleSizeBonus = EditorGUILayout.FloatField("Size Bonus", b.BlackHoleSizeBonus);
+
+            EditorGUILayout.Space(4);
+            EditorGUILayout.LabelField("Auto Target", EditorStyles.miniLabel);
+            b.AutoTargetInterval = EditorGUILayout.FloatField("Interval", b.AutoTargetInterval);
+            b.AutoTargetCount = EditorGUILayout.IntField("Count", b.AutoTargetCount);
 
             GUILayout.EndArea();
         }

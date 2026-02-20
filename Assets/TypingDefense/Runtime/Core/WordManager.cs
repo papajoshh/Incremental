@@ -15,11 +15,20 @@ namespace TypingDefense
         readonly RunManager _runManager;
         readonly GameFlowController _gameFlow;
 
+        readonly LazyInject<WordViewBridge> _wordViewBridge;
+        readonly LazyInject<BlackHoleController> _blackHole;
+        readonly LazyInject<WallManager> _wallManager;
+        readonly LazyInject<WallViewBridge> _wallViewBridge;
+
         readonly List<DefenseWord> _activeWords = new();
         readonly List<DefenseWord> _pendingRemoval = new();
+        readonly List<DefenseWord> _autoTargets = new();
+        readonly List<DefenseWord> _autoRemoval = new();
+        readonly List<WallSegmentId> _autoWallTargets = new();
+        readonly List<WallSegmentId> _autoWallRemoval = new();
 
         float _spawnTimer;
-        float _autoTypeTimer;
+        float _autoTargetTimer;
         int _killCount;
         DefenseWord _bossWord;
         bool _spawnPaused;
@@ -36,6 +45,8 @@ namespace TypingDefense
         public event Action OnKillCountChanged;
         public event Action<IReadOnlyList<DefenseWord>> OnAllWordsDissipated;
         public event Action<DefenseWord, Vector3, float> OnExternalWordSpawned;
+        public event Action<DefenseWord> OnAutoTargetAcquired;
+        public event Action<DefenseWord> OnAutoTargetLost;
 
         LevelConfig CurrentLevelConfig => _levelConfig.GetLevel(_runManager.CurrentLevel);
 
@@ -48,7 +59,11 @@ namespace TypingDefense
             PlayerStats playerStats,
             EnergyTracker energyTracker,
             RunManager runManager,
-            GameFlowController gameFlow)
+            GameFlowController gameFlow,
+            LazyInject<WordViewBridge> wordViewBridge,
+            LazyInject<BlackHoleController> blackHole,
+            LazyInject<WallManager> wallManager,
+            LazyInject<WallViewBridge> wallViewBridge)
         {
             _wordPool = wordPool;
             _levelConfig = levelConfig;
@@ -57,6 +72,10 @@ namespace TypingDefense
             _energyTracker = energyTracker;
             _runManager = runManager;
             _gameFlow = gameFlow;
+            _wordViewBridge = wordViewBridge;
+            _blackHole = blackHole;
+            _wallManager = wallManager;
+            _wallViewBridge = wallViewBridge;
         }
 
         public void Tick()
@@ -66,7 +85,7 @@ namespace TypingDefense
             if (!_spawnPaused)
                 UpdateSpawnTimer(Time.deltaTime);
 
-            UpdateAutoType(Time.deltaTime);
+            UpdateAutoTarget(Time.deltaTime);
             ProcessInput();
         }
 
@@ -97,7 +116,9 @@ namespace TypingDefense
             _bossWord = null;
             _spawnPaused = false;
             _spawnTimer = CurrentLevelConfig.spawnInterval;
-            _autoTypeTimer = _playerStats.AutoTypeInterval;
+            _autoTargetTimer = _playerStats.AutoTargetInterval;
+            _autoTargets.Clear();
+            _autoWallTargets.Clear();
         }
 
         public IReadOnlyList<DefenseWord> GetActiveWords() => _activeWords;
@@ -242,51 +263,139 @@ namespace TypingDefense
             OnBossSpawned?.Invoke(_bossWord);
         }
 
-        void UpdateAutoType(float dt)
+        void UpdateAutoTarget(float dt)
         {
-            if (_playerStats.AutoTypeInterval <= 0f) return;
+            if (!_playerStats.AutoTargetUnlocked) return;
+            if (_playerStats.AutoTargetInterval <= 0f) return;
 
-            _autoTypeTimer -= dt;
-            if (_autoTypeTimer > 0f) return;
+            _autoTargetTimer -= dt;
+            if (_autoTargetTimer > 0f) return;
+            _autoTargetTimer = _playerStats.AutoTargetInterval;
 
-            _autoTypeTimer = _playerStats.AutoTypeInterval;
+            RefreshAutoTargets();
+            if (_autoTargets.Count == 0 && _autoWallTargets.Count == 0) return;
 
-            var nextChars = new HashSet<char>();
-            foreach (var word in _activeWords)
+            // Process word/boss targets
+            _autoRemoval.Clear();
+            foreach (var target in _autoTargets)
             {
-                if (!word.IsCompleted)
-                    nextChars.Add(word.NextChar);
+                if (target.IsCompleted) continue;
+                target.TryMatchChar(target.NextChar);
+
+                if (!target.IsCompleted) continue;
+                if (ApplyDamageToWord(target))
+                    _autoRemoval.Add(target);
             }
 
-            if (nextChars.Count == 0) return;
-
-            var charList = new List<char>(nextChars);
-            var count = Mathf.Min(_playerStats.AutoTypeCount, charList.Count);
-            var autoRemoval = new List<DefenseWord>();
-
-            for (var i = 0; i < count; i++)
+            foreach (var word in _autoRemoval)
             {
-                var idx = UnityEngine.Random.Range(0, charList.Count);
-                var chosen = charList[idx];
-                charList.RemoveAt(idx);
+                _activeWords.Remove(word);
+                _autoTargets.Remove(word);
+                OnAutoTargetLost?.Invoke(word);
+                CompleteWord(word);
+            }
 
+            // Process wall targets
+            _autoWallRemoval.Clear();
+            foreach (var segmentId in _autoWallTargets)
+            {
+                var completed = _wallManager.Value.TryAutoTypeSegment(segmentId);
+                if (!completed) continue;
+
+                _autoWallRemoval.Add(segmentId);
+            }
+
+            foreach (var segmentId in _autoWallRemoval)
+            {
+                _autoWallTargets.Remove(segmentId);
+                _wallViewBridge.Value.SetSegmentTargeted(segmentId, false);
+
+                _energyTracker.AddEnergy(_playerStats.EnergyPerKill);
+                _killCount++;
+                OnKillCountChanged?.Invoke();
+
+                if (_killCount >= CurrentLevelConfig.killsForBoss && _bossWord == null)
+                    SpawnBoss();
+            }
+        }
+
+        void RefreshAutoTargets()
+        {
+            // Purge stale word targets
+            for (var i = _autoTargets.Count - 1; i >= 0; i--)
+            {
+                var w = _autoTargets[i];
+                if (!w.IsCompleted && _activeWords.Contains(w)) continue;
+                _autoTargets.RemoveAt(i);
+                OnAutoTargetLost?.Invoke(w);
+            }
+
+            // Purge stale wall targets
+            for (var i = _autoWallTargets.Count - 1; i >= 0; i--)
+            {
+                var id = _autoWallTargets[i];
+                if (_wallManager.Value.IsSegmentAutoTargetable(id)) continue;
+                _autoWallTargets.RemoveAt(i);
+                _wallViewBridge.Value.SetSegmentTargeted(id, false);
+            }
+
+            var maxTargets = Mathf.Max(1, _playerStats.AutoTargetCount);
+            var currentCount = _autoTargets.Count + _autoWallTargets.Count;
+            if (currentCount >= maxTargets) return;
+
+            var bhPos = _blackHole.Value.Position;
+            var slotsToFill = maxTargets - currentCount;
+
+            for (var s = 0; s < slotsToFill; s++)
+            {
+                var closestDist = float.MaxValue;
+                DefenseWord closestWord = null;
+                WallSegmentId? closestWall = null;
+
+                // Check all words (normal + boss)
                 foreach (var word in _activeWords)
                 {
                     if (word.IsCompleted) continue;
-                    if (!word.TryMatchChar(chosen)) continue;
+                    if (_autoTargets.Contains(word)) continue;
 
-                    if (word.IsCompleted)
-                    {
-                        if (ApplyDamageToWord(word))
-                            autoRemoval.Add(word);
-                    }
+                    var pos = _wordViewBridge.Value.GetWordPosition(word);
+                    var dist = (pos - bhPos).sqrMagnitude;
+                    if (dist >= closestDist) continue;
+
+                    closestDist = dist;
+                    closestWord = word;
+                    closestWall = null;
                 }
-            }
 
-            foreach (var word in autoRemoval)
-            {
-                _activeWords.Remove(word);
-                CompleteWord(word);
+                // Check wall segments
+                foreach (var id in _wallManager.Value.GetAutoTargetableSegments())
+                {
+                    if (_autoWallTargets.Contains(id)) continue;
+                    if (!_wallViewBridge.Value.HasView(id)) continue;
+
+                    var pos = _wallViewBridge.Value.GetSegmentPosition(id);
+                    var dist = (pos - bhPos).sqrMagnitude;
+                    if (dist >= closestDist) continue;
+
+                    closestDist = dist;
+                    closestWall = id;
+                    closestWord = null;
+                }
+
+                if (closestWord != null)
+                {
+                    _autoTargets.Add(closestWord);
+                    OnAutoTargetAcquired?.Invoke(closestWord);
+                }
+                else if (closestWall.HasValue)
+                {
+                    _autoWallTargets.Add(closestWall.Value);
+                    _wallViewBridge.Value.SetSegmentTargeted(closestWall.Value, true);
+                }
+                else
+                {
+                    break;
+                }
             }
         }
     }

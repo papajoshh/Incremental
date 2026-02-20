@@ -19,17 +19,17 @@ MonoBehaviour:
     DrainMultiplier: 1
     LettersPerKill: 1
     CritChance: 0
-    AutoTypeInterval: 0
-    AutoTypeCount: 0
     EnergyPerKill: 0
     BaseDamage: 1
     BossBonusDamage: 0
     EnergyPerBossHit: 0
-    PowerUpKillInterval: 10
-    PowerUpDurationBonus: 0
     CollectionSpeed: 0.6
     LetterAttraction: 0
     CollectionDuration: 5
+    AutoTargetInterval: 0
+    AutoTargetCount: 0
+    BlackHoleSizeBonus: 0
+    CoinMultiplier: 1
   nodes:
   - nodeId: ROOT
     upgradeId: 1
@@ -40,6 +40,7 @@ MonoBehaviour:
     - NODE_1
     - NODE_2
     - NODE_3
+    - NODE_4
     maxLevel: 3
     costsPerLevel: 010000000300000005000000
     valuesPerLevel:
@@ -82,12 +83,78 @@ MonoBehaviour:
     - 1
     - 1
     - 1
+  - nodeId: NODE_4
+    upgradeId: 25
+    displayName: New Node
+    description: 
+    position: {x: -10.9500065, y: 0.025003053}
+    connectedTo:
+    - NODE_5
+    - NODE_6
+    maxLevel: 1
+    costsPerLevel: 01000000
+    valuesPerLevel:
+    - 1
+  - nodeId: NODE_5
+    upgradeId: 27
+    displayName: New Node
+    description: 
+    position: {x: -10.999999, y: 6.6250024}
+    connectedTo: []
+    maxLevel: 3
+    costsPerLevel: 010000000100000001000000
+    valuesPerLevel:
+    - 2
+    - 3
+    - 4
+  - nodeId: NODE_6
+    upgradeId: 0
+    displayName: New Node
+    description: 
+    position: {x: -10.899996, y: -5.575001}
+    connectedTo: []
+    maxLevel: 3
+    costsPerLevel: 010000000100000001000000
+    valuesPerLevel:
+    - 0.5
+    - 0.25
+    - 0.05
   upgradeIcons:
   - upgradeId: 16
-    icon: {fileID: 21300000, guid: 89aa9292944cbe24b98b3689ce83a0f6, type: 3}
+    icon: {fileID: 21300000, guid: a4d221b84e8a4954d9b8fc588ebce071, type: 3}
   - upgradeId: 19
-    icon: {fileID: 21300000, guid: 5a1249ed197a292488eac721c2f8adb6, type: 3}
+    icon: {fileID: 21300000, guid: 9083a13b80dca264b993c97566047984, type: 3}
   - upgradeId: 7
-    icon: {fileID: 21300000, guid: ce91a8f993fc941409b0112afdfcacf6, type: 3}
+    icon: {fileID: 21300000, guid: 77eaad58cd2658d40b979a8c95a5ac36, type: 3}
   - upgradeId: 1
-    icon: {fileID: 21300000, guid: a2441c0a0e61d6d4e8340e574986e1b9, type: 3}
+    icon: {fileID: 21300000, guid: 6368078a10143fd46b0a5e57544296fe, type: 3}
+  - upgradeId: 23
+    icon: {fileID: 21300000, guid: 004a7fa38e448bb4ea65741f18a443f6, type: 3}
+  - upgradeId: 22
+    icon: {fileID: 21300000, guid: 004a7fa38e448bb4ea65741f18a443f6, type: 3}
+  - upgradeId: 0
+    icon: {fileID: 21300000, guid: 68cbf2c3da09c2849b1caf04a664a20a, type: 3}
+  - upgradeId: 20
+    icon: {fileID: 21300000, guid: 31f90592d85daf9479dd89e94c8d45d3, type: 3}
+  - upgradeId: 12
+    icon: {fileID: 21300000, guid: 4504b7149bed0e24c91e912315864282, type: 3}
+  - upgradeId: 17
+    icon: {fileID: 21300000, guid: 139cb58cf733af4439f09842baa6352f, type: 3}
+  - upgradeId: 3
+    icon: {fileID: 21300000, guid: 081aa265b4ea39f4996485e83ba84d59, type: 3}
+  - upgradeId: 18
+    icon: {fileID: 21300000, guid: 74a6cb5736e1b724a8445b25230882ec, type: 3}
+  - upgradeId: 21
+    icon: {fileID: 21300000, guid: f9cec8cc385ddab49abfc062ffccf85e, type: 3}
+  - upgradeId: 25
+    icon: {fileID: 21300000, guid: 5766738612a76ab47a3fd3c047292975, type: 3}
+  - upgradeId: 27
+    icon: {fileID: 21300000, guid: 5766738612a76ab47a3fd3c047292975, type: 3}
+  - upgradeId: 26
+    icon: {fileID: 21300000, guid: 5766738612a76ab47a3fd3c047292975, type: 3}
+  - upgradeId: 24
+    icon: {fileID: 21300000, guid: 61eb24921c2cebc469fc86d05a07fdd7, type: 3}
+  - upgradeId: 28
+    icon: {fileID: 21300000, guid: 1a423c32d5c069945ab3261845bef20e, type: 3}
+  - upgradeId: 2
+    icon: {fileID: 21300000, guid: a84e6f2236e20934a84db1f3c957a9f4, type: 3}

@@ -91,6 +91,7 @@ namespace TypingDefense
 
             foreach (var entry in data)
             {
+                if (!_graphConfig.TryGetNode(entry.NodeId, out _)) continue;
                 _nodeLevels[entry.NodeId] = entry.Level;
                 if (entry.Level > 0)
                     RevealConnections(entry.NodeId);

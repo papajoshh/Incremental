@@ -7,9 +7,7 @@ namespace TypingDefense
         DrainMultiplier,
         LettersPerKill,
         CritChance,
-        AutoTypeInterval,
-        AutoTypeCount,
-        EnergyPerKill,
+        EnergyPerKill = 7,
         ShieldProtocol = 12,
         BaseDamage = 16,
         BossBonusDamage,
@@ -19,5 +17,10 @@ namespace TypingDefense
         CollectionDuration,
         WallRevealRing0,
         WallRevealRing1,
+        BlackHoleSize = 24,
+        AutoTargetUnlock,
+        AutoTargetSpeed,
+        AutoTargetMulti,
+        CoinMultiplier = 28,
     }
 }

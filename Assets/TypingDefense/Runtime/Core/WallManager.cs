@@ -96,6 +96,36 @@ namespace TypingDefense
 
         bool CanTypeRing(int ring) => _playerStats.WallRevealLevel > ring;
 
+        public bool TryAutoTypeSegment(WallSegmentId id)
+        {
+            var word = _wallWords[id];
+            word.TryMatchChar(word.NextChar);
+            OnSegmentCharMatched?.Invoke(id, word.MatchedCount);
+
+            if (!word.IsCompleted) return false;
+
+            _tracker.BreakSegment(id);
+            OnSegmentWordCompleted?.Invoke(id);
+            return true;
+        }
+
+        public bool IsSegmentAutoTargetable(WallSegmentId id)
+        {
+            if (_tracker.IsBroken(id)) return false;
+            if (!CanTypeRing(id.Ring)) return false;
+            return _wallWords.ContainsKey(id);
+        }
+
+        public IEnumerable<WallSegmentId> GetAutoTargetableSegments()
+        {
+            foreach (var (id, word) in _wallWords)
+            {
+                if (_tracker.IsBroken(id)) continue;
+                if (!CanTypeRing(id.Ring)) continue;
+                yield return id;
+            }
+        }
+
         void UpdateBlueWordSpawner(float dt)
         {
             var brokenSides = _tracker.GetSidesWithBrokenSegments();

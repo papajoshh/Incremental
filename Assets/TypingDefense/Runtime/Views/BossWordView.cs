@@ -11,6 +11,7 @@ namespace TypingDefense
         [SerializeField] SpriteRenderer glowRenderer;
         [SerializeField] SpriteRenderer hpBarBg;
         [SerializeField] SpriteRenderer hpBarFill;
+        [SerializeField] SpriteRenderer targetIndicator;
 
         static readonly Color HealthyColor = new(0.3f, 0.85f, 0.2f);
         static readonly Color HurtColor = new(1f, 0.85f, 0f);
@@ -151,9 +152,21 @@ namespace TypingDefense
             transform.DOPunchScale(Vector3.one * 0.2f, 0.2f, 8);
         }
 
+        public void SetTargeted(bool targeted)
+        {
+            targetIndicator.enabled = targeted;
+            targetIndicator.transform.DOKill();
+            if (!targeted) return;
+            targetIndicator.transform.rotation = Quaternion.identity;
+            targetIndicator.transform.DORotate(new Vector3(0, 0, -360), 3f, RotateMode.FastBeyond360)
+                .SetEase(Ease.Linear)
+                .SetLoops(-1);
+        }
+
         public void OnDefeated()
         {
             isDead = true;
+            SetTargeted(false);
 
             label.color = Color.white;
             label.DOColor(new Color(1f, 0.5f, 0f, 0f), 0.6f).SetUpdate(true);
@@ -173,6 +186,8 @@ namespace TypingDefense
 
         void OnDestroy()
         {
+            transform.DOKill();
+            targetIndicator.transform.DOKill();
             if (glowMaterial != null)
                 Destroy(glowMaterial);
         }

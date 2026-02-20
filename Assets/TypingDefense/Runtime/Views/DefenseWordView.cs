@@ -12,6 +12,7 @@ namespace TypingDefense
         [SerializeField] SpriteRenderer hpBarBg;
         [SerializeField] SpriteRenderer hpBarFill;
         [SerializeField] float arrivalThreshold = 0.3f;
+        [SerializeField] SpriteRenderer targetIndicator;
 
         static readonly Color HealthyColor = new(0.3f, 0.85f, 0.2f);
         static readonly Color HurtColor = new(1f, 0.85f, 0f);
@@ -95,7 +96,8 @@ namespace TypingDefense
                 transform.position = Vector3.MoveTowards(
                     transform.position, target, _speed * Time.deltaTime);
 
-                if (Vector3.Distance(transform.position, target) <= arrivalThreshold)
+                var effectiveThreshold = arrivalThreshold + _blackHole.SizeBonus;
+                if (Vector3.Distance(transform.position, target) <= effectiveThreshold)
                 {
                     WordReachedBlackHole();
                     return;
@@ -112,7 +114,8 @@ namespace TypingDefense
             transform.position = Vector3.MoveTowards(
                 transform.position, bhPos, _collectionConfig.wordHomingSpeed * Time.deltaTime);
 
-            if (Vector3.Distance(transform.position, bhPos) > arrivalThreshold) return;
+            var effectiveThreshold = arrivalThreshold + _blackHole.SizeBonus;
+            if (Vector3.Distance(transform.position, bhPos) > effectiveThreshold) return;
 
             _isDead = true;
             _collectionPhase.HandleWordHitBlackHole();
@@ -253,6 +256,17 @@ namespace TypingDefense
             PlayDissolve(new Color(0.5f, 0.5f, 0.5f), new Color(0.3f, 0.3f, 0.3f), 0.08f, 0.4f);
         }
 
+        public void SetTargeted(bool targeted)
+        {
+            targetIndicator.enabled = targeted;
+            targetIndicator.transform.DOKill();
+            if (!targeted) return;
+            targetIndicator.transform.rotation = Quaternion.identity;
+            targetIndicator.transform.DORotate(new Vector3(0, 0, -360), 3f, RotateMode.FastBeyond360)
+                .SetEase(Ease.Linear)
+                .SetLoops(-1);
+        }
+
         void PlayDissolve(Color mainColor, Color edgeColor, float edgeWidth, float duration)
         {
             if (_dissolveMaterial == null) return;
@@ -269,6 +283,8 @@ namespace TypingDefense
         void OnDestroy()
         {
             transform.DOKill();
+            label.DOKill();
+            targetIndicator.transform.DOKill();
             if (_dissolveMaterial != null)
                 Destroy(_dissolveMaterial);
         }
