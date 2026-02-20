@@ -144,7 +144,9 @@ namespace TypingDefense
         {
             var matched = _word.Text.Substring(0, _word.MatchedCount);
             var remaining = _word.Text.Substring(_word.MatchedCount);
-            label.text = $"<color=#2E7D32>{matched}</color><color=#263238>{remaining}</color>";
+            var matchedColor = _word.Type == WordType.Blue ? "#00B8D4" : "#2E7D32";
+            var remainingColor = _word.Type == WordType.Blue ? "#0277BD" : "#263238";
+            label.text = $"<color={matchedColor}>{matched}</color><color={remainingColor}>{remaining}</color>";
         }
 
         void SetupHpBar()

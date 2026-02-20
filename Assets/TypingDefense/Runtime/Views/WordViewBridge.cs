@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using Zenject;
 
@@ -46,6 +47,7 @@ namespace TypingDefense
             wordManager.OnBossDefeated += OnBossDefeated;
             wordManager.OnWordTextChanged += OnWordTextChanged;
             wordManager.OnAllWordsDissipated += OnAllWordsDissipated;
+            wordManager.OnExternalWordSpawned += OnExternalWordSpawned;
         }
 
         void OnDestroy()
@@ -60,6 +62,7 @@ namespace TypingDefense
             wordManager.OnBossDefeated -= OnBossDefeated;
             wordManager.OnWordTextChanged -= OnWordTextChanged;
             wordManager.OnAllWordsDissipated -= OnAllWordsDissipated;
+            wordManager.OnExternalWordSpawned -= OnExternalWordSpawned;
         }
 
         public Vector3 GetWordPosition(DefenseWord word)
@@ -157,6 +160,19 @@ namespace TypingDefense
 
             if (activeBossView != null)
                 activeBossView.OnTextChanged();
+        }
+
+        void OnExternalWordSpawned(DefenseWord word, Vector3 spawnPos, float speed)
+        {
+            var view = wordFactory.Create();
+            view.Setup(word, spawnPos, arenaView.CenterPosition, speed);
+            activeViews[word] = view;
+
+            if (word.Type == WordType.Blue)
+            {
+                view.transform.localScale = new Vector3(2f, 0.2f, 1f);
+                view.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
+            }
         }
 
         void OnAllWordsDissipated(IReadOnlyList<DefenseWord> words)

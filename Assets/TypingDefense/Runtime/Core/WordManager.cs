@@ -35,6 +35,7 @@ namespace TypingDefense
         public event Action<DefenseWord, string> OnWordTextChanged;
         public event Action OnKillCountChanged;
         public event Action<IReadOnlyList<DefenseWord>> OnAllWordsDissipated;
+        public event Action<DefenseWord, Vector3, float> OnExternalWordSpawned;
 
         LevelConfig CurrentLevelConfig => _levelConfig.GetLevel(_runManager.CurrentLevel);
 
@@ -100,6 +101,12 @@ namespace TypingDefense
         }
 
         public IReadOnlyList<DefenseWord> GetActiveWords() => _activeWords;
+
+        public void AddExternalWord(DefenseWord word, Vector3 spawnPosition, float speed)
+        {
+            _activeWords.Add(word);
+            OnExternalWordSpawned?.Invoke(word, spawnPosition, speed);
+        }
 
         public void PauseSpawning()
         {

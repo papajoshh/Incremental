@@ -24,5 +24,7 @@ namespace TypingDefense
         CollectionSpeed,
         LetterAttraction,
         CollectionDuration,
+        WallRevealRing0,
+        WallRevealRing1,
     }
 }

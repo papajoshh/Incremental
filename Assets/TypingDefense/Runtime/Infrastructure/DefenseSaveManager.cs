@@ -11,6 +11,7 @@ namespace TypingDefense
         readonly LetterTracker _letterTracker;
         readonly UpgradeTracker _upgradeTracker;
         readonly RunManager _runManager;
+        readonly WallTracker _wallTracker;
 
         float _saveTimer = AutoSaveInterval;
         DefenseSaveData _cachedData;
@@ -18,11 +19,13 @@ namespace TypingDefense
         public DefenseSaveManager(
             LetterTracker letterTracker,
             UpgradeTracker upgradeTracker,
-            RunManager runManager)
+            RunManager runManager,
+            WallTracker wallTracker)
         {
             _letterTracker = letterTracker;
             _upgradeTracker = upgradeTracker;
             _runManager = runManager;
+            _wallTracker = wallTracker;
         }
 
         public bool HasCompletedFirstRun => _cachedData != null && _cachedData.HasCompletedFirstRun;
@@ -53,6 +56,7 @@ namespace TypingDefense
             _cachedData.Coins = letterState.Coins;
             _cachedData.Upgrades = _upgradeTracker.CaptureState();
             _cachedData.PrestigeCurrency = _runManager.PrestigeCurrency;
+            _cachedData.BrokenWallSegments = _wallTracker.CaptureState();
 
             var json = JsonUtility.ToJson(_cachedData);
             PlayerPrefs.SetString(SaveKey, json);
@@ -127,6 +131,9 @@ namespace TypingDefense
                 _upgradeTracker.RestoreState(_cachedData.Upgrades);
 
             _runManager.RestorePrestigeCurrency(_cachedData.PrestigeCurrency);
+
+            if (_cachedData.BrokenWallSegments != null && _cachedData.BrokenWallSegments.Length > 0)
+                _wallTracker.RestoreState(_cachedData.BrokenWallSegments);
         }
     }
 }

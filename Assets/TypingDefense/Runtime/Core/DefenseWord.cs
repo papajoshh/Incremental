@@ -11,13 +11,15 @@ namespace TypingDefense
         public int CurrentHp { get; private set; }
         public bool IsDead => CurrentHp <= 0;
         public bool IsBoss { get; }
+        public WordType Type { get; }
 
-        public DefenseWord(string text, int maxHp = 1, bool isBoss = false)
+        public DefenseWord(string text, int maxHp = 1, bool isBoss = false, WordType type = WordType.Normal)
         {
             Text = text;
             MaxHp = maxHp;
             CurrentHp = maxHp;
             IsBoss = isBoss;
+            Type = type;
         }
 
         public bool TryMatchChar(char c)

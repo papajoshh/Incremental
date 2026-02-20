@@ -35,6 +35,7 @@ namespace TypingDefense
         PlayerStats playerStats;
         GameFlowController gameFlow;
         CameraShaker cameraShaker;
+        WallTracker wallTracker;
         LevelProgressionConfig levelConfig;
         CollectionPhaseController collectionPhase;
 
@@ -49,6 +50,7 @@ namespace TypingDefense
             PlayerStats playerStats,
             GameFlowController gameFlow,
             CameraShaker cameraShaker,
+            WallTracker wallTracker,
             LevelProgressionConfig levelConfig,
             CollectionPhaseController collectionPhase)
         {
@@ -58,9 +60,11 @@ namespace TypingDefense
             this.playerStats = playerStats;
             this.gameFlow = gameFlow;
             this.cameraShaker = cameraShaker;
+            this.wallTracker = wallTracker;
             this.levelConfig = levelConfig;
             this.collectionPhase = collectionPhase;
 
+            wallTracker.OnRingCompleted += OnWallRingCompleted;
             runManager.OnHpChanged += OnHpChanged;
             energyTracker.OnEnergyChanged += OnEnergyChanged;
             runManager.OnLevelChanged += OnLevelChanged;
@@ -84,6 +88,7 @@ namespace TypingDefense
 
         void OnDestroy()
         {
+            wallTracker.OnRingCompleted -= OnWallRingCompleted;
             runManager.OnHpChanged -= OnHpChanged;
             energyTracker.OnEnergyChanged -= OnEnergyChanged;
             runManager.OnLevelChanged -= OnLevelChanged;
@@ -302,6 +307,13 @@ namespace TypingDefense
             var punchIntensity = Mathf.Lerp(0.05f, 0.2f, ratio);
             killsFill.transform.DOComplete();
             killsFill.transform.DOPunchScale(Vector3.one * punchIntensity, 0.2f, 8, 0f);
+        }
+
+        void OnWallRingCompleted(int ring)
+        {
+            damageFlash.DOComplete();
+            damageFlash.color = new Color(0.4f, 0.9f, 1f, 0.4f);
+            damageFlash.DOFade(0f, 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
         }
 
         void OnBossDefeated(DefenseWord word)

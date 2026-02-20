@@ -13,6 +13,8 @@ namespace TypingDefense
         [SerializeField] DefenseWordView wordViewPrefab;
         [SerializeField] PhysicalLetter physicalLetterPrefab;
         [SerializeField] BlackHoleController blackHolePrefab;
+        [SerializeField] WallConfig wallConfig;
+        [SerializeField] WallSegmentView wallSegmentPrefab;
 
         public override void InstallBindings()
         {
@@ -21,6 +23,7 @@ namespace TypingDefense
             Container.BindInstance(bossConfig);
             Container.BindInstance(collectionPhaseConfig);
             Container.BindInstance(levelProgressionConfig);
+            Container.BindInstance(wallConfig);
 
             Container.BindInterfacesAndSelfTo<WordManager>().AsSingle();
             Container.BindInterfacesAndSelfTo<EnergyTracker>().AsSingle();
@@ -29,6 +32,9 @@ namespace TypingDefense
             Container.BindInterfacesAndSelfTo<PhysicalLetterSpawner>().AsSingle();
             Container.BindInterfacesAndSelfTo<BossDefeatSequencer>().AsSingle();
 
+            Container.BindInterfacesAndSelfTo<WallManager>().AsSingle();
+
+            Container.Bind<WallTracker>().AsSingle();
             Container.Bind<PlayerStats>().AsSingle();
             Container.Bind<LetterTracker>().AsSingle();
             Container.Bind<UpgradeTracker>().AsSingle();
@@ -51,11 +57,14 @@ namespace TypingDefense
             Container.Bind<CollectionTutorialView>().FromComponentInHierarchy().AsSingle();
             Container.Bind<TypeToSelectView>().FromComponentInHierarchy().AsSingle();
             Container.Bind<TypeToRetreatView>().FromComponentInHierarchy().AsSingle();
+            Container.Bind<WallViewBridge>().FromComponentInHierarchy().AsSingle();
 
             Container.BindFactory<DefenseWordView, DefenseWordView.Factory>()
                 .FromComponentInNewPrefab(wordViewPrefab);
             Container.BindFactory<PhysicalLetter, PhysicalLetter.Factory>()
                 .FromComponentInNewPrefab(physicalLetterPrefab);
+            Container.BindFactory<WallSegmentView, WallSegmentView.Factory>()
+                .FromComponentInNewPrefab(wallSegmentPrefab);
         }
     }
 }

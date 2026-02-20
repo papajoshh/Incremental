@@ -25,6 +25,7 @@ namespace TypingDefense
         public float CollectionSpeed;
         public float LetterAttraction;
         public float CollectionDuration;
+        public int WallRevealLevel;
 
         public PlayerStats(UpgradeGraphConfig config)
         {
@@ -54,6 +55,7 @@ namespace TypingDefense
             CollectionSpeed = b.CollectionSpeed;
             LetterAttraction = b.LetterAttraction;
             CollectionDuration = b.CollectionDuration;
+            WallRevealLevel = 0;
         }
 
         public void ApplyUpgrade(UpgradeId id, float value)
@@ -85,6 +87,8 @@ namespace TypingDefense
                 case UpgradeId.CollectionSpeed: CollectionSpeed = value; break;
                 case UpgradeId.LetterAttraction: LetterAttraction = value; break;
                 case UpgradeId.CollectionDuration: CollectionDuration = value; break;
+                case UpgradeId.WallRevealRing0: WallRevealLevel = UnityEngine.Mathf.Max(WallRevealLevel, 1); break;
+                case UpgradeId.WallRevealRing1: WallRevealLevel = UnityEngine.Mathf.Max(WallRevealLevel, 2); break;
             }
         }
     }

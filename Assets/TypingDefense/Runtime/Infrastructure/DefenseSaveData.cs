@@ -12,6 +12,7 @@ namespace TypingDefense
         public int PrestigeCurrency;
         public int HighestUnlockedLevel = 1;
         public bool[] DefeatedBossLevels = System.Array.Empty<bool>();
+        public bool[] BrokenWallSegments = System.Array.Empty<bool>();
     }
 
     [System.Serializable]

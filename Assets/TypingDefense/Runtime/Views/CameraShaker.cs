@@ -1,5 +1,6 @@
 using DG.Tweening;
 using UnityEngine;
+using Zenject;
 
 namespace TypingDefense
 {
@@ -7,12 +8,28 @@ namespace TypingDefense
     {
         [SerializeField] Transform cameraTransform;
         [SerializeField] RectTransform uiContainer;
+        [SerializeField] float followSmoothTime = 0.15f;
 
         Vector3 _cameraOriginalPos;
         Vector3 _rigOriginalPos;
         Transform _rigTransform;
         Camera _camera;
         float _baseOrthographicSize;
+
+        ArenaView _arenaView;
+        BlackHoleController _blackHole;
+        GameFlowController _gameFlow;
+
+        Vector3 _followVelocity;
+        bool _isCharging;
+
+        [Inject]
+        public void Construct(ArenaView arenaView, BlackHoleController blackHole, GameFlowController gameFlow)
+        {
+            _arenaView = arenaView;
+            _blackHole = blackHole;
+            _gameFlow = gameFlow;
+        }
 
         void Awake()
         {
@@ -21,6 +38,25 @@ namespace TypingDefense
             _rigOriginalPos = _rigTransform.position;
             _camera = cameraTransform.GetComponent<Camera>();
             _baseOrthographicSize = _camera.orthographicSize;
+        }
+
+        void LateUpdate()
+        {
+            if (_isCharging) return;
+
+            var state = _gameFlow.State;
+            if (state != GameState.Playing && state != GameState.Collecting) return;
+
+            var targetPos = _blackHole.Position;
+            targetPos.z = _rigOriginalPos.z;
+
+            var cameraBounds = _arenaView.GetCameraBounds();
+            targetPos.x = Mathf.Clamp(targetPos.x, cameraBounds.xMin, cameraBounds.xMax);
+            targetPos.y = Mathf.Clamp(targetPos.y, cameraBounds.yMin, cameraBounds.yMax);
+
+            _rigTransform.position = Vector3.SmoothDamp(
+                _rigTransform.position, targetPos, ref _followVelocity,
+                followSmoothTime, Mathf.Infinity, Time.unscaledDeltaTime);
         }
 
         public void Shake(float intensity, float duration, int vibrato = 14)
@@ -40,6 +76,7 @@ namespace TypingDefense
             float releaseShakeIntensity, float releaseShakeDuration, Vector3 targetWorldPosition)
         {
             DOTween.Kill(this);
+            _isCharging = true;
 
             var targetSize = _baseOrthographicSize * (1f - zoomFraction);
             var buildupDuration = chargeDuration * 0.85f;
@@ -48,8 +85,6 @@ namespace TypingDefense
 
             var seq = DOTween.Sequence().SetUpdate(true).SetTarget(this);
 
-            // Phase 1: zoom in + pan rig towards BH with escalating shake
-            // Pan moves the PARENT (transform) so Shake on cameraTransform doesn't interfere
             seq.Append(
                 DOTween.To(() => _camera.orthographicSize, v => _camera.orthographicSize = v,
                     targetSize, buildupDuration)
@@ -73,33 +108,40 @@ namespace TypingDefense
                     Shake(capturedIntensity, stepDuration * 1.2f, 8));
             }
 
-            // Phase 2: dramatic hold at max zoom
             seq.AppendInterval(holdDuration);
 
-            // Phase 3: RELEASE — snap back with overshoot + explosive shake
             seq.AppendCallback(() =>
-                Shake(releaseShakeIntensity, releaseShakeDuration, 20));
+            {
+                _isCharging = false;
+                Shake(releaseShakeIntensity, releaseShakeDuration, 20);
+            });
             seq.Append(
                 DOTween.To(() => _camera.orthographicSize, v => _camera.orthographicSize = v,
                     _baseOrthographicSize, 0.35f)
                 .SetEase(Ease.OutBack)
                 .SetUpdate(true)
             );
-            seq.Join(
-                _rigTransform.DOMove(_rigOriginalPos, 0.35f)
-                    .SetEase(Ease.OutBack)
-                    .SetUpdate(true)
-            );
 
             return seq;
+        }
+
+        public void ZoomPunch(float zoomAmount, float duration)
+        {
+            var targetSize = _baseOrthographicSize * (1f - zoomAmount);
+            DOTween.To(() => _camera.orthographicSize, v => _camera.orthographicSize = v,
+                targetSize, duration * 0.3f).SetEase(Ease.OutQuad).SetUpdate(true)
+                .OnComplete(() =>
+                    DOTween.To(() => _camera.orthographicSize, v => _camera.orthographicSize = v,
+                        _baseOrthographicSize, duration * 0.7f).SetEase(Ease.OutBack).SetUpdate(true));
         }
 
         public void ResetZoom()
         {
             DOTween.Kill(this);
+            _isCharging = false;
             _camera.orthographicSize = _baseOrthographicSize;
             cameraTransform.localPosition = _cameraOriginalPos;
-            _rigTransform.position = _rigOriginalPos;
+            _followVelocity = Vector3.zero;
         }
     }
 }

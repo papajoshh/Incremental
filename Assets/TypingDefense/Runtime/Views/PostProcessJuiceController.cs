@@ -27,18 +27,21 @@ namespace TypingDefense
         CollectionPhaseController _collectionPhase;
         RunManager _runManager;
         WordManager _wordManager;
+        WallTracker _wallTracker;
 
         [Inject]
         public void Construct(
             GameFlowController gameFlow,
             CollectionPhaseController collectionPhase,
             RunManager runManager,
-            WordManager wordManager)
+            WordManager wordManager,
+            WallTracker wallTracker)
         {
             _gameFlow = gameFlow;
             _collectionPhase = collectionPhase;
             _runManager = runManager;
             _wordManager = wordManager;
+            _wallTracker = wallTracker;
 
             gameFlow.OnStateChanged += OnStateChanged;
             collectionPhase.OnChargeStarted += OnChargeStarted;
@@ -48,6 +51,8 @@ namespace TypingDefense
             wordManager.OnBossHit += OnBossHit;
             wordManager.OnWordCompleted += OnWordKilled;
             wordManager.OnWordCriticalKill += OnCriticalKill;
+            wallTracker.OnSegmentBroken += OnWallSegmentBroken;
+            wallTracker.OnRingCompleted += OnWallRingCompleted;
         }
 
         void Start()
@@ -91,6 +96,8 @@ namespace TypingDefense
             _wordManager.OnBossHit -= OnBossHit;
             _wordManager.OnWordCompleted -= OnWordKilled;
             _wordManager.OnWordCriticalKill -= OnCriticalKill;
+            _wallTracker.OnSegmentBroken -= OnWallSegmentBroken;
+            _wallTracker.OnRingCompleted -= OnWallRingCompleted;
 
             DOTween.Kill(this);
             RestoreImmediate();
@@ -248,6 +255,44 @@ namespace TypingDefense
                 () => _vignette.intensity.value,
                 v => _vignette.intensity.value = v,
                 _baseVignetteIntensity, 0.3f).SetUpdate(true).SetEase(Ease.OutQuad).SetTarget(this);
+        }
+
+        void OnWallSegmentBroken(WallSegmentId id)
+        {
+            _bloom.intensity.value = _baseBloomIntensity + 1.5f;
+            DOTween.To(
+                () => _bloom.intensity.value,
+                v => _bloom.intensity.value = v,
+                _baseBloomIntensity, 0.25f).SetEase(Ease.OutQuad).SetTarget(this);
+
+            _chromatic.intensity.value = 0.25f;
+            DOTween.To(
+                () => _chromatic.intensity.value,
+                v => _chromatic.intensity.value = v,
+                0f, 0.2f).SetEase(Ease.OutQuad).SetTarget(this);
+        }
+
+        void OnWallRingCompleted(int ring)
+        {
+            DOTween.Kill(this);
+
+            _bloom.intensity.value = _baseBloomIntensity + 5f;
+            DOTween.To(
+                () => _bloom.intensity.value,
+                v => _bloom.intensity.value = v,
+                _baseBloomIntensity, 0.8f).SetUpdate(true).SetEase(Ease.OutQuad).SetTarget(this);
+
+            _chromatic.intensity.value = 0.7f;
+            DOTween.To(
+                () => _chromatic.intensity.value,
+                v => _chromatic.intensity.value = v,
+                0f, 0.5f).SetUpdate(true).SetEase(Ease.OutQuad).SetTarget(this);
+
+            _colorGrading.saturation.value = 30f;
+            DOTween.To(
+                () => _colorGrading.saturation.value,
+                v => _colorGrading.saturation.value = v,
+                _baseSaturation, 1f).SetUpdate(true).SetEase(Ease.OutQuad).SetTarget(this);
         }
 
         public void PlayBossDeathBurst()

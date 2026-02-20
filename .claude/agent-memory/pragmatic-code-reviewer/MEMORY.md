@@ -157,3 +157,18 @@
 - DefeatedBossLevels bool[] REJECTED: HighestUnlockedLevel int is sufficient (sequential unlock = YAGNI)
 - WordManager at 8 deps + growing responsibilities: monitor, split spawn/input if >400 lines post-changes
 - AutoCollect post-boss: define mechanism (PhysicalLetter AutoCollect mode vs full CollectionPhase reuse) before implementing
+
+### TypingDefense Review Decisions (Feb 2026 - Breakable Wall System)
+- InputDispatcher REJECTED: over-engineered for 2 char consumers. WallManager reads Input.inputString itself or subscribes to WordManager.OnInputError for unmatched chars
+- WallSegmentId readonly struct REJECTED: flat int index, derive ring/side with math if needed
+- BlueWordSpawner REJECTED: merge spawn timer into WallManager (~30 lines, bounded complexity)
+- CameraFollower REJECTED: add FollowTarget(Vector3) to CameraShaker, call from BlackHoleController.Update
+- DefenseWord.IsBlue REJECTED: view concern, not domain. Track blue identity in WallManager/WordViewBridge
+- Asymmetric per-side arena bounds REJECTED: uniform expansion when full ring broken. Add asymmetry only if playtesting demands it
+- WallConfig SO APPROVED: WallRingConfig[] + BlueWordConfig, standard config pattern
+- WallTracker APPROVED: HashSet<int> broken indices, CaptureState/RestoreState with bool[] in DefenseSaveData
+- WallManager APPROVED: ITickable plain class, absorbs blue word spawning, manages wall word matching
+- WallSegmentView APPROVED: MonoBehaviour prefab, standard view pattern
+- WallViewBridge SIMPLIFIED: static segment views spawned once at init, no Factory. Refresh state, no destroy/recreate
+- WallRevealLevel in PlayerStats + UpgradeId APPROVED: standard upgrade pattern
+- Final class count: 4 new files (WallConfig, WallTracker, WallManager, WallSegmentView) + WallViewBridge, not 9
